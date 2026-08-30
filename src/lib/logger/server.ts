@@ -43,6 +43,16 @@ const getRetentionDays = (level: LogLevel, retention: LogRetention): number => {
 
 export class ServerLogger {
   private async getLogSettings(): Promise<LogSettings> {
+    // Logging is optional. Tests and lightweight tooling often run without a
+    // database, so avoid initializing Prisma when no database is configured.
+    if (!process.env.DATABASE_URL) {
+      return {
+        logLevel: "none",
+        logDestination: "db",
+        logRetention: DEFAULT_RETENTION,
+      };
+    }
+
     try {
       const settings = await prisma.systemSettings.findFirst();
       return {

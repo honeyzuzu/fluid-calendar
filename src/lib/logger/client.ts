@@ -268,7 +268,7 @@ export class ClientLogger {
       if (timeSinceLastLog < 60000) {
         // 1 minute in milliseconds
         // Skip logging this occurrence
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV !== "production") {
           console.warn(
             `Error throttled (occurred ${cached.count} times): ${message}`
           );

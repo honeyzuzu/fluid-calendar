@@ -59,7 +59,9 @@ export class GoogleFieldMapper extends FieldMapper {
       },
       {
         internalField: "completedAt",
-        externalField: "completed",
+        // Provider payloads normalize Google's `completed` field to the
+        // cross-provider `completedDate` property before mapping.
+        externalField: "completedDate",
         preserveLocalValue: true,
         transformToExternal: (value: unknown) => {
           if (!value) return null;

@@ -10,6 +10,8 @@ const publicRoutes = [
   "/auth/reset-password",
   "/auth/error",
   "/api/auth/register",
+  // Static, data-free product previews used during design development.
+  "/preview",
   "/beta",
   "/terms",
   "/privacy",

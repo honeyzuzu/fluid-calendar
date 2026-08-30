@@ -89,7 +89,10 @@ export class GoogleTaskProvider implements TaskProviderInterface {
             description: t.notes || null,
             status: t.status || undefined,
             listId,
-            dueDate: t.due ? new Date(t.due as string) : undefined,
+            // Google Tasks exposes only one date (`due`). FluidCalendar treats
+            // that provider-owned date as the task's scheduled/start date;
+            // the internal dueDate remains local-only.
+            startDate: t.due ? new Date(t.due as string) : undefined,
             completedDate: (t.completed && new Date(t.completed as string)) || undefined,
             lastModified: t.updated ? new Date(t.updated as string) : undefined,
             lastModifiedDateTime: t.updated as string | undefined,
@@ -111,7 +114,7 @@ export class GoogleTaskProvider implements TaskProviderInterface {
         notes: task.description || undefined,
       };
 
-      if (task.dueDate) body.due = new Date(task.dueDate).toISOString();
+      if (task.startDate) body.due = new Date(task.startDate).toISOString();
       if (task.status) body.status = this.mapStatusToGoogle(task.status as string);
 
       const res = await this.client.tasks.insert({ tasklist: listId, requestBody: body });
@@ -124,7 +127,7 @@ export class GoogleTaskProvider implements TaskProviderInterface {
         description: t.notes || null,
         status: t.status || undefined,
         listId,
-        dueDate: t.due ? new Date(t.due as string) : undefined,
+        startDate: t.due ? new Date(t.due as string) : undefined,
         completedDate: (t.completed && new Date(t.completed as string)) || undefined,
         lastModified: t.updated ? new Date(t.updated as string) : undefined,
         lastModifiedDateTime: t.updated as string | undefined,
@@ -139,7 +142,11 @@ export class GoogleTaskProvider implements TaskProviderInterface {
 
       if (updates.title !== undefined) body.title = updates.title;
       if (updates.description !== undefined) body.notes = updates.description || undefined;
-      if (updates.dueDate !== undefined) body.due = updates.dueDate ? new Date(updates.dueDate).toISOString() : null;
+      if (updates.startDate !== undefined) {
+        body.due = updates.startDate
+          ? new Date(updates.startDate).toISOString()
+          : null;
+      }
       if (updates.status !== undefined) body.status = this.mapStatusToGoogle(updates.status as string | null);
 
       const res = await this.client.tasks.patch({ tasklist: listId, task: taskId, requestBody: body });
@@ -152,7 +159,7 @@ export class GoogleTaskProvider implements TaskProviderInterface {
         description: t.notes || null,
         status: t.status || undefined,
         listId,
-        dueDate: t.due ? new Date(t.due as string) : undefined,
+        startDate: t.due ? new Date(t.due as string) : undefined,
         completedDate: (t.completed && new Date(t.completed as string)) || undefined,
         lastModified: t.updated ? new Date(t.updated as string) : undefined,
         lastModifiedDateTime: t.updated as string | undefined,
@@ -196,7 +203,7 @@ export class GoogleTaskProvider implements TaskProviderInterface {
       await this.getTaskLists();
       return true;
     } catch (error) {
-      logger.error(
+      await logger.error(
         "Failed to validate Google connection",
         { error: error instanceof Error ? error.message : String(error) },
         LOG_SOURCE
@@ -285,7 +292,7 @@ export class GoogleTaskProvider implements TaskProviderInterface {
 
         const msg = err instanceof Error ? err.message : String(err);
 
-        logger.error(
+        await logger.error(
           `Google API error during ${operation}`,
           { error: msg, attempt, status: status ?? null },
           LOG_SOURCE
