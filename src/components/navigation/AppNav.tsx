@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { BsListTask, BsCalendar } from "react-icons/bs";
-import { HiOutlineLightBulb, HiOutlineSearch } from "react-icons/hi";
+import { HiOutlineLightBulb, HiOutlineSearch, HiOutlineSparkles } from "react-icons/hi";
 import { RiKeyboardLine } from "react-icons/ri";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ export function AppNav({ className }: AppNavProps) {
   };
 
   const links = [
+    { href: "/plan", label: "Plan", icon: HiOutlineSparkles },
     { href: "/calendar", label: "Calendar", icon: BsCalendar },
     { href: "/tasks", label: "Tasks", icon: BsListTask },
     { href: "/focus", label: "Focus", icon: HiOutlineLightBulb },
