@@ -3,7 +3,7 @@ export interface CalendarFeed {
   name: string;
   url?: string; // Make optional since local calendar won't have URL
   type: "GOOGLE" | "OUTLOOK" | "CALDAV";
-  color?: string;
+  color?: string | null;
   enabled: boolean;
   lastSync?: Date;
   error?: string;
@@ -36,7 +36,7 @@ export interface CalendarEvent {
   isRecurring: boolean;
   recurrenceRule?: string;
   allDay: boolean;
-  color?: string;
+  color?: string | null;
   // Additional fields for iCal support
   uid?: string; // Unique identifier from iCal
   sequence?: number; // Modification sequence

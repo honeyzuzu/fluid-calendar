@@ -106,7 +106,14 @@ export async function POST(request: NextRequest) {
       LOG_SOURCE
     );
 
-    return NextResponse.json(createdEvent);
+    const savedEvent = eventData.color
+      ? await prisma.calendarEvent.update({
+          where: { id: createdEvent.id },
+          data: { color: eventData.color },
+        })
+      : createdEvent;
+
+    return NextResponse.json(savedEvent);
   } catch (error) {
     logger.error(
       "Failed to create CalDAV event",
@@ -222,7 +229,15 @@ export async function PUT(request: NextRequest) {
       LOG_SOURCE
     );
 
-    return NextResponse.json(updatedEvent);
+    const savedEvent =
+      "color" in updates
+        ? await prisma.calendarEvent.update({
+            where: { id: updatedEvent.id },
+            data: { color: updates.color || null },
+          })
+        : updatedEvent;
+
+    return NextResponse.json(savedEvent);
   } catch (error) {
     logger.error(
       "Failed to update CalDAV event",

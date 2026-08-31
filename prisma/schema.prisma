@@ -179,6 +179,7 @@ model CalendarEvent {
   start           DateTime
   end             DateTime
   location        String?
+  color           String? // Optional Sunnie-only override; falls back to the feed color
   isRecurring     Boolean      @default(false)
   recurrenceRule  String?
   allDay          Boolean      @default(false)

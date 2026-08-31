@@ -86,11 +86,15 @@ export function MultiMonthView({
           backgroundColor:
             item.feedId === "tasks"
               ? item.color || "#4f46e5"
-              : feeds.find((f) => f.id === item.feedId)?.color || "#3b82f6",
+              : item.color ||
+                feeds.find((f) => f.id === item.feedId)?.color ||
+                "#3b82f6",
           borderColor:
             item.feedId === "tasks"
               ? item.color || "#4f46e5"
-              : feeds.find((f) => f.id === item.feedId)?.color || "#3b82f6",
+              : item.color ||
+                feeds.find((f) => f.id === item.feedId)?.color ||
+                "#3b82f6",
           allDay: item.allDay,
           classNames: [
             item.extendedProps?.isTask ? "calendar-task" : "calendar-event",

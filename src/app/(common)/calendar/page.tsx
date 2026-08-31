@@ -99,6 +99,7 @@ export default async function HomePage() {
       start: event.start,
       end: event.end,
       location: event.location || undefined,
+      color: event.color || undefined,
       isRecurring: event.isRecurring,
       recurrenceRule: event.recurrenceRule || undefined,
       allDay: event.allDay,

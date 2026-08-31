@@ -531,6 +531,17 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Preserve Sunnie-only per-event color overrides across a full sync.
+    const existingColorOverrides = await prisma.calendarEvent.findMany({
+      where: { feedId, color: { not: null } },
+      select: { externalEventId: true, color: true },
+    });
+    const colorOverrides = new Map(
+      existingColorOverrides
+        .filter((event) => event.externalEventId && event.color)
+        .map((event) => [event.externalEventId as string, event.color as string])
+    );
+
     // Now perform database operations in transaction
     await prisma.$transaction(async (tx) => {
       console.log("Deleting existing events");
@@ -569,6 +580,7 @@ export async function PUT(request: NextRequest) {
               ? createAllDayDate(event.end?.date || "")
               : newDate(event.end?.dateTime || event.end?.date || ""),
             location: event.location,
+            color: event.id ? colorOverrides.get(event.id) : undefined,
             isRecurring: !!event.recurringEventId || !!event.recurrence,
             recurringEventId: event.recurringEventId,
             recurrenceRule: processRecurrenceRule(

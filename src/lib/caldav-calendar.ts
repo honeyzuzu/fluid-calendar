@@ -527,6 +527,21 @@ export class CalDAVCalendarService {
       if (!feed) {
         throw new Error(`Calendar feed not found for path: ${calendarPath}`);
       }
+
+      // A color override belongs to Sunnie, not the remote CalDAV event. Keep
+      // it when the provider sync replaces the local event rows.
+      const existingColorOverrides = await prisma.calendarEvent.findMany({
+        where: { feedId: feed.id, color: { not: null } },
+        select: { externalEventId: true, color: true },
+      });
+      const colorOverrides = new Map(
+        existingColorOverrides
+          .filter((event) => event.externalEventId && event.color)
+          .map((event) => [
+            event.externalEventId as string,
+            event.color as string,
+          ])
+      );
       //delete all events from the database
       await prisma.calendarEvent.deleteMany({
         where: {
@@ -550,7 +565,11 @@ export class CalDAVCalendarService {
       // Process events and update database
       // const result = await this.processEvents(events, existingEvents, feed.id);
 
-      const result = await this.createAllEvents(events, feed.id);
+      const result = await this.createAllEvents(
+        events,
+        feed.id,
+        colorOverrides
+      );
       // Update the feed's last sync time and sync token
       await prisma.calendarFeed.update({
         where: { id: feed.id, userId },
@@ -1303,7 +1322,8 @@ export class CalDAVCalendarService {
 
   private async createAllEvents(
     events: CalendarEvent[],
-    feedId: string
+    feedId: string,
+    colorOverrides: Map<string, string> = new Map()
   ): Promise<SyncResult> {
     try {
       // Separate master events and instances
@@ -1313,7 +1333,8 @@ export class CalDAVCalendarService {
       // Create master events first
       const createdMasterEvents = await this.createMasterEvents(
         masterEvents,
-        feedId
+        feedId,
+        colorOverrides
       );
 
       // Create a map of external IDs to database IDs for linking instances
@@ -1328,7 +1349,8 @@ export class CalDAVCalendarService {
       const createdInstanceEvents = await this.createInstanceEvents(
         instanceEvents,
         masterEventMap,
-        feedId
+        feedId,
+        colorOverrides
       );
 
       return {
@@ -1351,7 +1373,8 @@ export class CalDAVCalendarService {
 
   private async createMasterEvents(
     masterEvents: CalendarEvent[],
-    feedId: string
+    feedId: string,
+    colorOverrides: Map<string, string>
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1367,6 +1390,9 @@ export class CalDAVCalendarService {
           start: event.start,
           end: event.end,
           location: event.location,
+          color: event.externalEventId
+            ? colorOverrides.get(event.externalEventId)
+            : undefined,
           isRecurring: event.isRecurring || false,
           recurrenceRule: event.recurrenceRule,
           allDay: event.allDay || false,
@@ -1404,7 +1430,8 @@ export class CalDAVCalendarService {
   private async createInstanceEvents(
     instanceEvents: CalendarEvent[],
     masterEventMap: Map<string, string>,
-    feedId: string
+    feedId: string,
+    colorOverrides: Map<string, string>
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1429,6 +1456,9 @@ export class CalDAVCalendarService {
           start: event.start,
           end: event.end,
           location: event.location,
+          color: event.externalEventId
+            ? colorOverrides.get(event.externalEventId)
+            : undefined,
           isRecurring: event.isRecurring || false, // Instance events are not recurring themselves
           recurrenceRule: event.recurrenceRule, // Instance events don't have recurrence rules
           allDay: event.allDay || false,

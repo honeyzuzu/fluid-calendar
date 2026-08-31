@@ -26,7 +26,8 @@ type GoogleEvent = calendar_v3.Schema$Event;
 async function writeEventToDatabase(
   feedId: string,
   event: GoogleEvent,
-  instances?: GoogleEvent[]
+  instances?: GoogleEvent[],
+  color?: string | null
 ) {
   const isRecurring = !!event.recurrence;
   const isAllDay = event.start ? !event.start.dateTime : false;
@@ -46,6 +47,7 @@ async function writeEventToDatabase(
           ? createAllDayDate(event.end?.date || "")
           : newDate(event.end?.dateTime || event.end?.date || ""),
         location: event.location,
+        color,
         isRecurring: isRecurring,
         recurrenceRule: event.recurrence?.[0],
         allDay: isAllDay,
@@ -90,6 +92,7 @@ async function writeEventToDatabase(
             ? createAllDayDate(instance.end?.date || "")
             : newDate(instance.end?.dateTime || instance.end?.date || ""),
           location: instance.location,
+          color,
           isRecurring: true,
           recurrenceRule: event.recurrence?.[0],
           recurringEventId: instance.recurringEventId,
@@ -180,7 +183,12 @@ export async function POST(request: NextRequest) {
     );
 
     // Create the event record(s) in our database
-    const records = await writeEventToDatabase(feed.id, event, instances);
+    const records = await writeEventToDatabase(
+      feed.id,
+      event,
+      instances,
+      eventData.color
+    );
 
     return NextResponse.json(records);
   } catch (error) {
@@ -251,7 +259,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Delete existing event and any related instances from our database
-    deleteCalendarEvent(validatedEvent.id, mode);
+    await deleteCalendarEvent(validatedEvent.id, mode);
 
     // Get the updated event and its instances
     const { event: updatedEvent, instances } = await getGoogleEvent(
@@ -265,7 +273,8 @@ export async function PUT(request: NextRequest) {
     const records = await writeEventToDatabase(
       validatedEvent.feed.id,
       updatedEvent,
-      instances
+      instances,
+      "color" in updates ? updates.color : validatedEvent.color
     );
 
     return NextResponse.json(records);

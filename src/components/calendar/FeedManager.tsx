@@ -13,7 +13,8 @@ import { MiniCalendar } from "./MiniCalendar";
 
 export function FeedManager() {
   const [syncingFeeds, setSyncingFeeds] = useState<Set<string>>(new Set());
-  const { feeds, removeFeed, toggleFeed, syncFeed } = useCalendarStore();
+  const { feeds, removeFeed, toggleFeed, updateFeed, syncFeed } =
+    useCalendarStore();
   const { date: currentDate, setDate } = useViewStore();
 
   const handleRemoveFeed = useCallback(
@@ -64,12 +65,24 @@ export function FeedManager() {
                   onCheckedChange={() => toggleFeed(feed.id)}
                   className="h-4 w-4"
                 />
-                <div
-                  className="h-3 w-3 flex-shrink-0 rounded-full"
+                <label
+                  className="relative h-5 w-5 flex-shrink-0 cursor-pointer rounded-full border-2 border-background shadow-sm ring-1 ring-border transition-transform hover:scale-110"
                   style={{
-                    backgroundColor: feed.color || "hsl(var(--primary))",
+                    backgroundColor: feed.color || "#f8c95d",
                   }}
-                />
+                  title={`Change ${feed.name} color`}
+                >
+                  <span className="sr-only">Change {feed.name} color</span>
+                  <input
+                    type="color"
+                    value={feed.color || "#f8c95d"}
+                    onChange={(event) =>
+                      updateFeed(feed.id, { color: event.target.value })
+                    }
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    aria-label={`Change ${feed.name} color`}
+                  />
+                </label>
                 <span className="calendar-name max-w-[150px] truncate text-sm text-foreground">
                   {feed.name}
                 </span>

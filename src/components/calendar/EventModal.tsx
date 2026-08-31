@@ -156,6 +156,7 @@ export function EventModal({
   );
   const [isAllDay, setIsAllDay] = useState(event?.allDay || false);
   const [isRecurring, setIsRecurring] = useState(event?.isRecurring || false);
+  const [color, setColor] = useState(event?.color || "");
   const [recurrenceFreq, setRecurrenceFreq] = useState("");
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
@@ -184,6 +185,7 @@ export function EventModal({
       setSelectedFeedId(event?.feedId || calendar.defaultCalendarId || "");
       setIsAllDay(event?.allDay || false);
       setIsRecurring(event?.isRecurring || false);
+      setColor(event?.color || "");
       const { freq, interval, byDay } = parseRecurrenceRule(
         event?.recurrenceRule
       );
@@ -241,6 +243,7 @@ export function EventModal({
             )
           : undefined,
         isMaster: false,
+        color: color || null,
       };
 
       if (event?.id) {
@@ -405,6 +408,38 @@ export function EventModal({
                     ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="event-color">Event color</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="event-color"
+                  type="color"
+                  value={
+                    color ||
+                    feeds.find((feed) => feed.id === selectedFeedId)?.color ||
+                    "#f8c95d"
+                  }
+                  onChange={(event) => setColor(event.target.value)}
+                  className="h-10 w-14 cursor-pointer p-1"
+                  aria-label="Choose an event color"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setColor("")}
+                  disabled={!color}
+                >
+                  Use calendar color
+                </Button>
+                {color && (
+                  <span className="text-xs text-muted-foreground">
+                    Custom color
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -613,6 +648,7 @@ export function EventModal({
     setEndDate(newDate(Date.now() + 3600000));
     setIsAllDay(false);
     setIsRecurring(false);
+    setColor("");
     setRecurrenceFreq("");
     setRecurrenceInterval(1);
     setRecurrenceByDay([]);
