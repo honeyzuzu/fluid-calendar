@@ -5,9 +5,11 @@ export const metadata: Metadata = {
   description: "A calm daily planner and shared calendar for friends",
   icons: {
     icon: [
-      { url: "/logo.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/logo.svg", type: "image/svg+xml", sizes: "64x64" },
+      { url: "/sunnie-sun.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/sunnie-sun.svg", type: "image/svg+xml", sizes: "64x64" },
     ],
-    apple: [{ url: "/logo.svg", type: "image/svg+xml", sizes: "180x180" }],
+    apple: [
+      { url: "/sunnie-sun.svg", type: "image/svg+xml", sizes: "180x180" },
+    ],
   },
 };
