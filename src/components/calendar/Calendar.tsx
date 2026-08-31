@@ -98,7 +98,7 @@ export function Calendar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "h-full w-80 flex-none border-r border-gray-200 bg-white",
+          "h-full w-80 flex-none border-r border-[#dfe2c8] bg-[#fffdf5]",
           "transform transition-transform duration-300 ease-in-out",
           !isHydrated && "opacity-0 duration-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -117,11 +117,11 @@ export function Calendar({
       </aside>
 
       {/* Main Content */}
-      <main className="flex min-w-0 flex-1 flex-col bg-background">
+      <main className="flex min-w-0 flex-1 flex-col bg-[#fff9e8]">
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="flex h-16 flex-none items-center border-b border-border px-4">
+        <header className="flex h-16 flex-none items-center border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-4 backdrop-blur-sm">
           <button
             onClick={() => setSidebarOpen(!isSidebarOpen)}
             className="rounded-lg p-2 text-foreground hover:bg-muted"

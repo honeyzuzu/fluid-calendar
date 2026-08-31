@@ -5,26 +5,26 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --background: 48 100% 96%;
+    --foreground: 72 18% 22%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card: 48 67% 98%;
+    --card-foreground: 72 18% 22%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+    --popover: 48 67% 98%;
+    --popover-foreground: 72 18% 22%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 86 22% 37%;
+    --primary-foreground: 48 100% 96%;
 
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
+    --secondary: 47 58% 89%;
+    --secondary-foreground: 67 25% 26%;
 
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted: 76 39% 91%;
+    --muted-foreground: 72 12% 42%;
 
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 45 85% 73%;
+    --accent-foreground: 40 52% 24%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -32,11 +32,11 @@
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 89%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --border: 74 20% 82%;
+    --input: 74 20% 82%;
+    --ring: 86 22% 37%;
 
-    --radius: 0.5rem;
+    --radius: 0.9rem;
 
     --chart-1: 12 76% 61%;
 
@@ -50,37 +50,28 @@
   }
 
   .dark {
-    color-scheme: dark;
-    --background: 220 10% 12%;
-    --foreground: 0 0% 98%;
-
-    --card: 220 10% 12%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 220 10% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 220 10% 12%;
-
-    --secondary: 220 10% 18%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 220 10% 18%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --accent: 220 10% 18%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --warning: 48 96% 89%;
-    --warning-foreground: 38 92% 50%;
-
-    --border: 220 10% 20%;
-    --input: 220 10% 20%;
-    --ring: 0 0% 83.1%;
+    color-scheme: light;
+    --background: 48 100% 96%;
+    --foreground: 72 18% 22%;
+    --card: 48 67% 98%;
+    --card-foreground: 72 18% 22%;
+    --popover: 48 67% 98%;
+    --popover-foreground: 72 18% 22%;
+    --primary: 86 22% 37%;
+    --primary-foreground: 48 100% 96%;
+    --secondary: 47 58% 89%;
+    --secondary-foreground: 67 25% 26%;
+    --muted: 76 39% 91%;
+    --muted-foreground: 72 12% 42%;
+    --accent: 45 85% 73%;
+    --accent-foreground: 40 52% 24%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 48 100% 96%;
+    --warning: 45 85% 73%;
+    --warning-foreground: 40 52% 24%;
+    --border: 74 20% 82%;
+    --input: 74 20% 82%;
+    --ring: 86 22% 37%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -103,6 +94,40 @@
   }
 }
 
+@layer components {
+  .sunnie-app {
+    background:
+      radial-gradient(circle at 7% 18%, rgba(248, 201, 93, 0.16), transparent 22rem),
+      radial-gradient(circle at 94% 12%, rgba(184, 217, 139, 0.18), transparent 25rem),
+      #fff9e8;
+  }
+
+  .sunnie-app .bg-white,
+  .sunnie-app .dark\:bg-gray-800,
+  .sunnie-app .dark\:bg-gray-900 {
+    background-color: #fffdf5 !important;
+  }
+
+  .sunnie-app .bg-gray-50,
+  .sunnie-app .dark\:bg-gray-700 {
+    background-color: #f8f3dc !important;
+  }
+
+  .sunnie-app .border-gray-200,
+  .sunnie-app .dark\:border-gray-700 {
+    border-color: #dfe2c8 !important;
+  }
+
+  .sunnie-app .text-blue-600,
+  .sunnie-app .dark\:text-blue-400 {
+    color: #64734a !important;
+  }
+
+  .sunnie-app .bg-blue-600 {
+    background-color: #64734a !important;
+  }
+}
+
 /* FullCalendar Customization */
 .fc {
   @apply h-full;
@@ -118,10 +143,17 @@
 
 .fc .fc-button {
   @apply bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  background-color: #fffdf5;
+  border-color: #dfe2c8;
+  color: #596044;
+  border-radius: 0.75rem;
 }
 
 .fc .fc-button-primary {
   @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
+  background-color: #64734a;
+  border-color: #64734a;
+  color: #fff9e8;
 }
 
 .fc .fc-daygrid-day-frame {
@@ -166,6 +198,7 @@
 
 .fc .fc-day-today {
   @apply bg-blue-50/30;
+  background-color: rgba(248, 228, 161, 0.38) !important;
 }
 
 .fc .fc-day-header {
@@ -178,6 +211,8 @@
 
 .fc .fc-col-header-cell {
   @apply bg-white border-b border-gray-200;
+  background-color: #fffdf5;
+  border-color: #dfe2c8;
 }
 
 /* Dark mode styles for FullCalendar */

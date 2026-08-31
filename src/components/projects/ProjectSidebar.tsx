@@ -154,7 +154,7 @@ export function ProjectSidebar() {
 
   return (
     <>
-      <div className="flex h-full w-64 flex-col border-r bg-background">
+      <div className="flex h-full w-64 flex-col border-r border-[#dfe2c8] bg-[#fffdf5]">
         <div className="border-b p-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Projects</h2>

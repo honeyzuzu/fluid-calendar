@@ -11,8 +11,6 @@ import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { SetupCheck } from "@/components/setup/SetupCheck";
 import { CommandPalette } from "@/components/ui/command-palette";
-import { CommandPaletteFab } from "@/components/ui/command-palette-fab";
-import { CommandPaletteHint } from "@/components/ui/command-palette-hint";
 import { ShortcutsModal } from "@/components/ui/shortcuts-modal";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -66,7 +64,7 @@ export default function RootLayout({
   }, [setShortcutsOpen]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="sunnie-app relative flex min-h-screen flex-col overflow-x-clip">
       <SessionProvider>
         <PrivacyProvider>
           <DndProvider>
@@ -75,17 +73,17 @@ export default function RootLayout({
               open={commandPaletteOpen}
               onOpenChange={setCommandPaletteOpen}
             />
-            <CommandPaletteHint />
-            <CommandPaletteFab />
             <ShortcutsModal
               isOpen={shortcutsOpen}
               onClose={() => setShortcutsOpen(false)}
             />
             <AppNav />
-            <main className="relative flex-1">
+            <div aria-hidden="true" className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[#f8c95d]/10 blur-3xl" />
+            <div aria-hidden="true" className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[#b8d98b]/15 blur-3xl" />
+            <main className="relative z-[1] flex-1">
               <NotificationProvider>{children}</NotificationProvider>
             </main>
-            <footer className="flex-none border-t border-border bg-background px-4 py-2">
+            <footer className="relative z-[1] flex-none border-t border-[#dfe2c8] bg-[#f7f0d6]/90 px-4 py-2">
               <div className="flex justify-end">
                 <VersionBadge />
               </div>

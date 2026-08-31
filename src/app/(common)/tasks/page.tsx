@@ -111,13 +111,13 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-[#fff9e8]">
       <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
-        <div className="border-b border-border px-6 py-4">
+        <div className="border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-6 py-4 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
+              <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">Little things, lovingly planned</p><h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">Tasks</h1></div>
               <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
                 <button
                   onClick={() => setViewMode("list")}

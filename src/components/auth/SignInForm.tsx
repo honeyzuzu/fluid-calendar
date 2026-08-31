@@ -135,12 +135,12 @@ export function SignInForm() {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md">
+    <Card className="mx-auto w-full max-w-md border-[#dfe2c8] bg-[#fffdf5]/95 shadow-[0_18px_55px_rgba(95,103,64,0.13)]">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">
-          Welcome to Sunnie Planner
+          Your cozy corner
         </CardTitle>
-        <CardDescription>Sign in to your account to continue</CardDescription>
+        <CardDescription>Sign in to plan a gentler day.</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs
@@ -188,7 +188,7 @@ export function SignInForm() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-[#64734a]" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
@@ -229,7 +229,7 @@ export function SignInForm() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-[#64734a]" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
@@ -238,7 +238,7 @@ export function SignInForm() {
         </Tabs>
       </CardContent>
       <CardFooter className="flex justify-center text-sm text-muted-foreground">
-        By signing in, you agree to our Terms of Service and Privacy Policy.
+        A private little place for you and your friends.
       </CardFooter>
     </Card>
   );

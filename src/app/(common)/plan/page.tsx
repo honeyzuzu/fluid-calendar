@@ -230,7 +230,7 @@ export default function PlanPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#f6f4ef] p-5 text-[#292823] lg:p-8">
+    <div className="min-h-full bg-[#fff9e8] p-5 text-[#3f432e] lg:p-8">
       <div className="mx-auto max-w-[1440px]">
         <div className="mb-7 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
@@ -253,7 +253,7 @@ export default function PlanPage() {
         {error && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
         {loading ? (
-          <div className="grid min-h-[420px] place-items-center"><Loader2 className="h-7 w-7 animate-spin text-[#ef7651]" /></div>
+          <div className="grid min-h-[420px] place-items-center"><Loader2 className="h-7 w-7 animate-spin text-[#d0902f]" /></div>
         ) : (
           <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
             <section className="overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm">
@@ -261,8 +261,8 @@ export default function PlanPage() {
                 <h2 className="font-semibold">Today&apos;s list</h2>
                 <p className="mt-1 text-xs text-black/42">Real tasks saved to your account.</p>
                 <form onSubmit={createTask} className="mt-4 flex gap-2">
-                  <input value={newTaskTitle} onChange={(event) => setNewTaskTitle(event.target.value)} placeholder="Add a task for today" className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-[#ef7651]" />
-                  <button disabled={saving || !newTaskTitle.trim()} className="grid h-10 w-10 place-items-center rounded-xl bg-[#ef7651] text-white disabled:opacity-40"><Plus className="h-4 w-4" /></button>
+                  <input value={newTaskTitle} onChange={(event) => setNewTaskTitle(event.target.value)} placeholder="Add a task for today" className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-[#d0902f]" />
+                  <button disabled={saving || !newTaskTitle.trim()} className="grid h-10 w-10 place-items-center rounded-xl bg-[#e9ae43] text-[#493916] shadow-[0_3px_0_#c88d2b] disabled:opacity-40"><Plus className="h-4 w-4" /></button>
                 </form>
               </div>
               <div className="space-y-2 p-3">
@@ -270,7 +270,7 @@ export default function PlanPage() {
                 {todayTasks.map((task) => (
                   <article key={task.id} className="rounded-xl border border-black/[0.055] bg-white p-3.5">
                     <div className="flex items-start gap-3">
-                      <button onClick={() => updateTask(task.id, { status: task.status === "completed" ? "todo" : "completed" })} className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border ${task.status === "completed" ? "border-[#ef7651] bg-[#ef7651] text-white" : "border-black/20"}`}>
+                      <button onClick={() => updateTask(task.id, { status: task.status === "completed" ? "todo" : "completed" })} className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border ${task.status === "completed" ? "border-[#84a75e] bg-[#84a75e] text-white" : "border-black/20"}`}>
                         {task.status === "completed" && <Check className="h-3 w-3" />}
                       </button>
                       <div className="min-w-0 flex-1">
@@ -299,7 +299,7 @@ export default function PlanPage() {
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">Inbox</p>
                 {inboxTasks.length === 0 && <p className="py-3 text-xs text-black/35">Nothing waiting in your inbox.</p>}
                 {inboxTasks.map((task) => (
-                  <button key={task.id} onClick={() => updateTask(task.id, { startDate: new Date(`${selectedKey}T12:00:00`).toISOString() })} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-black/[0.035]"><Plus className="h-3.5 w-3.5 text-[#ef7651]" /><span className="flex-1 truncate">{task.title}</span><span className="text-black/30">Add today</span></button>
+                  <button key={task.id} onClick={() => updateTask(task.id, { startDate: new Date(`${selectedKey}T12:00:00`).toISOString() })} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-black/[0.035]"><Plus className="h-3.5 w-3.5 text-[#d0902f]" /><span className="flex-1 truncate">{task.title}</span><span className="text-black/30">Add today</span></button>
                 ))}
               </div>
             </section>
@@ -320,12 +320,12 @@ export default function PlanPage() {
             </section>
 
             <aside className="space-y-5">
-              <section className="rounded-2xl bg-[#2f302b] p-5 text-white shadow-lg">
-                <div className="flex items-center gap-2 text-xs font-medium text-white/55"><Sparkles className="h-3.5 w-3.5 text-[#f7a78c]" />Daily intention</div>
-                <textarea value={intention} onChange={(event) => setIntention(event.target.value)} placeholder="What would make today meaningful?" rows={5} className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-white/[0.06] p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/30 focus:border-[#f4a187]" />
-                <button onClick={() => savePlan()} disabled={saving} className="mt-3 flex items-center gap-2 text-xs font-medium text-[#f4a187] disabled:opacity-50"><Save className="h-3.5 w-3.5" />Save intention</button>
+              <section className="rounded-2xl bg-[#5f7048] p-5 text-[#fffbea] shadow-[0_8px_0_#465535]">
+                <div className="flex items-center gap-2 text-xs font-medium text-white/65"><Sparkles className="h-3.5 w-3.5 text-[#f4c85b]" />Daily intention</div>
+                <textarea value={intention} onChange={(event) => setIntention(event.target.value)} placeholder="What would make today meaningful?" rows={5} className="mt-4 w-full resize-none rounded-xl border border-white/15 bg-white/[0.08] p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-[#f4c85b]" />
+                <button onClick={() => savePlan()} disabled={saving} className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#f8dc8a] disabled:opacity-50"><Save className="h-3.5 w-3.5" />Save intention</button>
               </section>
-              <button onClick={() => savePlan(!plan?.completedAt)} disabled={saving} className={`flex w-full items-center justify-between rounded-2xl px-5 py-4 text-left text-white transition ${plan?.completedAt ? "bg-emerald-600" : "bg-[#ef7651] hover:bg-[#e96c47]"}`}>
+              <button onClick={() => savePlan(!plan?.completedAt)} disabled={saving} className={`flex w-full items-center justify-between rounded-2xl px-5 py-4 text-left transition ${plan?.completedAt ? "bg-[#84a75e] text-white" : "bg-[#f4c85b] text-[#4b3b18] hover:bg-[#edbb45]"}`}>
                 <span><span className="block text-sm font-semibold">{plan?.completedAt ? "Your day is planned" : "Finish planning"}</span><span className="mt-0.5 block text-[10px] text-white/70">Saved to your account</span></span>
                 {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
               </button>
