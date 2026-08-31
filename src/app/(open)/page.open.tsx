@@ -11,7 +11,9 @@ import { Button } from "@/components/ui/button";
 
 import { getAppVersion, getVersionGithubUrl } from "@/lib/version";
 
-export default function OpenSourceHomePage() {
+export { default } from "@/components/landing/SunnieLanding";
+
+export function LegacyOpenSourceHomePage() {
   const { data: session } = useSession();
   const router = useRouter();
 

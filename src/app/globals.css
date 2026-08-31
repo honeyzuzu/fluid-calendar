@@ -90,11 +90,16 @@
 }
 
 @layer base {
+  html {
+    min-height: 100%;
+    background-color: #fff9e8;
+  }
   * {
     @apply border-border transition-colors duration-200;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-full bg-background text-foreground;
+    overscroll-behavior-y: none;
   }
 }
 
