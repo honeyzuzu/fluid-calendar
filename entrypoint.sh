@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 # Extract database connection details from DATABASE_URL
 PG_HOST=$(echo "$DATABASE_URL" | sed -E 's#.*@([^:/]+).*#\1#')
 PG_PORT=$(echo "$DATABASE_URL" | sed -E 's/.*:([0-9]*)\/.*/\1/')
@@ -14,11 +16,11 @@ echo "Database is ready!"
 
 # Generate Prisma Client
 echo "Generating Prisma Client..."
-npx --yes prisma generate
+node ./node_modules/prisma/build/index.js generate
 
 # Run database migrations
 echo "Running database migrations..."
-npx --yes prisma migrate deploy
+node ./node_modules/prisma/build/index.js migrate deploy
 
 # Start the application
 echo "Starting the application..."
