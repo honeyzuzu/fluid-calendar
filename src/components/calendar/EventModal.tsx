@@ -32,6 +32,8 @@ import { useSettingsStore } from "@/store/settings";
 
 import { CalendarEvent } from "@/types/calendar";
 
+import { SunnieColorPicker } from "./SunnieColorPicker";
+
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -411,35 +413,15 @@ export function EventModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="event-color">Event color</Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  id="event-color"
-                  type="color"
-                  value={
-                    color ||
-                    feeds.find((feed) => feed.id === selectedFeedId)?.color ||
-                    "#f8c95d"
-                  }
-                  onChange={(event) => setColor(event.target.value)}
-                  className="h-10 w-14 cursor-pointer p-1"
-                  aria-label="Choose an event color"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setColor("")}
-                  disabled={!color}
-                >
-                  Use calendar color
-                </Button>
-                {color && (
-                  <span className="text-xs text-muted-foreground">
-                    Custom color
-                  </span>
-                )}
-              </div>
+              <Label>Event color</Label>
+              <SunnieColorPicker
+                value={color}
+                fallbackColor={
+                  feeds.find((feed) => feed.id === selectedFeedId)?.color
+                }
+                onChange={(nextColor) => setColor(nextColor || "")}
+                allowDefault
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

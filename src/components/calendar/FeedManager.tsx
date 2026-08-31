@@ -3,6 +3,11 @@ import { useCallback, useState } from "react";
 import { BsArrowRepeat, BsGoogle, BsMicrosoft, BsTrash } from "react-icons/bs";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
 
@@ -10,9 +15,11 @@ import { useCalendarStore } from "@/store/calendar";
 import { useViewStore } from "@/store/calendar";
 
 import { MiniCalendar } from "./MiniCalendar";
+import { SunnieColorPicker } from "./SunnieColorPicker";
 
 export function FeedManager() {
   const [syncingFeeds, setSyncingFeeds] = useState<Set<string>>(new Set());
+  const [colorFeedId, setColorFeedId] = useState<string | null>(null);
   const { feeds, removeFeed, toggleFeed, updateFeed, syncFeed } =
     useCalendarStore();
   const { date: currentDate, setDate } = useViewStore();
@@ -65,24 +72,38 @@ export function FeedManager() {
                   onCheckedChange={() => toggleFeed(feed.id)}
                   className="h-4 w-4"
                 />
-                <label
-                  className="relative h-5 w-5 flex-shrink-0 cursor-pointer rounded-full border-2 border-background shadow-sm ring-1 ring-border transition-transform hover:scale-110"
-                  style={{
-                    backgroundColor: feed.color || "#f8c95d",
-                  }}
-                  title={`Change ${feed.name} color`}
+                <Popover
+                  open={colorFeedId === feed.id}
+                  onOpenChange={(open) =>
+                    setColorFeedId(open ? feed.id : null)
+                  }
                 >
-                  <span className="sr-only">Change {feed.name} color</span>
-                  <input
-                    type="color"
-                    value={feed.color || "#f8c95d"}
-                    onChange={(event) =>
-                      updateFeed(feed.id, { color: event.target.value })
-                    }
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                    aria-label={`Change ${feed.name} color`}
-                  />
-                </label>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-background shadow-sm ring-1 ring-border transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
+                      style={{
+                        backgroundColor: feed.color || "#F6D77A",
+                      }}
+                      title={`Change ${feed.name} color`}
+                      aria-label={`Change ${feed.name} color`}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-72">
+                    <p className="mb-3 text-sm font-medium">
+                      {feed.name} color
+                    </p>
+                    <SunnieColorPicker
+                      value={feed.color}
+                      onChange={(color) => {
+                        if (color) {
+                          void updateFeed(feed.id, { color });
+                          setColorFeedId(null);
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <span className="calendar-name max-w-[150px] truncate text-sm text-foreground">
                   {feed.name}
                 </span>
