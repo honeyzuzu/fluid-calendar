@@ -22,7 +22,7 @@ CMD ["npm", "run", "dev"]
 FROM base AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps --ignore-scripts
+RUN npm ci --legacy-peer-deps --ignore-scripts --include=dev
 COPY . .
 RUN npm run prisma:generate
 RUN npm run build
