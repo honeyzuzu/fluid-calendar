@@ -21,8 +21,10 @@ CMD ["npm", "run", "dev"]
 # Production builder stage
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps --ignore-scripts --include=dev
+RUN npm rebuild bcrypt --build-from-source
 COPY . .
 RUN npm run prisma:generate
 RUN npm run build
