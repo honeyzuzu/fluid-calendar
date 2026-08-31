@@ -40,6 +40,17 @@ type DailyPlanRecord = {
   completedAt: string | null;
 };
 
+type FriendBlock = {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  owner: string;
+  color: string;
+  source: "calendar" | "focus";
+};
+
 function dateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -74,6 +85,7 @@ export default function PlanPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
+  const [friendBlocks, setFriendBlocks] = useState<FriendBlock[]>([]);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
   const [intention, setIntention] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -86,13 +98,18 @@ export default function PlanPage() {
     setLoading(true);
     setError(null);
     try {
-      const [taskData, eventData, planData] = await Promise.all([
+      const rangeStart = new Date(`${selectedKey}T00:00:00`);
+      const rangeEnd = new Date(rangeStart);
+      rangeEnd.setDate(rangeEnd.getDate() + 1);
+      const [taskData, eventData, planData, sharedData] = await Promise.all([
         fetch("/api/tasks").then((response) => expectJson<TaskRecord[]>(response)),
         fetch("/api/events").then((response) => expectJson<EventRecord[]>(response)),
         fetch(`/api/daily-plan?date=${selectedKey}`).then((response) => expectJson<DailyPlanRecord | null>(response)),
+        fetch(`/api/friends/events?start=${encodeURIComponent(rangeStart.toISOString())}&end=${encodeURIComponent(rangeEnd.toISOString())}`).then((response) => expectJson<FriendBlock[]>(response)),
       ]);
       setTasks(taskData);
       setEvents(eventData);
+      setFriendBlocks(sharedData);
       setPlan(planData);
       setIntention(planData?.intention ?? "");
     } catch (caught) {
@@ -290,7 +307,7 @@ export default function PlanPage() {
             <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-black/45" /><h2 className="text-sm font-semibold">Today&apos;s timeline</h2></div>
               <div className="space-y-2">
-                {[...dayEvents.map((event) => ({ id: `event-${event.id}`, title: event.title, start: event.start, end: event.end, type: event.feed?.name ?? "Calendar", color: event.feed?.color ?? "#d9cdf2" })), ...todayTasks.filter((task) => task.scheduledStart && task.scheduledEnd).map((task) => ({ id: `task-${task.id}`, title: task.title, start: task.scheduledStart!, end: task.scheduledEnd!, type: "Focus block", color: "#ffd8ca" }))]
+                {[...dayEvents.map((event) => ({ id: `event-${event.id}`, title: event.title, start: event.start, end: event.end, type: event.feed?.name ?? "Calendar", color: event.feed?.color ?? "#d9cdf2" })), ...todayTasks.filter((task) => task.scheduledStart && task.scheduledEnd).map((task) => ({ id: `task-${task.id}`, title: task.title, start: task.scheduledStart!, end: task.scheduledEnd!, type: "Focus block", color: "#ffd8ca" })), ...friendBlocks.map((block) => ({ id: `friend-${block.id}`, title: block.title, start: block.start, end: block.end, type: `${block.owner} · ${block.source === "focus" ? "Focus block" : "Calendar"}`, color: block.color }))]
                   .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
                   .map((item) => (
                     <article key={item.id} className="flex items-center gap-3 rounded-xl border border-black/[0.055] bg-white p-3">
@@ -298,7 +315,7 @@ export default function PlanPage() {
                       <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="mt-0.5 text-[11px] text-black/40">{formatTime(item.start)} – {formatTime(item.end)} · {item.type}</p></div>
                     </article>
                   ))}
-                {dayEvents.length === 0 && !todayTasks.some((task) => task.scheduledStart) && <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-black/10 text-center"><div><CalendarDays className="mx-auto h-6 w-6 text-black/20" /><p className="mt-2 text-sm text-black/40">Calendar events and scheduled tasks will appear here.</p></div></div>}
+                {dayEvents.length === 0 && friendBlocks.length === 0 && !todayTasks.some((task) => task.scheduledStart) && <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-black/10 text-center"><div><CalendarDays className="mx-auto h-6 w-6 text-black/20" /><p className="mt-2 text-sm text-black/40">Your events, focus blocks, and friends&apos; shared time will appear here.</p></div></div>}
               </div>
             </section>
 

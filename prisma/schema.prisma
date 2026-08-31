@@ -97,6 +97,26 @@ model User {
   TaskChange           TaskChange[]
   PasswordReset        PasswordReset[]
   dailyPlans           DailyPlan[]
+  friendRequestsSent   FriendConnection[]    @relation("FriendRequester")
+  friendRequestsReceived FriendConnection[]  @relation("FriendAddressee")
+}
+
+model FriendConnection {
+  id                  String   @id @default(cuid())
+  pairKey             String   @unique
+  status              String   @default("PENDING")
+  requesterVisibility String   @default("BUSY_ONLY")
+  addresseeVisibility String   @default("BUSY_ONLY")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  acceptedAt          DateTime?
+  requesterId         String
+  addresseeId         String
+  requester           User     @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee           User     @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId, status])
+  @@index([addresseeId, status])
 }
 
 model DailyPlan {
