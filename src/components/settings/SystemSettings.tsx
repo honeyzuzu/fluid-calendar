@@ -20,6 +20,7 @@ import { useSettingsStore } from "@/store/settings";
 import { SettingRow, SettingsSection } from "./SettingsSection";
 
 const LOG_SOURCE = "SystemSettings";
+const SHOW_OUTLOOK_INTEGRATION = false;
 
 /**
  * System settings component
@@ -121,14 +122,13 @@ export function SystemSettings() {
                     </ul>
                     <span className="mt-1 block text-xs">
                       These use the URL shown in your browser. The server sends
-                      Google back to the host in{" "}
-                      <code>NEXTAUTH_URL</code>, so make sure{" "}
-                      <code>NEXTAUTH_URL</code> matches this address (otherwise
-                      Google returns <code>redirect_uri_mismatch</code>). Google
-                      also rejects bare private IPs (e.g.{" "}
-                      <code>192.168.x.x</code>) and <code>.local</code>{" "}
-                      hostnames - use <code>localhost</code> for local
-                      development or a public domain.
+                      Google back to the host in <code>NEXTAUTH_URL</code>, so
+                      make sure <code>NEXTAUTH_URL</code> matches this address
+                      (otherwise Google returns{" "}
+                      <code>redirect_uri_mismatch</code>). Google also rejects
+                      bare private IPs (e.g. <code>192.168.x.x</code>) and{" "}
+                      <code>.local</code> hostnames - use <code>localhost</code>{" "}
+                      for local development or a public domain.
                     </span>
                   </li>
                   <li>Copy the Client ID and Client Secret</li>
@@ -164,85 +164,90 @@ export function SystemSettings() {
           </div>
         </SettingRow>
 
-        <SettingRow
-          label="Outlook Calendar Integration"
-          description={
-            <div className="space-y-2">
-              <div>
-                Configure Microsoft Azure AD credentials for Outlook calendar
-                integration.
+        {SHOW_OUTLOOK_INTEGRATION && (
+          <SettingRow
+            label="Outlook Calendar Integration"
+            description={
+              <div className="space-y-2">
+                <div>
+                  Configure Microsoft Azure AD credentials for Outlook calendar
+                  integration.
+                </div>
+                <div>
+                  To get these credentials:
+                  <ol className="ml-4 mt-1 list-decimal space-y-1 text-muted-foreground">
+                    <li>
+                      Go to the{" "}
+                      <a
+                        href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        Azure Portal
+                      </a>
+                    </li>
+                    <li>
+                      Register a new application or select an existing one
+                    </li>
+                    <li>Add Microsoft Graph Calendar permissions</li>
+                    <li>Go to Authentication</li>
+                    <li>Add platform and configure OAuth settings</li>
+                    <li>
+                      Add redirect URI: {window.location.origin}
+                      /api/calendar/outlook
+                    </li>
+                    <li>
+                      Copy the Application (client) ID and create a client
+                      secret
+                    </li>
+                  </ol>
+                </div>
               </div>
-              <div>
-                To get these credentials:
-                <ol className="ml-4 mt-1 list-decimal space-y-1 text-muted-foreground">
-                  <li>
-                    Go to the{" "}
-                    <a
-                      href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      Azure Portal
-                    </a>
-                  </li>
-                  <li>Register a new application or select an existing one</li>
-                  <li>Add Microsoft Graph Calendar permissions</li>
-                  <li>Go to Authentication</li>
-                  <li>Add platform and configure OAuth settings</li>
-                  <li>
-                    Add redirect URI: {window.location.origin}
-                    /api/calendar/outlook
-                  </li>
-                  <li>
-                    Copy the Application (client) ID and create a client secret
-                  </li>
-                </ol>
+            }
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Outlook Client ID</Label>
+                <Input
+                  type="text"
+                  value={system.outlookClientId || ""}
+                  onChange={(e) =>
+                    handleUpdate({ outlookClientId: e.target.value })
+                  }
+                  placeholder="your-client-id"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Outlook Client Secret</Label>
+                <Input
+                  type="password"
+                  value={system.outlookClientSecret || ""}
+                  onChange={(e) =>
+                    handleUpdate({ outlookClientSecret: e.target.value })
+                  }
+                  placeholder="Enter your client secret"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tenant ID (Optional)</Label>
+                <Input
+                  type="text"
+                  value={system.outlookTenantId || ""}
+                  onChange={(e) =>
+                    handleUpdate({ outlookTenantId: e.target.value })
+                  }
+                  placeholder="common"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Leave empty to allow any Microsoft account (recommended)
+                </p>
               </div>
             </div>
-          }
-        >
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Outlook Client ID</Label>
-              <Input
-                type="text"
-                value={system.outlookClientId || ""}
-                onChange={(e) =>
-                  handleUpdate({ outlookClientId: e.target.value })
-                }
-                placeholder="your-client-id"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Outlook Client Secret</Label>
-              <Input
-                type="password"
-                value={system.outlookClientSecret || ""}
-                onChange={(e) =>
-                  handleUpdate({ outlookClientSecret: e.target.value })
-                }
-                placeholder="Enter your client secret"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tenant ID (Optional)</Label>
-              <Input
-                type="text"
-                value={system.outlookTenantId || ""}
-                onChange={(e) =>
-                  handleUpdate({ outlookTenantId: e.target.value })
-                }
-                placeholder="common"
-              />
-              <p className="text-sm text-muted-foreground">
-                Leave empty to allow any Microsoft account (recommended)
-              </p>
-            </div>
-          </div>
-        </SettingRow>
+          </SettingRow>
+        )}
 
         <SettingRow label="Homepage" description="Configure homepage behavior">
           <div className="space-y-2">

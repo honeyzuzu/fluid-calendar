@@ -33,6 +33,7 @@ interface TestResult {
 }
 
 interface CalDAVAccountFormProps {
+  preset?: "apple" | "generic";
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -42,13 +43,15 @@ interface CalDAVAccountFormProps {
  * Collects server URL, username, password, and optional path
  */
 export function CalDAVAccountForm({
+  preset = "generic",
   onSuccess,
   onCancel,
 }: CalDAVAccountFormProps) {
+  const isApple = preset === "apple";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [formData, setFormData] = useState({
-    serverUrl: "",
+    serverUrl: isApple ? "https://caldav.icloud.com" : "",
     username: "",
     password: "",
     path: "", // Optional path for some CalDAV servers
@@ -191,7 +194,9 @@ export function CalDAVAccountForm({
 
       await response.json();
 
-      alert(`Successfully connected to CalDAV server for ${formData.username}`);
+      alert(
+        `Successfully connected ${isApple ? "Apple Calendar" : "CalDAV calendar"} for ${formData.username}`
+      );
 
       if (onSuccess) {
         onSuccess();
@@ -284,10 +289,13 @@ export function CalDAVAccountForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Connect CalDAV Account</CardTitle>
+        <CardTitle>
+          {isApple ? "Connect Apple Calendar" : "Connect CalDAV Account"}
+        </CardTitle>
         <CardDescription>
-          Add your CalDAV calendar account from services like Fastmail, iCloud,
-          or other CalDAV providers
+          {isApple
+            ? "Bring your iCloud calendars into Sunnie with secure CalDAV sync."
+            : "Add a calendar from Fastmail, Nextcloud, or another CalDAV provider."}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -298,32 +306,51 @@ export function CalDAVAccountForm({
             </div>
           )}
 
-          <fieldset className="mb-4">
-            <Label
-              className="mb-2.5 text-[15px] leading-normal"
-              htmlFor="serverUrl"
-            >
-              Server URL <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="serverUrl"
-              name="serverUrl"
-              placeholder="https://caldav.example.com"
-              value={formData.serverUrl}
-              onChange={handleChange}
-              required
-            />
-            <p className="mt-1 text-sm text-muted-foreground">
-              For Fastmail: https://caldav.fastmail.com
-            </p>
-          </fieldset>
+          {isApple ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+              <p className="font-medium">Before you connect</p>
+              <p className="mt-1 leading-relaxed">
+                Create an app-specific password in your Apple Account. Never use
+                your normal Apple Account password here.
+              </p>
+              <a
+                href="https://account.apple.com/account/manage"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block font-medium text-amber-800 underline underline-offset-4"
+              >
+                Open Apple Account security
+              </a>
+            </div>
+          ) : (
+            <fieldset className="mb-4">
+              <Label
+                className="mb-2.5 text-[15px] leading-normal"
+                htmlFor="serverUrl"
+              >
+                Server URL <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="serverUrl"
+                name="serverUrl"
+                placeholder="https://caldav.example.com"
+                value={formData.serverUrl}
+                onChange={handleChange}
+                required
+              />
+              <p className="mt-1 text-sm text-muted-foreground">
+                For Fastmail: https://caldav.fastmail.com
+              </p>
+            </fieldset>
+          )}
 
           <fieldset className="mb-4">
             <Label
               className="mb-2.5 text-[15px] leading-normal"
               htmlFor="username"
             >
-              Username <span className="text-red-500">*</span>
+              {isApple ? "Apple Account email" : "Username"}{" "}
+              <span className="text-red-500">*</span>
             </Label>
             <Input
               id="username"
@@ -334,7 +361,9 @@ export function CalDAVAccountForm({
               required
             />
             <p className="mt-1 text-sm text-muted-foreground">
-              For Fastmail: Use your full email address
+              {isApple
+                ? "Use the email address you sign into iCloud with."
+                : "For Fastmail: use your full email address."}
             </p>
           </fieldset>
 
@@ -343,7 +372,8 @@ export function CalDAVAccountForm({
               className="mb-2.5 text-[15px] leading-normal"
               htmlFor="password"
             >
-              Password <span className="text-red-500">*</span>
+              {isApple ? "App-specific password" : "Password"}{" "}
+              <span className="text-red-500">*</span>
             </Label>
             <Input
               id="password"
@@ -355,26 +385,32 @@ export function CalDAVAccountForm({
               required
             />
             <p className="mt-1 text-sm text-muted-foreground">
-              For Fastmail: Use an app-specific password from Settings →
-              Password & Security
+              {isApple
+                ? "Paste the password generated by Apple, not your regular password."
+                : "Use an app-specific password when your provider supports one."}
             </p>
           </fieldset>
 
-          <fieldset className="mb-4">
-            <Label className="mb-2.5 text-[15px] leading-normal" htmlFor="path">
-              Path (Optional)
-            </Label>
-            <Input
-              id="path"
-              name="path"
-              placeholder="/dav/calendars/user/username@fastmail.com"
-              value={formData.path}
-              onChange={handleChange}
-            />
-            <p className="mt-1 text-sm text-muted-foreground">
-              For Fastmail: /dav/calendars/user/youremail@fastmail.com
-            </p>
-          </fieldset>
+          {!isApple && (
+            <fieldset className="mb-4">
+              <Label
+                className="mb-2.5 text-[15px] leading-normal"
+                htmlFor="path"
+              >
+                Path (Optional)
+              </Label>
+              <Input
+                id="path"
+                name="path"
+                placeholder="/dav/calendars/user/username@fastmail.com"
+                value={formData.path}
+                onChange={handleChange}
+              />
+              <p className="mt-1 text-sm text-muted-foreground">
+                For Fastmail: /dav/calendars/user/youremail@fastmail.com
+              </p>
+            </fieldset>
+          )}
 
           <div className="mt-4">
             <Button

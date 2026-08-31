@@ -60,7 +60,7 @@ interface TaskProvider {
   settings?: {
     [key: string]: string | number | boolean | undefined;
   };
-} 
+}
 
 interface TaskList {
   id: string;
@@ -95,10 +95,7 @@ export function TaskSyncSettings() {
 
   // Get accounts that can be used as task providers
   const compatibleAccounts = accounts.filter(
-    (acc) =>
-      acc.provider === "OUTLOOK" ||
-      acc.provider === "GOOGLE" ||
-      acc.provider === "CALDAV"
+    (acc) => acc.provider === "GOOGLE" || acc.provider === "CALDAV"
   );
   // Fetch providers
   const fetchProviders = useCallback(async () => {
@@ -144,11 +141,14 @@ export function TaskSyncSettings() {
         })
       );
 
-      setProviders(enrichedProviders);
+      const visibleProviders = enrichedProviders.filter(
+        (provider: TaskProvider) => provider.type !== "OUTLOOK"
+      );
+      setProviders(visibleProviders);
 
       // Auto-select the first provider if available
-      if (enrichedProviders.length > 0 && !selectedProvider) {
-        setSelectedProvider(enrichedProviders[0]);
+      if (visibleProviders.length > 0 && !selectedProvider) {
+        setSelectedProvider(visibleProviders[0]);
       }
     } catch (error) {
       setError("Failed to load task providers");
@@ -593,7 +593,7 @@ export function TaskSyncSettings() {
                             id="name"
                             value={newProviderName}
                             onChange={(e) => setNewProviderName(e.target.value)}
-                            placeholder="e.g., Work Outlook Tasks"
+                            placeholder="e.g., Personal Tasks"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -894,12 +894,12 @@ export function TaskSyncSettings() {
   return (
     <SettingsSection
       title="Task Synchronization"
-      description="Manage task synchronization with external services such as Outlook or Google Tasks."
+      description="Manage task synchronization with Google Tasks and compatible CalDAV services."
     >
       {compatibleAccounts.length === 0 ? (
         <SettingRow
           label="No Compatible Accounts"
-          description="Connect an Outlook account to sync tasks"
+          description="Connect Google or a compatible CalDAV account to sync tasks"
         >
           <div className="text-sm text-muted-foreground">
             Go to the Accounts tab to connect a compatible account.
