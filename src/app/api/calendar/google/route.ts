@@ -4,6 +4,7 @@ import { GaxiosError } from "gaxios";
 import { calendar_v3, google } from "googleapis";
 import { v4 as uuidv4 } from "uuid";
 
+import { getAppUrl } from "@/lib/app-url";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { createAllDayDate, newDate, newDateFromYMD } from "@/lib/date-utils";
 import { createGoogleOAuthClient } from "@/lib/google";
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
     const userId = auth.userId;
 
     const oauth2Client = await createGoogleOAuthClient({
-      redirectUrl: `${process.env.NEXTAUTH_URL}/api/calendar/google`,
+      redirectUrl: getAppUrl("/api/calendar/google"),
     });
 
     try {

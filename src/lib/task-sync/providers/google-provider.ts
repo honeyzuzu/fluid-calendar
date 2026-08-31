@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 
+import { getAppUrl } from "@/lib/app-url";
 import { logger } from "@/lib/logger";
 import { TokenManager } from "@/lib/token-manager";
 
@@ -329,7 +330,7 @@ export async function getGoogleTasksClient(accountId: string, userId: string) {
   const { createGoogleOAuthClient } = await import("@/lib/google");
 
   const oauth2Client = await createGoogleOAuthClient({
-    redirectUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+    redirectUrl: getAppUrl("/api/auth/callback/google"),
   });
 
   // Set credentials

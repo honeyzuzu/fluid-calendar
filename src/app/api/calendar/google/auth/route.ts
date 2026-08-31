@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
+import { getAppUrl } from "@/lib/app-url";
 import { createGoogleOAuthClient } from "@/lib/google";
 
 export async function GET() {
-  const redirectUrl = `${process.env.NEXTAUTH_URL}/api/calendar/google`;
+  const redirectUrl = getAppUrl("/api/calendar/google");
   const oauth2Client = await createGoogleOAuthClient({ redirectUrl });
 
   const url = oauth2Client.generateAuthUrl({

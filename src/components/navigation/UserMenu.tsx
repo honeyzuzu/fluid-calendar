@@ -5,7 +5,7 @@ import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, Sun } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,27 @@ import {
 export function UserMenu() {
   const { data: session, status } = useSession();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  console.log("status-------", status);
 
-  // Show a loading state or nothing while session is loading
+  // Keep the navigation stable while NextAuth checks the current session.
   if (status === "loading") {
-    return null; // Return nothing during loading to prevent flash of sign-in button
+    return (
+      <div
+        className="flex items-center gap-2 text-sm text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        <Sun className="h-4 w-4 animate-spin text-amber-500" />
+        <span className="hidden sm:inline">Loading account...</span>
+      </div>
+    );
   }
 
   // Check both session status and session data to handle all authentication scenarios
   if (status !== "authenticated" || !session) {
     return (
-      <Link href="/auth/signin">
-        <Button variant="outline" size="sm">
-          Sign In
-        </Button>
-      </Link>
+      <Button asChild variant="outline" size="sm">
+        <a href="/auth/signin">Sign In</a>
+      </Button>
     );
   }
 

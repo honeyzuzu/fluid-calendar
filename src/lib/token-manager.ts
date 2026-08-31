@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { getAppUrl } from "@/lib/app-url";
 import { getOutlookCredentials } from "@/lib/auth";
 import { createGoogleOAuthClient } from "@/lib/google";
 import { prisma } from "@/lib/prisma";
@@ -58,7 +59,7 @@ export class TokenManager {
     }
 
     const oauth2Client = await createGoogleOAuthClient({
-      redirectUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+      redirectUrl: getAppUrl("/api/auth/callback/google"),
     });
 
     oauth2Client.setCredentials({
