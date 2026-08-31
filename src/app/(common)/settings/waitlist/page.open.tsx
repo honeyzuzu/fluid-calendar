@@ -26,7 +26,7 @@ export default function WaitlistPage() {
           <div className="ml-3">
             <p className="text-sm text-yellow-700">
               <strong>SAAS Feature Only:</strong> The Beta Waitlist Management
-              feature is only available in the SAAS version of FluidCalendar.
+              feature belongs to the upstream hosted edition and is not included in Sunnie Planner.
             </p>
           </div>
         </div>
@@ -41,8 +41,7 @@ export default function WaitlistPage() {
         <li>Configure waitlist settings and email templates</li>
       </ul>
       <p className="text-gray-700">
-        To access this feature, please upgrade to the SAAS version of Fluid
-        Calendar.
+        Sunnie Planner does not require this feature for private friend signup.
       </p>
     </div>
   );

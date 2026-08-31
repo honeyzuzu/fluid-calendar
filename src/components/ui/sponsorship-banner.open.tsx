@@ -8,11 +8,11 @@ export default function SponsorshipBanner() {
       <div className="mb-2 flex items-center gap-2">
         <FaGithub className="h-5 w-5 text-accent-foreground" />
         <span className="text-sm font-medium text-accent-foreground">
-          Support FluidCalendar
+          Support the upstream project
         </span>
       </div>
       <p className="mb-3 text-sm text-accent-foreground/80">
-        Help keep this project alive and get early access to new features
+        Help support the open-source foundation Sunnie Planner is built on
       </p>
       <a
         href="https://github.com/sponsors/eibrahim"

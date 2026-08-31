@@ -1,22 +1,26 @@
 export const getTitleFromPathname = (pathname: string) => {
   switch (pathname) {
     case "/calendar":
-      return "Calendar | FluidCalendar";
+      return "Calendar | Sunnie Planner";
     case "/tasks":
-      return "Tasks | FluidCalendar";
+      return "Tasks | Sunnie Planner";
     case "/focus":
-      return "Focus | FluidCalendar";
+      return "Focus | Sunnie Planner";
+    case "/plan":
+      return "Plan | Sunnie Planner";
+    case "/friends":
+      return "Friends | Sunnie Planner";
     case "/settings":
-      return "Settings | FluidCalendar";
+      return "Settings | Sunnie Planner";
     case "/setup":
-      return "Setup | FluidCalendar";
+      return "Setup | Sunnie Planner";
     case "/auth/signin":
-      return "Sign In | FluidCalendar";
+      return "Sign In | Sunnie Planner";
     case "/auth/signup":
-      return "Sign Up | FluidCalendar";
+      return "Sign Up | Sunnie Planner";
     case "/auth/reset-password":
-      return "Reset Password | FluidCalendar";
+      return "Reset Password | Sunnie Planner";
     default:
-      return "FluidCalendar";
+      return "Sunnie Planner";
   }
 };

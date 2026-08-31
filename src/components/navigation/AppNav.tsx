@@ -61,11 +61,12 @@ export function AppNav({ className }: AppNavProps) {
             >
               <Image
                 src="/logo.svg"
-                alt="Calendar Logo"
+                alt="Sunnie Planner logo"
                 width={28}
                 height={28}
                 className="mr-2"
               />
+              <span className="hidden text-sm font-semibold tracking-tight xl:inline">Sunnie Planner</span>
             </Link>
             {links.map((link) => {
               const Icon = link.icon;

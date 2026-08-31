@@ -138,7 +138,7 @@ export function SignInForm() {
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">
-          Welcome to FluidCalendar
+          Welcome to Sunnie Planner
         </CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
       </CardHeader>

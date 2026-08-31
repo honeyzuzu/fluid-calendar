@@ -232,7 +232,7 @@ async function createNewEvent(
 
     const event = await createGoogleEvent(accountId, userId, calendarId, {
       title: task.title,
-      description: "Scheduled by FluidCalendar",
+      description: "Scheduled by Sunnie Planner",
       start: task.scheduledStart!,
       end: task.scheduledEnd!,
       timeZone,
@@ -299,7 +299,7 @@ async function updateExistingEvent(
 
     await updateGoogleEvent(accountId, userId, calendarId, task.blockEventId!, {
       title: task.title,
-      description: "Scheduled by FluidCalendar",
+      description: "Scheduled by Sunnie Planner",
       start: task.scheduledStart || undefined,
       end: task.scheduledEnd || undefined,
       mode: "single",

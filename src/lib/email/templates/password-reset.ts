@@ -20,9 +20,9 @@ export function getPasswordResetTemplate(
   });
 
   return `
-    <h1>Reset Your FluidCalendar Password</h1>
+    <h1>Reset Your Sunnie Planner Password</h1>
     <p>Hi ${name},</p>
-    <p>We received a request to reset your password for your FluidCalendar account. If you didn&apos;t make this request, you can safely ignore this email.</p>
+    <p>We received a request to reset your password for your Sunnie Planner account. If you didn&apos;t make this request, you can safely ignore this email.</p>
     <p>To reset your password, click the button below:</p>
     <a href="${resetLink}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Reset Password</a>
     <p>This link will expire on ${formattedExpirationDate}.</p>
