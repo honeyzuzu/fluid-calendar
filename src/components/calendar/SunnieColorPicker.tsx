@@ -1,8 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { Check, Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
+import { addRecentColor, MAX_RECENT_COLORS } from "@/lib/recent-colors";
+
+const RECENT_COLORS_STORAGE_KEY = "sunnie-recent-custom-colors";
 
 export const SUNNIE_PASTEL_COLORS = [
   { name: "Butter", value: "#F6D77A" },
@@ -31,10 +38,47 @@ export function SunnieColorPicker({
   defaultLabel = "Use calendar color",
   className,
 }: SunnieColorPickerProps) {
+  const [recentColors, setRecentColors] = useState<string[]>([]);
   const displayedColor = value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
   const isPreset = SUNNIE_PASTEL_COLORS.some(
     (color) => color.value.toLowerCase() === value?.toLowerCase()
   );
+  const presetValues = SUNNIE_PASTEL_COLORS.map((color) => color.value);
+
+  useEffect(() => {
+    try {
+      const savedColors = JSON.parse(
+        window.localStorage.getItem(RECENT_COLORS_STORAGE_KEY) || "[]"
+      );
+
+      if (Array.isArray(savedColors)) {
+        setRecentColors(
+          savedColors
+            .filter(
+              (color): color is string =>
+                typeof color === "string" && /^#[0-9A-Fa-f]{6}$/.test(color)
+            )
+            .slice(0, MAX_RECENT_COLORS)
+        );
+      }
+    } catch {
+      setRecentColors([]);
+    }
+  }, []);
+
+  const handleCustomColor = (color: string) => {
+    const nextColors = addRecentColor(recentColors, color, presetValues);
+    setRecentColors(nextColors);
+    try {
+      window.localStorage.setItem(
+        RECENT_COLORS_STORAGE_KEY,
+        JSON.stringify(nextColors)
+      );
+    } catch {
+      // The picker still works when browser storage is disabled.
+    }
+    onChange(color);
+  };
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -62,13 +106,44 @@ export function SunnieColorPicker({
         })}
       </div>
 
+      {recentColors.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-muted-foreground">
+            Recent custom colors
+          </p>
+          <div className="flex flex-wrap gap-1" aria-label="Recent colors">
+            {recentColors.map((color) => {
+              const selected = color.toLowerCase() === value?.toLowerCase();
+
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => onChange(color)}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    selected ? "border-foreground/70" : "border-background"
+                  )}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                  aria-label={`Recent color ${color}`}
+                  aria-pressed={selected}
+                >
+                  {selected && <Check className="h-4 w-4 text-stone-700" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative cursor-pointer">
           <span className="sr-only">Choose a custom color</span>
           <input
             type="color"
             value={displayedColor}
-            onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => handleCustomColor(event.target.value)}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             aria-label="Choose a custom color"
           />
