@@ -21,11 +21,11 @@ CMD ["npm", "run", "dev"]
 # Production builder stage
 FROM base AS builder
 WORKDIR /app
-COPY . .
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps --ignore-scripts
-RUN npm run build
+COPY . .
 RUN npm run prisma:generate
+RUN npm run build
 
 # Production stage
 FROM base AS production
