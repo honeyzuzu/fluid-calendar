@@ -11,7 +11,10 @@ import { FeedManager } from "@/components/calendar/FeedManager";
 import { MonthView } from "@/components/calendar/MonthView";
 import { MultiMonthView } from "@/components/calendar/MultiMonthView";
 import { WeekView } from "@/components/calendar/WeekView";
+import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
 import { SponsorshipBanner } from "@/components/ui/sponsorship-banner";
+
+import { useAutoSchedule } from "@/hooks/use-auto-schedule";
 
 import { addDays, formatDate, newDate, subDays } from "@/lib/date-utils";
 import { isSaasEnabled } from "@/lib/config";
@@ -45,8 +48,8 @@ export function Calendar({
 }: CalendarProps) {
   const { date: currentDate, setDate, view, setView } = useViewStore();
   const { isSidebarOpen, setSidebarOpen, isHydrated } = useCalendarUIStore();
-  const { scheduleAllTasks } = useTaskStore();
   const { setFeeds, setEvents } = useCalendarStore();
+  const handleAutoSchedule = useAutoSchedule();
 
   // Use initial data from server for hydration
   useEffect(() => {
@@ -89,10 +92,6 @@ export function Calendar({
     }
   };
 
-  const handleAutoSchedule = async () => {
-    await scheduleAllTasks();
-  };
-
   return (
     <div className="flex h-full w-full">
       {/* Sidebar */}
@@ -121,7 +120,7 @@ export function Calendar({
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="flex h-16 flex-none items-center border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-4 backdrop-blur-sm">
+        <header className="relative z-30 flex h-16 flex-none items-center overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-4 backdrop-blur-sm">
           <button
             onClick={() => setSidebarOpen(!isSidebarOpen)}
             className="rounded-lg p-2 text-foreground hover:bg-muted"
@@ -139,13 +138,19 @@ export function Calendar({
               Today
             </button>
 
-            <button
-              onClick={handleAutoSchedule}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
-              title="Fit opted-in, unlocked tasks into free time during the next 7 days"
-            >
-              Auto Schedule
-            </button>
+            <div className="group relative">
+              <button
+                onClick={handleAutoSchedule}
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
+                aria-describedby="calendar-auto-schedule-tooltip"
+              >
+                Auto Schedule
+              </button>
+              <AutoScheduleTooltip
+                id="calendar-auto-schedule-tooltip"
+                align="left"
+              />
+            </div>
 
             <div className="flex items-center gap-2">
               <button
@@ -221,7 +226,7 @@ export function Calendar({
         </header>
 
         {/* Calendar Grid */}
-        <div className="flex-1 overflow-hidden">
+        <div className="relative z-0 flex-1 overflow-hidden">
           {view === "day" ? (
             <DayView currentDate={currentDate} onDateClick={setDate} />
           ) : view === "week" ? (
