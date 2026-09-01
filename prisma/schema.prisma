@@ -242,6 +242,7 @@ model Task {
   // Time Management
   dueDate       DateTime?
   startDate     DateTime? // When the task becomes active
+  plannedWeekStart DateTime? @db.Date // Monday of the week this task belongs to
   duration      Int? // estimated duration in minutes
   priority      String? // enum: 'high', 'medium', 'low', 'none'
   energyLevel   String? // enum: 'high', 'medium', 'low'
@@ -301,6 +302,7 @@ model Task {
   @@index([status])
   @@index([dueDate])
   @@index([startDate])
+  @@index([plannedWeekStart, userId])
   @@index([priority])
   @@index([projectId])
   @@index([isRecurring])

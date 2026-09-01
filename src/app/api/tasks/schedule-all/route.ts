@@ -17,9 +17,32 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.userId;
 
-    // Use the common function to schedule all tasks
-    // If settings are provided, use them, otherwise use the overloaded function
-    const tasksWithRelations = await scheduleAllTasksForUser(userId);
+    const body = await request.json().catch(() => ({}));
+    const taskIds = Array.isArray(body.taskIds)
+      ? body.taskIds.filter(
+          (id: unknown): id is string => typeof id === "string"
+        )
+      : undefined;
+    const rangeStart = body.rangeStart ? new Date(body.rangeStart) : undefined;
+    const rangeEnd = body.rangeEnd ? new Date(body.rangeEnd) : undefined;
+
+    if (
+      (rangeStart && Number.isNaN(rangeStart.getTime())) ||
+      (rangeEnd && Number.isNaN(rangeEnd.getTime())) ||
+      ((rangeStart || rangeEnd) && !(rangeStart && rangeEnd)) ||
+      (rangeStart && rangeEnd && rangeEnd <= rangeStart)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid scheduling window" },
+        { status: 400 }
+      );
+    }
+
+    const tasksWithRelations = await scheduleAllTasksForUser(userId, {
+      taskIds,
+      rangeStart,
+      rangeEnd,
+    });
 
     // Repush dirty blocks and newly scheduled tasks to calendar
     await repushDirtyBlocks(userId);

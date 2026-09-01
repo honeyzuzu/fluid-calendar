@@ -179,7 +179,7 @@ export function TaskList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 grid grid-cols-2 gap-2 md:flex md:items-center md:gap-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 2xl:flex 2xl:items-center 2xl:gap-4">
         <StatusFilter
           value={status || []}
           onChange={(value) => setFilters({ status: value })}
@@ -194,7 +194,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full md:w-[140px]">
+          <SelectTrigger className="h-9 w-full 2xl:w-[140px]">
             <SelectValue placeholder="All Energy" />
           </SelectTrigger>
           <SelectContent>
@@ -216,7 +216,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full md:w-[140px]">
+          <SelectTrigger className="h-9 w-full 2xl:w-[140px]">
             <SelectValue placeholder="All Times" />
           </SelectTrigger>
           <SelectContent>
@@ -229,7 +229,7 @@ export function TaskList({
           </SelectContent>
         </Select>
 
-        <div className="col-span-2 flex flex-1 gap-2 md:col-span-1">
+        <div className="col-span-2 flex flex-1 gap-2 2xl:col-span-1">
           <Input
             value={search || ""}
             onChange={(e) =>
@@ -251,7 +251,7 @@ export function TaskList({
           )}
         </div>
 
-        <div className="col-span-2 flex items-center gap-2 md:col-span-1">
+        <div className="col-span-2 flex items-center gap-2 2xl:col-span-1">
           <Checkbox
             id="hideUpcomingTasks"
             checked={hideUpcomingTasks}
@@ -268,7 +268,7 @@ export function TaskList({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto md:hidden">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto 2xl:hidden">
         {sortedTasks.map((task) => (
           <BoardTask
             key={task.id}
@@ -284,7 +284,7 @@ export function TaskList({
         )}
       </div>
 
-      <div className="hidden flex-1 rounded-lg border bg-background md:block">
+      <div className="hidden flex-1 rounded-lg border bg-background 2xl:block">
         <div
           className="overflow-auto"
           style={{ maxHeight: "calc(100vh - 250px)" }}

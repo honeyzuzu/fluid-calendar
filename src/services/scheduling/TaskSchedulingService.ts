@@ -14,6 +14,12 @@ import { SchedulingService } from "./SchedulingService";
 
 const LOG_SOURCE = "TaskSchedulingService";
 
+export interface ScheduleTasksOptions {
+  taskIds?: string[];
+  rangeStart?: Date;
+  rangeEnd?: Date;
+}
+
 // Define a type for the database result
 type DbTaskWithRelations = {
   id: string;
@@ -90,14 +96,16 @@ function convertDbTaskToTaskWithRelations(
  * @returns The updated tasks
  */
 export async function scheduleAllTasksForUser(
-  userId: string
+  userId: string,
+  options?: ScheduleTasksOptions
 ): Promise<TaskWithRelations[]>;
 
 /**
  * Implementation of scheduleAllTasksForUser
  */
 export async function scheduleAllTasksForUser(
-  userId: string
+  userId: string,
+  options: ScheduleTasksOptions = {}
 ): Promise<TaskWithRelations[]> {
   try {
     logger.info("Starting task scheduling for user", { userId }, LOG_SOURCE);
@@ -122,6 +130,7 @@ export async function scheduleAllTasksForUser(
           },
         },
         userId,
+        ...(options.taskIds && { id: { in: options.taskIds } }),
       },
       include: {
         project: true,
@@ -140,6 +149,7 @@ export async function scheduleAllTasksForUser(
           },
         },
         userId,
+        ...(options.taskIds && { id: { in: options.taskIds } }),
       },
       include: {
         project: true,
@@ -177,7 +187,10 @@ export async function scheduleAllTasksForUser(
     // Schedule all tasks
     const updatedTasks = await schedulingService.scheduleMultipleTasks(
       [...tasksToSchedule, ...lockedTasks],
-      userId
+      userId,
+      options.rangeStart && options.rangeEnd
+        ? { start: options.rangeStart, end: options.rangeEnd }
+        : undefined
     );
 
     // Update the lastScheduled timestamp for all tasks

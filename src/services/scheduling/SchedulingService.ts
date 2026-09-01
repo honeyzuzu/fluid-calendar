@@ -22,6 +22,11 @@ interface PerformanceMetrics {
   metadata?: Record<string, string | number | Date | boolean>;
 }
 
+export interface SchedulingWindow {
+  start: Date;
+  end: Date;
+}
+
 export class SchedulingService {
   private calendarService: CalendarServiceImpl;
   private settings: AutoScheduleSettings | null;
@@ -125,7 +130,11 @@ export class SchedulingService {
     return manager;
   }
 
-  async scheduleMultipleTasks(tasks: Task[], userId: string): Promise<Task[]> {
+  async scheduleMultipleTasks(
+    tasks: Task[],
+    userId: string,
+    window?: SchedulingWindow
+  ): Promise<Task[]> {
     const overallStart = this.startMetric("scheduleMultipleTasks", {
       totalTasks: tasks.length,
     });
@@ -139,20 +148,14 @@ export class SchedulingService {
     // Get initial scores for all tasks
     const timeSlotManager = this.getTimeSlotManager();
     const now = newDate();
+    const rangeStart = window?.start && window.start > now ? window.start : now;
+    const rangeEnd = window?.end ?? addDays(now, 7);
 
     const scoringStart = this.startMetric("calculateInitialScores", {
       tasksToScore: tasksToSchedule.length,
     });
 
     const initialScores = new Map<string, number>();
-
-    //TODO: move to utils
-    // Use the same windows as scheduling
-    const windows = [
-      { days: 7, label: "1 week" },
-      // { days: 14, label: "2 weeks" },
-      // { days: 30, label: "1 month" },
-    ];
 
     // Process tasks in parallel batches
     const batchSize = 8;
@@ -165,16 +168,15 @@ export class SchedulingService {
         });
 
         let bestScore = 0;
-        for (const window of windows) {
+        if (rangeEnd > rangeStart) {
           const slots = await timeSlotManager.findAvailableSlots(
             task,
-            now,
-            addDays(now, window.days),
+            rangeStart,
+            rangeEnd,
             userId
           );
           if (slots.length > 0) {
             bestScore = Math.max(bestScore, slots[0].score);
-            break; // Found a slot, no need to look further
           }
         }
 
@@ -219,7 +221,8 @@ export class SchedulingService {
       const scheduledTask = await this.scheduleTask(
         taskWithDuration,
         timeSlotManager,
-        userId
+        userId,
+        { start: rangeStart, end: rangeEnd }
       );
       if (scheduledTask) {
         updatedTasks.push(scheduledTask);
@@ -251,31 +254,24 @@ export class SchedulingService {
   private async scheduleTask(
     task: Task,
     timeSlotManager: TimeSlotManager,
-    userId: string
+    userId: string,
+    window: SchedulingWindow
   ): Promise<Task | null> {
     const taskStart = this.startMetric("scheduleTask", {
       taskId: task.id,
       title: task.title,
     });
 
-    const now = newDate();
-    const windows = [
-      { days: 7, label: "1 week" },
-      // { days: 14, label: "2 weeks" },
-      // { days: 30, label: "1 month" },
-    ];
+    const windowStart = this.startMetric("tryWindow", {
+      window: `${window.start.toISOString()} - ${window.end.toISOString()}`,
+      taskId: task.id,
+    });
 
-    for (const window of windows) {
-      const windowStart = this.startMetric("tryWindow", {
-        window: window.label,
-        taskId: task.id,
-      });
-
-      const endDate = addDays(now, window.days);
+    if (window.end > window.start) {
       const availableSlots = await timeSlotManager.findAvailableSlots(
         task,
-        now,
-        endDate,
+        window.start,
+        window.end,
         userId
       );
 
@@ -311,16 +307,17 @@ export class SchedulingService {
         return updatedTask;
       } else {
         logger.debug(
-          `No available slots found in ${window.label} window`,
+          "No available slots found in requested window",
           {
-            windowLabel: window.label,
+            windowStart: window.start.toISOString(),
+            windowEnd: window.end.toISOString(),
           },
           LOG_SOURCE
         );
       }
-
-      this.endMetric("tryWindow", windowStart);
     }
+
+    this.endMetric("tryWindow", windowStart);
 
     this.endMetric("scheduleTask", taskStart);
     return null;

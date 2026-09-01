@@ -40,6 +40,7 @@ export interface Task {
   status: TaskStatus;
   dueDate?: Date | null;
   startDate?: Date | null;
+  plannedWeekStart?: Date | null;
   duration?: number | null;
   priority?: Priority | null;
   energyLevel?: EnergyLevel | null;
