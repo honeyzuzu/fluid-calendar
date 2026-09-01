@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Check, Coffee, Pause, Play, Sun } from "lucide-react";
+import { Bell, Check, Pencil, Play, Sun } from "lucide-react";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
 
@@ -22,7 +22,7 @@ export default function FocusPreviewPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1380px] gap-6 p-8 lg:grid-cols-[260px_1fr_220px]">
+      <div className="mx-auto grid max-w-[1380px] gap-6 p-8 lg:grid-cols-[260px_1fr]">
         <aside className="rounded-3xl border border-[#e0ddc5] bg-[#fffdf5] p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-[#89846a]">
             Up next
@@ -44,18 +44,13 @@ export default function FocusPreviewPage() {
         </aside>
 
         <section>
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-[#a6762a]">
-                Current task
-              </p>
-              <h2 className="mt-1 text-3xl font-bold tracking-tight">
-                Finish release notes
-              </h2>
-            </div>
-            <span className="rounded-full bg-[#eef3df] px-3 py-1.5 text-xs font-bold text-[#64734f]">
-              25 minutes
-            </span>
+          <div className="mb-5">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#a6762a]">
+              Current task
+            </p>
+            <h2 className="mt-1 text-3xl font-bold tracking-tight">
+              Finish release notes
+            </h2>
           </div>
 
           <div className="overflow-hidden rounded-[2rem] border border-[#dfdab8] bg-[#fffaf0] shadow-[0_8px_0_#e7dfbf]">
@@ -75,7 +70,7 @@ export default function FocusPreviewPage() {
                 </div>
                 <h3 className="mt-1 text-xl font-bold">Miso</h3>
                 <p className="mt-1 text-sm text-[#6e7058]">
-                  One cozy step at a time.
+                  I&apos;ll stay for setup and start focus with you next.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs font-bold text-[#68684f]">
@@ -83,71 +78,104 @@ export default function FocusPreviewPage() {
               </span>
             </div>
 
-            <div className="grid gap-8 p-7 lg:grid-cols-[1fr_240px] lg:items-center">
+            <div className="border-b border-[#e7e0c5] bg-[#fffdf7] px-6 py-4">
+              <div className="flex gap-2 text-[11px] font-semibold">
+                <span className="rounded-full bg-[#eef3df] px-2.5 py-1">
+                  Energy: Medium
+                </span>
+                <span className="rounded-full bg-[#fff0c8] px-2.5 py-1">
+                  Urgency: High
+                </span>
+                <span className="rounded-full bg-[#eee8f6] px-2.5 py-1">
+                  Estimate: 25 min
+                </span>
+              </div>
+              <div className="mt-3 rounded-2xl border border-[#e5dfc7] bg-white/70 px-3 py-2.5 text-sm text-[#66634f]">
+                <span className="mr-2 text-[10px] font-bold uppercase tracking-wide text-[#9a8b66]">
+                  Task note
+                </span>
+                Summarize the new planning and calendar improvements for
+                everyone.
+              </div>
+            </div>
+
+            <div className="grid gap-7 p-7 lg:grid-cols-[1fr_290px]">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b17b2b]">
-                  Gentle timer
+                  Plan your whole round
                 </p>
                 <h3 className="mt-1 text-xl font-bold">
-                  Focusing on release notes
+                  Setup first, then focus starts automatically
                 </h3>
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-4 rounded-2xl border border-[#ead9a9] bg-[#fff4cf] px-3 py-2.5 text-center text-sm font-bold text-[#755c2c]">
+                  5 min setup → 25 min focus → 5 min break
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <Choice label="Setup" value="5 min" />
+                  <Choice label="Focus" value="25 min" />
+                  <Choice label="Break after" value="5 min" />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] font-semibold">
                   {[
-                    ["Drink nearby", true],
-                    ["Space ready", true],
-                    ["Subtasks outlined", true],
-                    ["Distractions silenced", false],
-                  ].map(([label, checked]) => (
+                    "Drink nearby",
+                    "Space ready",
+                    "Outline subtasks",
+                    "Silence distractions",
+                  ].map((item, index) => (
                     <span
-                      key={String(label)}
-                      className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-[11px] font-semibold ${
-                        checked
-                          ? "border-[#bacc99] bg-[#eff4e2] text-[#586447]"
-                          : "border-[#e4dec5] bg-white text-[#777158]"
-                      }`}
+                      key={item}
+                      className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-2 ${index < 2 ? "border-[#bacc99] bg-[#eff4e2] text-[#586447]" : "border-[#e4dec5] bg-white text-[#777158]"}`}
                     >
-                      {checked && <Check className="h-3 w-3" />}
-                      {label}
+                      {index < 2 && <Check className="h-3 w-3" />}
+                      {item}
                     </span>
                   ))}
                 </div>
-                <div className="mt-6 flex gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-2xl bg-[#607249] px-5 py-3 text-sm font-bold text-white shadow-[0_3px_0_#465536]">
-                    <Pause className="h-4 w-4 fill-current" /> Pause
+                <div className="mt-3 rounded-2xl border border-[#ded8bd] bg-white/80 px-3 py-2 text-sm text-[#66634f]">
+                  Draft the feature list
+                  <br />
+                  Check the friendly wording
+                  <br />
+                  Post the final summary
+                </div>
+                <span className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#607249] px-5 py-3 text-sm font-bold text-white shadow-[0_3px_0_#465536]">
+                  <Play className="h-4 w-4 fill-current" /> Start setup, then
+                  focus
+                </span>
+              </div>
+
+              <aside className="rounded-3xl border border-[#e1dac0] bg-white/65 p-5">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#9a8b66]">
+                  After each round
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-[#6f6b54]">
+                  Your subtask outline stays beside the timer. When focus ends,
+                  choose what happens to the task.
+                </p>
+                <div className="mt-5 space-y-2">
+                  <span className="flex items-center gap-2 rounded-2xl bg-[#f4c85b] px-4 py-3 text-sm font-bold text-[#56431b]">
+                    <Check className="h-4 w-4" /> Complete task
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-2xl border border-[#dad3b7] px-5 py-3 text-sm font-semibold text-[#716b50]">
-                    <Coffee className="h-4 w-4" /> 5-minute break next
+                  <span className="flex items-center gap-2 rounded-2xl border border-[#dad3b7] bg-white px-4 py-3 text-sm font-semibold text-[#716b50]">
+                    <Pencil className="h-4 w-4" /> Edit task
                   </span>
                 </div>
-              </div>
-              <div
-                className="grid h-52 w-52 place-items-center rounded-full p-3 shadow-inner"
-                style={{
-                  background: "conic-gradient(#e0ad43 42%, #ece7d1 42% 100%)",
-                }}
-              >
-                <div className="grid h-full w-full place-items-center rounded-full bg-[#fffdf7]">
-                  <span className="font-mono text-5xl font-bold tracking-tight">
-                    14:32
-                  </span>
-                </div>
-              </div>
+              </aside>
             </div>
           </div>
         </section>
-
-        <aside className="rounded-3xl border border-[#e0ddc5] bg-[#f8f3dc] p-4">
-          <p className="text-sm font-bold">Quick actions</p>
-          <div className="mt-4 space-y-2">
-            <span className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2.5 text-xs font-semibold">
-              <Check className="h-4 w-4 text-[#718958]" /> Complete task
-            </span>
-            <span className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2.5 text-xs font-semibold">
-              <Play className="h-4 w-4 text-[#718958]" /> Another round
-            </span>
-          </div>
-        </aside>
       </div>
     </main>
+  );
+}
+
+function Choice({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-bold text-[#716b50]">{label}</p>
+      <span className="block rounded-xl border border-[#9fb878] bg-[#eff4e2] px-3 py-2 text-center text-xs font-bold text-[#566344]">
+        {value}
+      </span>
+    </div>
   );
 }

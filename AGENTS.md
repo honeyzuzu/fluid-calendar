@@ -37,6 +37,8 @@ upstream  https://github.com/dotnetfactory/fluid-calendar.git
 
 Pushing `main` triggers Railway deployment. The owner’s computer and local Docker do not need to remain running for friends to use production. Production data persists in PostgreSQL and is not stored only inside the disposable application container.
 
+After pushing a verified change, do not poll, watch, or wait for Railway deployments or Discord workflow runs. Hand the push off and let those services finish asynchronously unless the user explicitly asks for a specific deployment check.
+
 ## Architecture
 
 Sunnie is one full-stack Next.js application, not a separate frontend plus custom backend service.
@@ -229,14 +231,18 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Timed events use separate native date and time pickers plus 30-minute, one-hour, 90-minute, and two-hour quick-duration choices.
 - Calendar headers include an Add event button on desktop and mobile, while a normal tap/click on an empty calendar slot also opens a pre-filled one-hour event.
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
+- Scheduled task blocks use rounded, softly filled pastel urgency colors rather than a blue block with a hard side stripe. High is coral, medium is sunny gold, low is mint, and tasks without a priority are lavender.
+- Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, removes decorative icon/padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar.
 
 ### Focus and friend visibility
 
-- Focus mode begins with a selectable 5- or 10-minute setup checklist for a drink/snack, workspace, subtasks, and distractions. Users then choose a 15-, 25-, 45-, or 60-minute focus round and a timed 5-, 10-, or 15-minute break.
+- Focus mode begins with one combined round-planning screen: users choose a 5- or 10-minute setup, 15-, 25-, 45-, or 60-minute focus round, and 5-, 10-, or 15-minute break at the same time. The UI clearly previews the complete sequence, and focus starts automatically when setup ends.
 - Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play a soft synthesized three-note chime when setup, focus, or break time ends. The chime can be disabled.
+- The setup checklist covers a drink/snack, workspace, subtasks, and distractions. The user's subtask outline remains visible during setup and focus instead of disappearing between phases.
 - Users can choose among six built-in emoji focus pets. Completed focus rounds earn non-punitive “sun drops,” and the pet changes its encouragement across setup, focus, pause, and break phases.
 - A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.
-- The inherited `Task.scheduleScore` is labeled “Schedule fit” in Focus with a hover/focus explanation. It measures the auto-scheduler's slot match, not the user's concentration or productivity.
+- The Focus card shows the task's energy, urgency/priority, estimate, and description. The inherited schedule-fit score is intentionally not shown.
+- The separate right-side quick-actions panel was removed. At the end of every focus round, the timer offers Complete task and Edit task alongside break/continue choices.
 - Accepted friends can expose busy-only or more detailed calendar/focus information according to each side’s visibility selection.
 - Friends appear in daily planning alongside the user’s events and focus blocks.
 - The Friends navigation tab shows a warm notification dot while an incoming friend request is pending, on desktop and mobile.
@@ -256,7 +262,7 @@ Workflow: `.github/workflows/discord-updates.yml`
 - Trigger: GitHub `deployment_status` events from Railway, plus optional manual dispatch.
 - A normal announcement runs only after Railway reports `success`.
 - The message says `Live now - ready to try!` and links to production and the commit.
-- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump and Calendar releases select their matching preview; other releases use `/preview/plan`.
+- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump, Calendar, Focus, and onboarding releases select their matching preview; other releases use `/preview/plan`.
 - The screenshot is attached directly to the Discord webhook message.
 - If screenshot capture fails, the text announcement still posts.
 - Commits that change only `.github/` automation are skipped.

@@ -79,7 +79,7 @@ export function formatFocusTime(totalSeconds: number) {
 }
 
 export function nextPhaseAfterTimer(phase: FocusPhase): FocusPhase {
-  if (phase === "setup") return "focus-ready";
+  if (phase === "setup") return "focus";
   if (phase === "focus") return "break-ready";
   if (phase === "break") return "complete";
   return phase;

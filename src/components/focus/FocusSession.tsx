@@ -19,6 +19,7 @@ import {
   Coffee,
   ImagePlus,
   Pause,
+  Pencil,
   Play,
   RotateCcw,
   Sparkles,
@@ -67,13 +68,32 @@ type PersistedFocusState = {
 interface FocusSessionProps {
   taskId: string;
   taskTitle: string;
+  taskDescription?: string | null;
+  taskEnergy?: string | null;
+  taskPriority?: string | null;
+  estimatedMinutes?: number | null;
+  onCompleteTask: () => void;
+  onEditTask: () => void;
 }
 
-export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
+export function FocusSession({
+  taskId,
+  taskTitle,
+  taskDescription,
+  taskEnergy,
+  taskPriority,
+  estimatedMinutes,
+  onCompleteTask,
+  onEditTask,
+}: FocusSessionProps) {
   const [hydrated, setHydrated] = useState(false);
   const [phase, setPhase] = useState<FocusPhase>("setup-ready");
   const [setupMinutes, setSetupMinutes] = useState(5);
-  const [focusMinutes, setFocusMinutes] = useState(25);
+  const [focusMinutes, setFocusMinutes] = useState(() =>
+    FOCUS_DURATIONS.some((minutes) => minutes === estimatedMinutes)
+      ? estimatedMinutes!
+      : 25
+  );
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [remainingSeconds, setRemainingSeconds] = useState(5 * 60);
   const [endsAt, setEndsAt] = useState<number | null>(null);
@@ -127,10 +147,18 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
             setEndsAt(saved.endsAt);
             setIsRunning(restored > 0);
             if (restored === 0) {
-              if (saved.phase === "focus") {
+              if (saved.phase === "setup") {
+                const focusSeconds = (saved.focusMinutes || 25) * 60;
+                setPhase("focus");
+                setRemainingSeconds(focusSeconds);
+                setEndsAt(Date.now() + focusSeconds * 1000);
+                setIsRunning(true);
+              } else if (saved.phase === "focus") {
                 setSunDrops(savedSunDrops + 1);
+                setPhase(nextPhaseAfterTimer(saved.phase));
+              } else {
+                setPhase(nextPhaseAfterTimer(saved.phase));
               }
-              setPhase(nextPhaseAfterTimer(saved.phase));
             }
           } else {
             setRemainingSeconds(saved.remainingSeconds || 0);
@@ -245,8 +273,16 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
       setIsRunning(false);
       setEndsAt(null);
       playGentleChime();
-      if (phase === "focus") setSunDrops((current) => current + 1);
-      setPhase(nextPhaseAfterTimer(phase));
+      if (phase === "setup") {
+        const focusSeconds = focusMinutes * 60;
+        setPhase("focus");
+        setRemainingSeconds(focusSeconds);
+        setEndsAt(Date.now() + focusSeconds * 1000);
+        setIsRunning(true);
+      } else {
+        if (phase === "focus") setSunDrops((current) => current + 1);
+        setPhase(nextPhaseAfterTimer(phase));
+      }
       window.setTimeout(() => {
         finishingRef.current = false;
       }, 250);
@@ -255,7 +291,7 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
     tick();
     const interval = window.setInterval(tick, 500);
     return () => window.clearInterval(interval);
-  }, [endsAt, isRunning, phase, playGentleChime]);
+  }, [endsAt, focusMinutes, isRunning, phase, playGentleChime]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -298,13 +334,16 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
   const endCurrentPhase = () => {
     setIsRunning(false);
     setEndsAt(null);
+    if (phase === "setup") {
+      startTimer("focus");
+      return;
+    }
     setRemainingSeconds(0);
-    setPhase(phase === "focus" ? "complete" : nextPhaseAfterTimer(phase));
+    setPhase(phase === "focus" ? "break-ready" : nextPhaseAfterTimer(phase));
   };
 
   const startAnotherRound = () => {
-    setPhase("focus-ready");
-    setRemainingSeconds(focusMinutes * 60);
+    startTimer("focus");
   };
 
   const startFreshSetup = () => {
@@ -413,37 +452,70 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
         </button>
       </div>
 
+      <div className="border-b border-[#e7e0c5] bg-[#fffdf7] px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#68634d]">
+          <span className="rounded-full bg-[#eef3df] px-2.5 py-1">
+            Energy: {friendlyValue(taskEnergy)}
+          </span>
+          <span className="rounded-full bg-[#fff0c8] px-2.5 py-1">
+            Urgency: {friendlyValue(taskPriority)}
+          </span>
+          {estimatedMinutes && (
+            <span className="rounded-full bg-[#eee8f6] px-2.5 py-1">
+              Estimate: {estimatedMinutes} min
+            </span>
+          )}
+        </div>
+        {taskDescription && (
+          <div className="mt-3 rounded-2xl border border-[#e5dfc7] bg-white/70 px-3 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9a8b66]">
+              Task note
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#66634f]">
+              {taskDescription}
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="p-4 sm:p-5">
-        {(phase === "setup-ready" || phase === "setup") && (
+        {(phase === "setup-ready" || phase === "focus-ready") && (
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b17b2b]">
-                  Step 1 · Settle in
+                  Plan your whole round
                 </p>
                 <h3 className="mt-1 text-lg font-bold text-[#4e533e]">
-                  Make focus easier before it starts
+                  Setup first, then Sunnie starts focus automatically
                 </h3>
               </div>
-              {phase === "setup-ready" && (
-                <div className="flex rounded-xl bg-[#f2ecd7] p-1">
-                  {SETUP_DURATIONS.map((minutes) => (
-                    <button
-                      key={minutes}
-                      type="button"
-                      onClick={() => setSetupMinutes(minutes)}
-                      className={cn(
-                        "rounded-lg px-3 py-1.5 text-xs font-bold",
-                        setupMinutes === minutes
-                          ? "bg-white text-[#65542c] shadow-sm"
-                          : "text-[#81785c]"
-                      )}
-                    >
-                      {minutes} min
-                    </button>
-                  ))}
-                </div>
-              )}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-[#ead9a9] bg-[#fff4cf] px-3 py-2.5 text-center text-xs font-bold text-[#755c2c]">
+              {setupMinutes} min setup → {focusMinutes} min focus →{" "}
+              {breakMinutes} min break
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <DurationPicker
+                label="Setup"
+                values={SETUP_DURATIONS}
+                value={setupMinutes}
+                onChange={setSetupMinutes}
+              />
+              <DurationPicker
+                label="Focus"
+                values={FOCUS_DURATIONS}
+                value={focusMinutes}
+                onChange={setFocusMinutes}
+              />
+              <DurationPicker
+                label="Break after"
+                values={BREAK_DURATIONS}
+                value={breakMinutes}
+                onChange={setBreakMinutes}
+              />
             </div>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -493,58 +565,28 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
               />
             </label>
 
-            {phase === "setup-ready" ? (
-              <button
-                type="button"
-                onClick={() => startTimer("setup")}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#607249] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#465536] hover:bg-[#53643e] sm:w-auto"
-              >
-                <Sparkles className="h-4 w-4" /> Start {setupMinutes}-minute
-                setup
-              </button>
-            ) : (
-              <TimerControls
-                phaseLabel="Setup time"
-                remainingSeconds={remainingSeconds}
-                progress={timerProgress}
-                isRunning={isRunning}
-                onPause={pauseTimer}
-                onResume={resumeTimer}
-                onEnd={endCurrentPhase}
-              />
-            )}
+            <button
+              type="button"
+              onClick={() => startTimer("setup")}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#607249] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#465536] hover:bg-[#53643e] sm:w-auto"
+            >
+              <Sparkles className="h-4 w-4" /> Start setup, then focus
+            </button>
           </div>
         )}
 
-        {phase === "focus-ready" && (
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b17b2b]">
-              Step 2 · Pick your rhythm
-            </p>
-            <h3 className="mt-1 text-lg font-bold text-[#4e533e]">
-              How long feels doable for “{taskTitle}”?
-            </h3>
-            <DurationPicker
-              label="Focus"
-              values={FOCUS_DURATIONS}
-              value={focusMinutes}
-              onChange={setFocusMinutes}
-            />
-            <DurationPicker
-              label="Break after"
-              values={BREAK_DURATIONS}
-              value={breakMinutes}
-              onChange={setBreakMinutes}
-            />
-            <button
-              type="button"
-              onClick={() => startTimer("focus")}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#607249] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#465536] hover:bg-[#53643e] sm:w-auto"
-            >
-              <Play className="h-4 w-4 fill-current" /> Start {focusMinutes}
-              -minute focus
-            </button>
-          </div>
+        {phase === "setup" && (
+          <TimerControls
+            phaseLabel={`Setting up for ${focusMinutes} minutes of focus`}
+            remainingSeconds={remainingSeconds}
+            progress={timerProgress}
+            isRunning={isRunning}
+            onPause={pauseTimer}
+            onResume={resumeTimer}
+            onEnd={endCurrentPhase}
+            subtaskPlan={subtaskPlan}
+            nextLabel={`Focus starts next · ${focusMinutes} minutes`}
+          />
         )}
 
         {phase === "focus" && (
@@ -556,6 +598,8 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
             onPause={pauseTimer}
             onResume={resumeTimer}
             onEnd={endCurrentPhase}
+            subtaskPlan={subtaskPlan}
+            nextLabel={`Break next · ${breakMinutes} minutes`}
           />
         )}
 
@@ -568,9 +612,13 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
               Focus round complete!
             </h3>
             <p className="mt-1 text-sm text-[#747057]">
-              You earned a sun drop. Take the break you planned before deciding
-              what comes next.
+              You earned a sun drop. If the task is done, finish it here; if
+              your plan changed, update it before the next round.
             </p>
+            <RoundTaskActions
+              onCompleteTask={onCompleteTask}
+              onEditTask={onEditTask}
+            />
             <DurationPicker
               label="Break length"
               values={BREAK_DURATIONS}
@@ -619,9 +667,13 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
               Nice work protecting that time
             </h3>
             <p className="mt-1 text-sm text-[#747057]">
-              Continue this task with another round, or reset your space before
-              starting fresh.
+              Finish the task, edit what changed, or continue with another
+              round.
             </p>
+            <RoundTaskActions
+              onCompleteTask={onCompleteTask}
+              onEditTask={onEditTask}
+            />
             <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
               <button
                 type="button"
@@ -709,6 +761,40 @@ export function FocusSession({ taskId, taskTitle }: FocusSessionProps) {
   );
 }
 
+function friendlyValue(value?: string | null) {
+  if (!value || value === "none") return "Not set";
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function RoundTaskActions({
+  onCompleteTask,
+  onEditTask,
+}: {
+  onCompleteTask: () => void;
+  onEditTask: () => void;
+}) {
+  return (
+    <div className="mx-auto mt-4 grid max-w-md gap-2 sm:grid-cols-2">
+      <button
+        type="button"
+        onClick={onCompleteTask}
+        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f4c85b] px-4 py-3 text-sm font-bold text-[#56431b] shadow-[0_3px_0_#d6a43e]"
+      >
+        <Check className="h-4 w-4" /> Complete task
+      </button>
+      <button
+        type="button"
+        onClick={onEditTask}
+        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dad3b7] bg-white/70 px-4 py-3 text-sm font-semibold text-[#716b50]"
+      >
+        <Pencil className="h-4 w-4" /> Edit task
+      </button>
+    </div>
+  );
+}
+
 function DurationPicker({
   label,
   values,
@@ -755,6 +841,8 @@ function TimerControls({
   onResume,
   onEnd,
   isBreak = false,
+  subtaskPlan,
+  nextLabel,
 }: {
   phaseLabel: string;
   remainingSeconds: number;
@@ -764,6 +852,8 @@ function TimerControls({
   onResume: () => void;
   onEnd: () => void;
   isBreak?: boolean;
+  subtaskPlan?: string;
+  nextLabel?: string;
 }) {
   return (
     <div className="py-2 text-center">
@@ -773,6 +863,19 @@ function TimerControls({
       <h3 className="mx-auto mt-1 max-w-lg text-base font-bold text-[#4e533e]">
         {phaseLabel}
       </h3>
+      {nextLabel && (
+        <p className="mt-1 text-xs font-semibold text-[#9a762f]">{nextLabel}</p>
+      )}
+      {subtaskPlan?.trim() && (
+        <div className="mx-auto mt-4 max-w-xl rounded-2xl border border-[#e2dbc0] bg-white/70 px-4 py-3 text-left">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#998b68]">
+            Your focus steps
+          </p>
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#605f4d]">
+            {subtaskPlan}
+          </p>
+        </div>
+      )}
       <div
         className="mx-auto mt-4 grid h-40 w-40 place-items-center rounded-full p-2 shadow-inner"
         style={{

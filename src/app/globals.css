@@ -97,8 +97,16 @@
 @layer components {
   .sunnie-app {
     background:
-      radial-gradient(circle at 7% 18%, rgba(248, 201, 93, 0.16), transparent 22rem),
-      radial-gradient(circle at 94% 12%, rgba(184, 217, 139, 0.18), transparent 25rem),
+      radial-gradient(
+        circle at 7% 18%,
+        rgba(248, 201, 93, 0.16),
+        transparent 22rem
+      ),
+      radial-gradient(
+        circle at 94% 12%,
+        rgba(184, 217, 139, 0.18),
+        transparent 25rem
+      ),
       #fff9e8;
   }
 
@@ -142,7 +150,7 @@
 }
 
 .fc .fc-button {
-  @apply bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply rounded-md border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   background-color: #fffdf5;
   border-color: #dfe2c8;
   color: #596044;
@@ -150,7 +158,7 @@
 }
 
 .fc .fc-button-primary {
-  @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
+  @apply border-blue-600 bg-blue-600 text-white hover:bg-blue-700;
   background-color: #64734a;
   border-color: #64734a;
   color: #fff9e8;
@@ -169,11 +177,67 @@
 }
 
 .fc .fc-event {
-  @apply rounded shadow-sm border-none cursor-pointer;
+  @apply cursor-pointer rounded border-none shadow-sm;
 }
 
 .fc .fc-event-main {
   @apply p-1;
+}
+
+/* Scheduled tasks use soft, filled urgency tones instead of a hard side bar. */
+.fc .calendar-task {
+  border: 1px solid rgba(88, 92, 65, 0.16) !important;
+  border-radius: 0.625rem !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(72, 70, 48, 0.12) !important;
+  overflow: hidden;
+}
+
+.fc .calendar-task-priority-high {
+  background-color: rgba(247, 190, 181, 0.84) !important;
+  border-color: rgba(190, 91, 76, 0.3) !important;
+}
+
+.fc .calendar-task-priority-high .fc-event-main {
+  color: #713d35 !important;
+}
+
+.fc .calendar-task-priority-medium {
+  background-color: rgba(249, 218, 148, 0.86) !important;
+  border-color: rgba(190, 137, 47, 0.28) !important;
+}
+
+.fc .calendar-task-priority-medium .fc-event-main {
+  color: #675027 !important;
+}
+
+.fc .calendar-task-priority-low {
+  background-color: rgba(193, 224, 203, 0.86) !important;
+  border-color: rgba(92, 142, 105, 0.25) !important;
+}
+
+.fc .calendar-task-priority-low .fc-event-main {
+  color: #3f6147 !important;
+}
+
+.fc .calendar-task-priority-none {
+  background-color: rgba(217, 207, 238, 0.78) !important;
+  border-color: rgba(119, 99, 158, 0.22) !important;
+}
+
+.fc .calendar-task-priority-none .fc-event-main {
+  color: #57496f !important;
+}
+
+/* A 15-minute block is only half a normal row. Remove vertical padding and
+   the decorative icon so the title gets the full height and width. */
+.fc .fc-timegrid-event.calendar-task-compact .fc-event-main {
+  padding: 1px 5px !important;
+}
+
+.fc .fc-timegrid-event.calendar-task-compact .calendar-event-title {
+  line-height: 1 !important;
 }
 
 .fc .fc-daygrid-day-events {
@@ -202,7 +266,7 @@
 }
 
 .fc .fc-day-header {
-  @apply py-2 border-b border-gray-200;
+  @apply border-b border-gray-200 py-2;
 }
 
 .fc .fc-scrollgrid {
@@ -210,14 +274,14 @@
 }
 
 .fc .fc-col-header-cell {
-  @apply bg-white border-b border-gray-200;
+  @apply border-b border-gray-200 bg-white;
   background-color: #fffdf5;
   border-color: #dfe2c8;
 }
 
 /* Dark mode styles for FullCalendar */
 .dark .fc {
-  --fc-small-font-size: .85em;
+  --fc-small-font-size: 0.85em;
   --fc-page-bg-color: hsl(var(--background));
   --fc-neutral-bg-color: hsl(var(--muted) / 0.2);
   --fc-neutral-text-color: hsl(var(--muted-foreground));

@@ -13,7 +13,7 @@ describe("focus sessions", () => {
   });
 
   it("moves through setup, focus, and break phases", () => {
-    expect(nextPhaseAfterTimer("setup")).toBe("focus-ready");
+    expect(nextPhaseAfterTimer("setup")).toBe("focus");
     expect(nextPhaseAfterTimer("focus")).toBe("break-ready");
     expect(nextPhaseAfterTimer("break")).toBe("complete");
   });

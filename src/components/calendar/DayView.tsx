@@ -17,6 +17,7 @@ import {
   getSelectionRange,
   getTapSelectionRange,
 } from "@/lib/calendar-selection";
+import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 
@@ -103,9 +104,12 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
                 feeds.find((f) => f.id === item.feedId)?.color ||
                 "#3b82f6",
           allDay: item.allDay,
-          classNames: [
-            item.extendedProps?.isTask ? "calendar-task" : "calendar-event",
-          ],
+          classNames: getCalendarItemClassNames({
+            isTask: !!item.extendedProps?.isTask,
+            priority: item.extendedProps?.priority,
+            durationMs:
+              newDate(item.end).getTime() - newDate(item.start).getTime(),
+          }),
           ...getEventEditability(item, feeds),
           extendedProps: {
             ...item,

@@ -7,7 +7,6 @@ import { ActionOverlay } from "@/components/ui/action-overlay";
 import { useFocusModeStore } from "@/store/focusMode";
 
 import { FocusedTask } from "./FocusedTask";
-import { QuickActions } from "./QuickActions";
 import { TaskQueue } from "./TaskQueue";
 
 export function FocusMode() {
@@ -59,11 +58,6 @@ export function FocusMode() {
         <main className="order-1 min-h-[55vh] flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(248,201,93,0.12),_transparent_22rem)] p-4 sm:p-8 md:order-2 md:min-h-0">
           <FocusedTask task={currentTask} />
         </main>
-
-        {/* Right sidebar with quick actions */}
-        <aside className="order-3 w-full flex-none border-t border-[#dfe2c8] bg-[#f8f3dc] md:h-full md:w-64 md:border-l md:border-t-0">
-          <QuickActions />
-        </aside>
       </div>
     </div>
   );
