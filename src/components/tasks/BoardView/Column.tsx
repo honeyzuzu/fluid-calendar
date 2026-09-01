@@ -39,6 +39,10 @@ const formatEnumValue = (value: string) => {
 export function Column({ status, tasks, onEdit, onDelete }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
+    data: {
+      type: "status",
+      status,
+    },
   });
 
   return (
@@ -47,7 +51,7 @@ export function Column({ status, tasks, onEdit, onDelete }: ColumnProps) {
       className={cn(
         "flex w-[85vw] max-w-80 flex-shrink-0 snap-center flex-col rounded-lg border bg-background sm:w-80",
         statusColors[status],
-        isOver && "ring-2 ring-ring"
+        isOver && "relative z-10 ring-2 ring-[#d29b39] ring-offset-2"
       )}
     >
       <div className="border-b border-border p-2">

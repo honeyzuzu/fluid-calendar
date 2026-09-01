@@ -14,6 +14,12 @@ import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Textarea } from "@/components/ui/textarea";
 
+import {
+  DEFAULT_PROJECT_COLOR,
+  SUNNIE_PROJECT_COLORS,
+} from "@/lib/project-colors";
+import { cn } from "@/lib/utils";
+
 import { useProjectStore } from "@/store/project";
 
 import { Project, ProjectStatus } from "@/types/project";
@@ -30,7 +36,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   const { createProject, updateProject } = useProjectStore();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [color, setColor] = useState("#E5E7EB");
+  const [color, setColor] = useState(DEFAULT_PROJECT_COLOR);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -38,11 +44,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     if (project && isOpen) {
       setName(project.name);
       setDescription(project.description || "");
-      setColor(project.color || "#E5E7EB");
+      setColor(project.color || DEFAULT_PROJECT_COLOR);
     } else if (!project && isOpen) {
       setName("");
       setDescription("");
-      setColor("#E5E7EB");
+      setColor(DEFAULT_PROJECT_COLOR);
     }
   }, [project, isOpen]);
 
@@ -56,13 +62,13 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
         await updateProject(project.id, {
           name: name.trim(),
           description: description.trim() || undefined,
-          color: color === "#E5E7EB" ? undefined : color,
+          color,
         });
       } else {
         await createProject({
           name: name.trim(),
           description: description.trim() || undefined,
-          color: color === "#E5E7EB" ? undefined : color,
+          color,
           status: ProjectStatus.ACTIVE,
         });
       }
@@ -106,22 +112,53 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
               />
             </div>
 
-            <div>
-              <Label htmlFor="color">Color</Label>
-              <div className="flex items-center gap-2">
+            <fieldset>
+              <legend className="text-sm font-medium">Project color</legend>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This colors the project tile only, not the tasks inside it.
+              </p>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {SUNNIE_PROJECT_COLORS.map((preset) => {
+                  const isSelected = color.toUpperCase() === preset.value;
+                  return (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      aria-label={`Use ${preset.name}`}
+                      aria-pressed={isSelected}
+                      title={preset.name}
+                      onClick={() => setColor(preset.value)}
+                      className={cn(
+                        "h-11 rounded-xl border border-black/10 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#64734a] focus-visible:ring-offset-2 motion-reduce:transform-none",
+                        isSelected &&
+                          "ring-2 ring-[#596741] ring-offset-2 ring-offset-background"
+                      )}
+                      style={{ backgroundColor: preset.value }}
+                    >
+                      <span className="sr-only">{preset.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <Label htmlFor="color" className="mt-4 block text-xs">
+                Custom color
+              </Label>
+              <div className="mt-1 flex items-center gap-2">
                 <Input
                   type="color"
                   id="color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="h-10 w-20 p-1"
+                  className="h-10 w-20 cursor-pointer p-1"
                 />
                 <div
-                  className="h-10 flex-1 rounded-md border"
+                  className="flex h-10 flex-1 items-center rounded-xl border px-3 text-xs font-medium text-[#414530]"
                   style={{ backgroundColor: color }}
-                />
+                >
+                  Project tile preview
+                </div>
               </div>
-            </div>
+            </fieldset>
 
             <div className="flex justify-between pt-4">
               {project && (

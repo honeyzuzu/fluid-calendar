@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Circle,
   Folder,
+  GripVertical,
   Plus,
   Search,
   Sparkles,
@@ -61,6 +62,12 @@ const tasks = [
   },
 ];
 
+const projects = [
+  { name: "Sunnie Planner", count: 3, color: "#F4D27D" },
+  { name: "Personal", count: 2, color: "#BDD39A" },
+  { name: "Friends", count: 1, color: "#DFA7A7" },
+];
+
 export default function TasksPreviewPage() {
   return (
     <main
@@ -77,16 +84,25 @@ export default function TasksPreviewPage() {
         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-black/35">
           Projects
         </p>
-        {["All tasks", "Sunnie Planner", "Personal", "Friends"].map(
-          (project, index) => (
+        <div className="mt-2 flex items-center gap-2 rounded-xl bg-[#eef3df] px-3 py-2.5 text-sm font-semibold text-[#566344]">
+          <Folder className="h-4 w-4" /> All tasks
+        </div>
+        <div className="mt-3 space-y-2">
+          {projects.map((project) => (
             <div
-              key={project}
-              className={`mt-2 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${index === 0 ? "bg-[#eef3df] text-[#566344]" : "text-black/48"}`}
+              key={project.name}
+              className="flex items-center gap-2 rounded-xl border border-black/10 px-3 py-3 text-sm font-semibold text-[#414530] shadow-sm"
+              style={{ backgroundColor: project.color }}
             >
-              <Folder className="h-4 w-4" /> {project}
+              <Folder className="h-4 w-4 text-black/40" />
+              <span className="min-w-0 flex-1 truncate">{project.name}</span>
+              <span className="text-xs text-black/40">{project.count}</span>
             </div>
-          )
-        )}
+          ))}
+        </div>
+        <p className="mt-4 rounded-xl border border-dashed border-[#c8c9a9] bg-white/50 px-3 py-2 text-[11px] leading-relaxed text-black/45">
+          Drag any task onto a project tile to move it.
+        </p>
       </aside>
 
       <div className="min-w-0 flex-1">
@@ -137,7 +153,10 @@ export default function TasksPreviewPage() {
                 className="rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-4 shadow-[0_2px_7px_rgba(72,70,48,0.07)]"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-bold">{task.title}</h2>
+                  <div className="flex min-w-0 items-start gap-1.5">
+                    <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-black/25" />
+                    <h2 className="font-bold">{task.title}</h2>
+                  </div>
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-[#879c66]" />
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-black/45">

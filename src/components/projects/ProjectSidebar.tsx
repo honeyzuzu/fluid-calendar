@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { isSaasEnabled } from "@/lib/config";
+import { DEFAULT_PROJECT_COLOR } from "@/lib/project-colors";
 import { cn } from "@/lib/utils";
 
 import { useProjectStore } from "@/store/project";
@@ -309,26 +310,25 @@ function ProjectItem({
     <div
       {...droppableProps}
       className={cn(
-        "group flex w-full cursor-pointer items-center space-x-2 rounded-md px-3 py-2",
-        isActive ? "bg-secondary text-secondary-foreground" : "hover:bg-muted",
-        isOver && "ring-2 ring-ring"
+        "group flex min-h-11 w-full cursor-pointer items-center space-x-2 rounded-xl border border-black/10 px-3 py-2.5 text-[#414530] shadow-[0_1px_2px_rgba(65,69,48,0.06)] transition hover:-translate-y-0.5 hover:brightness-[1.02] hover:shadow-sm motion-reduce:transform-none",
+        isActive && "ring-2 ring-[#596741] ring-offset-2 ring-offset-[#fffdf5]",
+        isOver &&
+          "z-10 scale-[1.03] ring-2 ring-[#d0912e] ring-offset-2 ring-offset-[#fffdf5]"
       )}
+      style={{ backgroundColor: project.color || DEFAULT_PROJECT_COLOR }}
       onClick={() => setActiveProject(project)}
     >
-      {project.color && (
-        <div
-          className="h-2 w-2 flex-shrink-0 rounded-full"
-          style={{ backgroundColor: project.color }}
-        />
-      )}
-      <span className="project-name flex-1 truncate">{project.name}</span>
-      <span className="text-xs text-muted-foreground">{taskCount}</span>
+      <HiFolderOpen className="h-4 w-4 shrink-0 text-black/45" />
+      <span className="project-name flex-1 truncate font-medium">
+        {project.name}
+      </span>
+      <span className="text-xs text-black/45">{taskCount}</span>
 
       {hasMappings && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+          className="h-6 w-6 p-0.5 text-black/55 opacity-0 transition-opacity hover:bg-white/45 group-hover:opacity-100"
           disabled={isSyncing}
           onClick={(e) => {
             e.stopPropagation();
@@ -344,7 +344,7 @@ function ProjectItem({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+        className="h-6 w-6 p-0.5 text-black/55 opacity-0 transition-opacity hover:bg-white/45 group-hover:opacity-100"
         onClick={(e) => {
           e.stopPropagation();
           onEdit(project);

@@ -237,7 +237,6 @@ export default function TasksPage() {
                   setOpen(true);
                 }}
                 onDelete={handleDeleteTask}
-                onStatusChange={handleStatusChange}
               />
             )}
           </div>

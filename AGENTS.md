@@ -199,6 +199,9 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The Tasks workspace is centered at a readable maximum width. Its filters form a compact toolbar on desktop, list cards gain columns as space permits, and board columns stay centered rather than leaving the content stranded against one edge.
 - The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
+- Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.
+- Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
+- Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task.
 
 ### Brain Dump and task tune-up
 

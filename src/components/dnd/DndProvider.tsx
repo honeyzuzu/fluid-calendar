@@ -1,19 +1,27 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import {
   DndContext,
   DragEndEvent,
   DragOverlay,
+  DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+
+import { getTaskDropUpdate } from "@/lib/task-dnd";
 
 import { useProjectStore } from "@/store/project";
 import { useTaskStore } from "@/store/task";
+
+import { Task } from "@/types/task";
+
+import { BoardTaskOverlay } from "../tasks/BoardView/BoardTask";
 
 interface DndProviderProps {
   children: ReactNode;
@@ -22,6 +30,7 @@ interface DndProviderProps {
 export function DndProvider({ children }: DndProviderProps) {
   const { updateTask } = useTaskStore();
   const { fetchProjects } = useProjectStore();
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -37,32 +46,45 @@ export function DndProvider({ children }: DndProviderProps) {
     })
   );
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!active || !over) return;
-
-    // Handle dropping a task onto a project
-    if (
-      active.data.current?.type === "task" &&
-      over.data.current?.type === "project"
-    ) {
-      const taskId = active.id as string;
-      const projectId =
-        over.id === "remove-project" ? null : (over.id as string);
-
-      // Optimistically update the task
-      await updateTask(taskId, { projectId });
-
-      // Refetch projects to update task counts
-      fetchProjects();
+  const handleDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === "task") {
+      setActiveTask(event.active.data.current.task as Task);
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+
+    if (!active || !over) return;
+
+    if (active.data.current?.type !== "task") return;
+
+    const update = getTaskDropUpdate(
+      String(over.id),
+      over.data.current as Parameters<typeof getTaskDropUpdate>[1]
+    );
+    if (!update) return;
+
+    await updateTask(String(active.id), update);
+    if ("projectId" in update) await fetchProjects();
+  };
+
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragCancel={() => setActiveTask(null)}
+      onDragEnd={handleDragEnd}
+    >
       {children}
-      <DragOverlay />
+      {typeof document !== "undefined" &&
+        createPortal(
+          <DragOverlay zIndex={10000} dropAnimation={{ duration: 220 }}>
+            {activeTask ? <BoardTaskOverlay task={activeTask} /> : null}
+          </DragOverlay>,
+          document.body
+        )}
     </DndContext>
   );
 }

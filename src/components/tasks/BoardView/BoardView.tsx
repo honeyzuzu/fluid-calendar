@@ -2,8 +2,6 @@
 
 import { useMemo } from "react";
 
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
-
 import { useProjectStore } from "@/store/project";
 import { useTaskListViewSettings } from "@/store/taskListViewSettings";
 
@@ -15,15 +13,9 @@ interface BoardViewProps {
   tasks: Task[];
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  onStatusChange: (taskId: string, status: TaskStatus) => void;
 }
 
-export function BoardView({
-  tasks,
-  onEdit,
-  onDelete,
-  onStatusChange,
-}: BoardViewProps) {
+export function BoardView({ tasks, onEdit, onDelete }: BoardViewProps) {
   const { activeProject } = useProjectStore();
   const { energyLevel, timePreference, tagIds, search } =
     useTaskListViewSettings();
@@ -88,33 +80,18 @@ export function BoardView({
     return grouped;
   }, [filteredTasks]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const newStatus = over.id as TaskStatus;
-
-    if (Object.values(TaskStatus).includes(newStatus)) {
-      onStatusChange(taskId, newStatus);
-    }
-  };
-
   return (
     <div className="flex h-full flex-col rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/70 p-2 shadow-sm sm:p-4">
       <div className="flex flex-1 snap-x snap-mandatory gap-3 overflow-auto sm:gap-4 lg:justify-center">
-        <DndContext onDragEnd={handleDragEnd}>
-          {Object.values(TaskStatus).map((status) => (
-            <Column
-              key={status}
-              status={status}
-              tasks={columns[status]}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </DndContext>
+        {Object.values(TaskStatus).map((status) => (
+          <Column
+            key={status}
+            status={status}
+            tasks={columns[status]}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
       </div>
     </div>
   );

@@ -70,7 +70,11 @@ jobs:
             );
             const tasksUpdate = files.some((file) =>
               file.filename.startsWith("src/components/tasks/") ||
-              file.filename.startsWith("src/app/(common)/tasks/")
+              file.filename.startsWith("src/app/(common)/tasks/") ||
+              file.filename.startsWith("src/components/projects/") ||
+              file.filename.startsWith("src/components/dnd/") ||
+              file.filename === "src/lib/project-colors.ts" ||
+              file.filename === "src/lib/task-dnd.ts"
             );
             core.setOutput(
               "preview_url",

@@ -1,7 +1,13 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { HiClock, HiLockClosed, HiPencil, HiTrash } from "react-icons/hi";
+import {
+  HiClock,
+  HiFolder,
+  HiLockClosed,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi";
 
 import {
   format,
@@ -185,12 +191,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
 
             {task.project && (
               <div className="flex items-center gap-1">
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{
-                    backgroundColor: task.project.color || "var(--muted)",
-                  }}
-                />
+                <HiFolder className="h-3.5 w-3.5 text-[#8d8d73]" />
                 <span className="text-muted-foreground">
                   {task.project.name}
                 </span>
@@ -231,6 +232,29 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
           <HiTrash className="h-4 w-4" />
         </button>
       </div>
+    </div>
+  );
+}
+
+export function BoardTaskOverlay({ task }: { task: Task }) {
+  return (
+    <div className="w-72 rotate-1 cursor-grabbing rounded-2xl border border-[#d5cfb5] bg-[#fffdf7] p-4 shadow-[0_20px_45px_rgba(63,61,39,0.24)] ring-2 ring-[#f0c965]/60 motion-reduce:rotate-0">
+      <div className="flex items-start gap-2">
+        {task.isAutoScheduled && (
+          <HiClock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        )}
+        <p className="text-sm font-semibold text-[#414530]">{task.title}</p>
+      </div>
+      {task.description && (
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {task.description}
+        </p>
+      )}
+      {task.project && (
+        <p className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+          <HiFolder className="h-3.5 w-3.5" /> {task.project.name}
+        </p>
+      )}
     </div>
   );
 }
