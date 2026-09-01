@@ -215,6 +215,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The color picker includes a pastel Sunnie rainbow plus a custom color input.
 - Custom colors are applied only after explicit confirmation, avoiding accidental commits while dragging.
 - Recently used custom colors are saved as quick-access colors.
+- Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.
+- Timed events use separate native date and time pickers plus 30-minute, one-hour, 90-minute, and two-hour quick-duration choices.
 
 ### Focus and friend visibility
 

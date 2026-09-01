@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import { CalendarDays, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
@@ -124,6 +126,15 @@ function buildRecurrenceRule(freq: string, interval: number, byDay: string[]) {
   return rule;
 }
 
+function localDateParts(value: Date) {
+  const [date, time = ""] = formatToLocalISOString(value).split("T");
+  return { date, time: time.slice(0, 5) };
+}
+
+function localDateFromParts(date: string, time: string, allDay: boolean) {
+  return newDate(`${date}T${allDay ? "00:00" : time}`);
+}
+
 export function EventModal({
   isOpen,
   onClose,
@@ -139,19 +150,27 @@ export function EventModal({
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [location, setLocation] = useState(event?.location || "");
-  const [startDate, setStartDate] = useState<Date>(
-    event?.start
-      ? newDate(event.start)
-      : defaultDate
-        ? newDate(defaultDate)
-        : newDate()
+  const initialStartDate = event?.start
+    ? newDate(event.start)
+    : defaultDate
+      ? newDate(defaultDate)
+      : newDate();
+  const initialEndDate = event?.end
+    ? newDate(event.end)
+    : defaultEndDate
+      ? newDate(defaultEndDate)
+      : newDate(Date.now() + 3600000);
+  const [startDay, setStartDay] = useState(
+    () => localDateParts(initialStartDate).date
   );
-  const [endDate, setEndDate] = useState<Date>(
-    event?.end
-      ? newDate(event.end)
-      : defaultEndDate
-        ? newDate(defaultEndDate)
-        : newDate(Date.now() + 3600000)
+  const [startTime, setStartTime] = useState(
+    () => localDateParts(initialStartDate).time
+  );
+  const [endDay, setEndDay] = useState(
+    () => localDateParts(initialEndDate).date
+  );
+  const [endTime, setEndTime] = useState(
+    () => localDateParts(initialEndDate).time
   );
   const [selectedFeedId, setSelectedFeedId] = useState<string>(
     event?.feedId || calendar.defaultCalendarId || ""
@@ -163,6 +182,7 @@ export function EventModal({
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -170,20 +190,22 @@ export function EventModal({
       setTitle(event?.title || "");
       setDescription(event?.description || "");
       setLocation(event?.location || "");
-      setStartDate(
-        event?.start
-          ? newDate(event.start)
-          : defaultDate
-            ? newDate(defaultDate)
-            : newDate()
-      );
-      setEndDate(
-        event?.end
-          ? newDate(event.end)
-          : defaultEndDate
-            ? newDate(defaultEndDate)
-            : newDate(Date.now() + 3600000)
-      );
+      const nextStart = event?.start
+        ? newDate(event.start)
+        : defaultDate
+          ? newDate(defaultDate)
+          : newDate();
+      const nextEnd = event?.end
+        ? newDate(event.end)
+        : defaultEndDate
+          ? newDate(defaultEndDate)
+          : newDate(Date.now() + 3600000);
+      const nextStartParts = localDateParts(nextStart);
+      const nextEndParts = localDateParts(nextEnd);
+      setStartDay(nextStartParts.date);
+      setStartTime(nextStartParts.time);
+      setEndDay(nextEndParts.date);
+      setEndTime(nextEndParts.time);
       setSelectedFeedId(event?.feedId || calendar.defaultCalendarId || "");
       setIsAllDay(event?.allDay || false);
       setIsRecurring(event?.isRecurring || false);
@@ -196,6 +218,7 @@ export function EventModal({
       setRecurrenceByDay(byDay);
       setEditMode(undefined);
       setShowRecurrenceDialog(false);
+      setFormError(null);
 
       // Focus the title input
       setTimeout(() => titleInputRef.current?.focus(), 100);
@@ -220,20 +243,48 @@ export function EventModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationError = validateCalendarEventDraft({
+      title,
+      calendarId: selectedFeedId,
+      startDay,
+      startTime,
+      endDay,
+      endTime,
+      allDay: isAllDay,
+    });
+    if (validationError) {
+      setFormError(validationError);
+      if (!title.trim()) titleInputRef.current?.focus();
+      return;
+    }
+
+    const nextStartDate = localDateFromParts(startDay, startTime, isAllDay);
+    const nextEndDate = localDateFromParts(endDay, endTime, isAllDay);
+    if (
+      Number.isNaN(nextStartDate.getTime()) ||
+      Number.isNaN(nextEndDate.getTime())
+    ) {
+      setFormError("Choose a valid start and end date and time.");
+      return;
+    }
+    setFormError(null);
     setIsSubmitting(true);
     try {
       const feed = feeds.find((f) => f.id === selectedFeedId);
       if (!feed) {
-        console.error("Selected calendar not found");
+        setFormError(
+          "That calendar is no longer available. Choose another calendar."
+        );
         return;
       }
 
       const eventData: Omit<CalendarEvent, "id"> = {
-        title,
+        title: title.trim(),
         description,
         location,
-        start: startDate,
-        end: endDate,
+        start: nextStartDate,
+        end: nextEndDate,
         feedId: selectedFeedId,
         allDay: isAllDay,
         isRecurring,
@@ -263,10 +314,26 @@ export function EventModal({
       onClose();
     } catch (error) {
       console.error("Failed to save event:", error);
-      alert(error instanceof Error ? error.message : "Failed to save event");
+      setFormError(
+        error instanceof Error ? error.message : "Failed to save event"
+      );
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const applyDuration = (minutes: number) => {
+    if (!startDay || !startTime) {
+      setFormError("Choose a start date and time first.");
+      return;
+    }
+    const nextStart = localDateFromParts(startDay, startTime, false);
+    if (Number.isNaN(nextStart.getTime())) return;
+    const nextEnd = newDate(nextStart.getTime() + minutes * 60_000);
+    const nextEndParts = localDateParts(nextEnd);
+    setEndDay(nextEndParts.date);
+    setEndTime(nextEndParts.time);
+    setFormError(null);
   };
 
   const handleDelete = async () => {
@@ -376,28 +443,52 @@ export function EventModal({
             onSubmit={handleSubmit}
             className="space-y-4 overflow-y-auto px-6 pb-6"
           >
+            {formError && (
+              <div
+                role="alert"
+                className="rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-4 py-3 text-sm text-[#8b4934]"
+              >
+                {formError}
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <RequiredLabel htmlFor="title">Title</RequiredLabel>
               <Input
                 type="text"
                 id="title"
                 ref={titleInputRef}
                 data-testid="event-title-input"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setFormError(null);
+                }}
                 className="event-title"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="calendar">Calendar</Label>
+              <RequiredLabel htmlFor="calendar">Calendar</RequiredLabel>
               <Select
                 value={selectedFeedId}
-                onValueChange={(value) => setSelectedFeedId(value)}
+                onValueChange={(value) => {
+                  setSelectedFeedId(value);
+                  setFormError(null);
+                }}
                 disabled={!!event?.id}
               >
-                <SelectTrigger id="calendar" data-testid="calendar-select">
+                <SelectTrigger
+                  id="calendar"
+                  data-testid="calendar-select"
+                  aria-invalid={Boolean(formError && !selectedFeedId)}
+                  className={cn(
+                    formError &&
+                      !selectedFeedId &&
+                      "border-[#d87857] ring-2 ring-[#f7d2c3]"
+                  )}
+                >
                   <SelectValue placeholder="Select a calendar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -425,60 +516,60 @@ export function EventModal({
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="start">Start</Label>
-                <Input
-                  type={isAllDay ? "date" : "datetime-local"}
-                  id="start"
-                  data-testid="event-start-date"
-                  value={
-                    isAllDay
-                      ? formatToLocalISOString(startDate).split("T")[0]
-                      : formatToLocalISOString(startDate)
-                  }
-                  onChange={(e) => setStartDate(newDate(e.target.value))}
-                  className={cn(
-                    "cursor-pointer px-3 py-2",
-                    "[&::-webkit-calendar-picker-indicator]:ml-auto",
-                    "[&::-webkit-calendar-picker-indicator]:mr-1",
-                    "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                    "[&::-webkit-calendar-picker-indicator]:rounded-md",
-                    "[&::-webkit-calendar-picker-indicator]:hover:bg-accent",
-                    "[&::-webkit-calendar-picker-indicator]:dark:invert",
-                    "[&::-webkit-datetime-edit]:text-foreground",
-                    "[&::-webkit-datetime-edit-fields-wrapper]:p-0"
-                  )}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="end">End</Label>
-                <Input
-                  type={isAllDay ? "date" : "datetime-local"}
-                  id="end"
-                  data-testid="event-end-date"
-                  value={
-                    isAllDay
-                      ? formatToLocalISOString(endDate).split("T")[0]
-                      : formatToLocalISOString(endDate)
-                  }
-                  onChange={(e) => setEndDate(newDate(e.target.value))}
-                  className={cn(
-                    "cursor-pointer px-3 py-2",
-                    "[&::-webkit-calendar-picker-indicator]:ml-auto",
-                    "[&::-webkit-calendar-picker-indicator]:mr-1",
-                    "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                    "[&::-webkit-calendar-picker-indicator]:rounded-md",
-                    "[&::-webkit-calendar-picker-indicator]:hover:bg-accent",
-                    "[&::-webkit-calendar-picker-indicator]:dark:invert",
-                    "[&::-webkit-datetime-edit]:text-foreground",
-                    "[&::-webkit-datetime-edit-fields-wrapper]:p-0"
-                  )}
-                  required
-                />
-              </div>
+              <DateTimeFields
+                label="Start"
+                dateId="start-date"
+                timeId="start-time"
+                date={startDay}
+                time={startTime}
+                allDay={isAllDay}
+                onDateChange={(value) => {
+                  setStartDay(value);
+                  setFormError(null);
+                }}
+                onTimeChange={(value) => {
+                  setStartTime(value);
+                  setFormError(null);
+                }}
+                testId="event-start-date"
+              />
+              <DateTimeFields
+                label="End"
+                dateId="end-date"
+                timeId="end-time"
+                date={endDay}
+                time={endTime}
+                minDate={startDay}
+                allDay={isAllDay}
+                onDateChange={(value) => {
+                  setEndDay(value);
+                  setFormError(null);
+                }}
+                onTimeChange={(value) => {
+                  setEndTime(value);
+                  setFormError(null);
+                }}
+                testId="event-end-date"
+              />
             </div>
+
+            {!isAllDay && (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f5eb] px-3 py-2">
+                <span className="mr-1 text-xs font-medium text-black/45">
+                  Quick duration
+                </span>
+                {[30, 60, 90, 120].map((minutes) => (
+                  <button
+                    key={minutes}
+                    type="button"
+                    onClick={() => applyDuration(minutes)}
+                    className="rounded-lg border border-black/[0.07] bg-white px-2.5 py-1 text-xs font-semibold text-[#65734c] hover:bg-[#eef3df]"
+                  >
+                    {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -526,7 +617,12 @@ export function EventModal({
                     (recurrenceFreq === FREQUENCIES.NONE || !recurrenceFreq)
                   ) {
                     setRecurrenceFreq(FREQUENCIES.WEEKLY);
-                    const weekdayNum = startDate.getDay();
+                    const recurrenceStart = localDateFromParts(
+                      startDay,
+                      startTime,
+                      isAllDay
+                    );
+                    const weekdayNum = recurrenceStart.getDay();
                     const weekdays = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
                     const weekday = weekdays[weekdayNum];
                     setRecurrenceByDay([weekday]);
@@ -626,13 +722,107 @@ export function EventModal({
     setTitle("");
     setDescription("");
     setLocation("");
-    setStartDate(newDate());
-    setEndDate(newDate(Date.now() + 3600000));
+    const nextStartParts = localDateParts(newDate());
+    const nextEndParts = localDateParts(newDate(Date.now() + 3600000));
+    setStartDay(nextStartParts.date);
+    setStartTime(nextStartParts.time);
+    setEndDay(nextEndParts.date);
+    setEndTime(nextEndParts.time);
     setIsAllDay(false);
     setIsRecurring(false);
     setColor("");
     setRecurrenceFreq("");
     setRecurrenceInterval(1);
     setRecurrenceByDay([]);
+    setFormError(null);
   }
+}
+
+function RequiredLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Label htmlFor={htmlFor}>
+      {children} <span className="text-[#c65f40]">*</span>
+    </Label>
+  );
+}
+
+function DateTimeFields({
+  label,
+  dateId,
+  timeId,
+  date,
+  time,
+  minDate,
+  allDay,
+  onDateChange,
+  onTimeChange,
+  testId,
+}: {
+  label: string;
+  dateId: string;
+  timeId: string;
+  date: string;
+  time: string;
+  minDate?: string;
+  allDay: boolean;
+  onDateChange: (value: string) => void;
+  onTimeChange: (value: string) => void;
+  testId: string;
+}) {
+  const pickerClassName = cn(
+    "h-10 cursor-pointer px-2 text-sm",
+    "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
+    "[&::-webkit-calendar-picker-indicator]:rounded-md",
+    "[&::-webkit-calendar-picker-indicator]:hover:bg-accent",
+    "[&::-webkit-calendar-picker-indicator]:dark:invert"
+  );
+
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium">
+        {label} <span className="text-[#c65f40]">*</span>
+      </legend>
+      <div className={cn("grid gap-2", !allDay && "grid-cols-[1fr_112px]")}>
+        <label className="relative">
+          <CalendarDays className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35" />
+          <Input
+            type="date"
+            id={dateId}
+            data-testid={testId}
+            aria-label={`${label} date`}
+            value={date}
+            min={minDate}
+            onChange={(event) => onDateChange(event.target.value)}
+            onClick={(event) => event.currentTarget.showPicker?.()}
+            className={cn(pickerClassName, "pl-8")}
+            required
+          />
+        </label>
+        {!allDay && (
+          <label className="relative">
+            <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35" />
+            <Input
+              type="time"
+              id={timeId}
+              aria-label={`${label} time`}
+              value={time}
+              onChange={(event) => onTimeChange(event.target.value)}
+              onClick={(event) => event.currentTarget.showPicker?.()}
+              className={cn(pickerClassName, "pl-8")}
+              required
+            />
+          </label>
+        )}
+      </div>
+      <p className="text-[11px] text-black/35">
+        {allDay ? "Choose a date" : "Date and time"}
+      </p>
+    </fieldset>
+  );
 }
