@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Brain } from "lucide-react";
 import { BsCalendar, BsListTask } from "react-icons/bs";
 import {
   HiOutlineLightBulb,
@@ -43,11 +44,37 @@ export function AppNav({ className }: AppNavProps) {
   };
 
   const links = [
-    { href: "/plan", label: "Plan", icon: HiOutlineSparkles },
-    { href: "/calendar", label: "Calendar", icon: BsCalendar },
-    { href: "/tasks", label: "Tasks", icon: BsListTask },
-    { href: "/friends", label: "Friends", icon: HiOutlineUserGroup },
-    { href: "/focus", label: "Focus", icon: HiOutlineLightBulb },
+    {
+      href: "/plan",
+      label: "Plan",
+      mobileLabel: "Plan",
+      icon: HiOutlineSparkles,
+    },
+    {
+      href: "/calendar",
+      label: "Calendar",
+      mobileLabel: "Calendar",
+      icon: BsCalendar,
+    },
+    { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: BsListTask },
+    {
+      href: "/brain-dump",
+      label: "Brain Dump",
+      mobileLabel: "Dump",
+      icon: Brain,
+    },
+    {
+      href: "/friends",
+      label: "Friends",
+      mobileLabel: "Friends",
+      icon: HiOutlineUserGroup,
+    },
+    {
+      href: "/focus",
+      label: "Focus",
+      mobileLabel: "Focus",
+      icon: HiOutlineLightBulb,
+    },
   ];
 
   return (
@@ -138,7 +165,7 @@ export function AppNav({ className }: AppNavProps) {
       </nav>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md md:hidden"
       >
         {links.map((link) => {
           const Icon = link.icon;
@@ -171,7 +198,7 @@ export function AppNav({ className }: AppNavProps) {
                   )}
                 </span>
               </span>
-              <span className="truncate">{link.label}</span>
+              <span className="max-w-full truncate">{link.mobileLabel}</span>
             </Link>
           );
         })}

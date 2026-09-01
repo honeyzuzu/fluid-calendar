@@ -187,6 +187,14 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Task list and board views are inherited and retained.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 
+### Brain Dump and task tune-up
+
+- `/brain-dump` turns each non-empty line or common list item into a separate auto-schedulable task; repeated lines in the same dump are ignored.
+- Brain Dump is deterministic and does not require an AI provider. Users should put one thought on each line; optional AI paragraph interpretation is a possible later enhancement.
+- Unsaved brain-dump text is retained only in that browser's local storage. Submitted items become normal database-backed tasks.
+- Task Tune-up cycles flashcard-style through every active task that is missing a duration, priority, or energy level, including tasks created elsewhere in Sunnie.
+- Each tune-up card also exposes task status. Completed tasks are excluded from the tune-up queue.
+
 ### Daily and weekly planning
 
 - `/plan` stores a daily intention and completion state in `DailyPlan`.
