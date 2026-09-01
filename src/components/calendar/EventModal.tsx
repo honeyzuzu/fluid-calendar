@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { CalendarDays, Clock3 } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -183,6 +183,9 @@ export function EventModal({
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(
+    Boolean(event?.location || event?.description || event?.isRecurring)
+  );
 
   // Reset form when modal opens
   useEffect(() => {
@@ -219,6 +222,9 @@ export function EventModal({
       setEditMode(undefined);
       setShowRecurrenceDialog(false);
       setFormError(null);
+      setShowDetails(
+        Boolean(event?.location || event?.description || event?.isRecurring)
+      );
 
       // Focus the title input
       setTimeout(() => titleInputRef.current?.focus(), 100);
@@ -433,211 +439,241 @@ export function EventModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="flex max-h-[90vh] max-w-[500px] flex-col p-0">
+        <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[760px] w-[calc(100vw-1rem)] max-w-[680px] flex-col gap-0 overflow-hidden p-0 sm:h-auto">
           {isSubmitting && <LoadingOverlay />}
-          <DialogHeader className="space-y-1.5 px-6 pb-4 pt-6">
+          <DialogHeader className="flex-none space-y-1.5 border-b border-black/[0.055] bg-[#fffdf5] px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
             <DialogTitle>{event?.id ? "Edit Event" : "New Event"}</DialogTitle>
           </DialogHeader>
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-4 overflow-y-auto px-6 pb-6"
+            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
           >
-            {formError && (
-              <div
-                role="alert"
-                className="rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-4 py-3 text-sm text-[#8b4934]"
-              >
-                {formError}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <RequiredLabel htmlFor="title">Title</RequiredLabel>
-              <Input
-                type="text"
-                id="title"
-                ref={titleInputRef}
-                data-testid="event-title-input"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setFormError(null);
-                }}
-                className="event-title"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <RequiredLabel htmlFor="calendar">Calendar</RequiredLabel>
-              <Select
-                value={selectedFeedId}
-                onValueChange={(value) => {
-                  setSelectedFeedId(value);
-                  setFormError(null);
-                }}
-                disabled={!!event?.id}
-              >
-                <SelectTrigger
-                  id="calendar"
-                  data-testid="calendar-select"
-                  aria-invalid={Boolean(formError && !selectedFeedId)}
-                  className={cn(
-                    formError &&
-                      !selectedFeedId &&
-                      "border-[#d87857] ring-2 ring-[#f7d2c3]"
-                  )}
+            <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
+              {formError && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-4 py-3 text-sm text-[#8b4934]"
                 >
-                  <SelectValue placeholder="Select a calendar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {feeds
-                    .filter((feed) => feed.enabled)
-                    .map((feed) => (
-                      <SelectItem key={feed.id} value={feed.id}>
-                        {feed.name} {feed.type === "GOOGLE" ? "(Google)" : ""}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  {formError}
+                </div>
+              )}
 
-            <div className="space-y-2">
-              <Label>Event color</Label>
-              <SunnieColorPicker
-                value={color}
-                fallbackColor={
-                  feeds.find((feed) => feed.id === selectedFeedId)?.color
-                }
-                onChange={(nextColor) => setColor(nextColor || "")}
-                allowDefault
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <DateTimeFields
-                label="Start"
-                dateId="start-date"
-                timeId="start-time"
-                date={startDay}
-                time={startTime}
-                allDay={isAllDay}
-                onDateChange={(value) => {
-                  setStartDay(value);
-                  setFormError(null);
-                }}
-                onTimeChange={(value) => {
-                  setStartTime(value);
-                  setFormError(null);
-                }}
-                testId="event-start-date"
-              />
-              <DateTimeFields
-                label="End"
-                dateId="end-date"
-                timeId="end-time"
-                date={endDay}
-                time={endTime}
-                minDate={startDay}
-                allDay={isAllDay}
-                onDateChange={(value) => {
-                  setEndDay(value);
-                  setFormError(null);
-                }}
-                onTimeChange={(value) => {
-                  setEndTime(value);
-                  setFormError(null);
-                }}
-                testId="event-end-date"
-              />
-            </div>
-
-            {!isAllDay && (
-              <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f5eb] px-3 py-2">
-                <span className="mr-1 text-xs font-medium text-black/45">
-                  Quick duration
-                </span>
-                {[30, 60, 90, 120].map((minutes) => (
-                  <button
-                    key={minutes}
-                    type="button"
-                    onClick={() => applyDuration(minutes)}
-                    className="rounded-lg border border-black/[0.07] bg-white px-2.5 py-1 text-xs font-semibold text-[#65734c] hover:bg-[#eef3df]"
-                  >
-                    {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
-                  </button>
-                ))}
+              <div className="space-y-2">
+                <RequiredLabel htmlFor="title">Title</RequiredLabel>
+                <Input
+                  type="text"
+                  id="title"
+                  ref={titleInputRef}
+                  data-testid="event-title-input"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setFormError(null);
+                  }}
+                  className="event-title"
+                  required
+                />
               </div>
-            )}
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="all-day"
-                checked={isAllDay}
-                onCheckedChange={(checked) => setIsAllDay(checked as boolean)}
-              />
-              <Label htmlFor="all-day" className="text-sm">
-                All day
-              </Label>
+              <div className="space-y-2">
+                <RequiredLabel htmlFor="calendar">Calendar</RequiredLabel>
+                <Select
+                  value={selectedFeedId}
+                  onValueChange={(value) => {
+                    setSelectedFeedId(value);
+                    setFormError(null);
+                  }}
+                  disabled={!!event?.id}
+                >
+                  <SelectTrigger
+                    id="calendar"
+                    data-testid="calendar-select"
+                    aria-invalid={Boolean(formError && !selectedFeedId)}
+                    className={cn(
+                      formError &&
+                        !selectedFeedId &&
+                        "border-[#d87857] ring-2 ring-[#f7d2c3]"
+                    )}
+                  >
+                    <SelectValue placeholder="Select a calendar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {feeds
+                      .filter((feed) => feed.enabled)
+                      .map((feed) => (
+                        <SelectItem key={feed.id} value={feed.id}>
+                          {feed.name} {feed.type === "GOOGLE" ? "(Google)" : ""}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <DateTimeFields
+                  label="Start"
+                  dateId="start-date"
+                  timeId="start-time"
+                  date={startDay}
+                  time={startTime}
+                  allDay={isAllDay}
+                  onDateChange={(value) => {
+                    setStartDay(value);
+                    setFormError(null);
+                  }}
+                  onTimeChange={(value) => {
+                    setStartTime(value);
+                    setFormError(null);
+                  }}
+                  testId="event-start-date"
+                />
+                <DateTimeFields
+                  label="End"
+                  dateId="end-date"
+                  timeId="end-time"
+                  date={endDay}
+                  time={endTime}
+                  minDate={startDay}
+                  allDay={isAllDay}
+                  onDateChange={(value) => {
+                    setEndDay(value);
+                    setFormError(null);
+                  }}
+                  onTimeChange={(value) => {
+                    setEndTime(value);
+                    setFormError(null);
+                  }}
+                  testId="event-end-date"
+                />
+              </div>
+
+              {!isAllDay && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f5eb] px-3 py-2">
+                  <span className="mr-1 text-xs font-medium text-black/45">
+                    Quick duration
+                  </span>
+                  {[30, 60, 90, 120].map((minutes) => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      onClick={() => applyDuration(minutes)}
+                      className="rounded-lg border border-black/[0.07] bg-white px-2.5 py-1 text-xs font-semibold text-[#65734c] hover:bg-[#eef3df]"
+                    >
+                      {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="all-day"
+                  checked={isAllDay}
+                  onCheckedChange={(checked) => setIsAllDay(checked as boolean)}
+                />
+                <Label htmlFor="all-day" className="text-sm">
+                  All day
+                </Label>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDetails((current) => !current)}
+                aria-expanded={showDetails}
+                className="flex w-full items-center justify-between rounded-xl border border-black/[0.07] bg-[#f7f5eb] px-3 py-2 text-sm font-semibold text-[#60684a] hover:bg-[#eef3df]"
+              >
+                Color, location, notes &amp; repeat
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    showDetails && "rotate-180"
+                  )}
+                />
+              </button>
+
+              {showDetails && (
+                <div className="space-y-4 rounded-2xl border border-black/[0.055] bg-[#fcfbf5] p-4">
+                  <div className="space-y-2">
+                    <Label>Event color</Label>
+                    <SunnieColorPicker
+                      value={color}
+                      fallbackColor={
+                        feeds.find((feed) => feed.id === selectedFeedId)?.color
+                      }
+                      onChange={(nextColor) => setColor(nextColor || "")}
+                      allowDefault
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      type="text"
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="event-location"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      data-testid="event-description-input"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      className="event-description resize-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="recurring"
+                      checked={isRecurring}
+                      onCheckedChange={(checked) => {
+                        const isChecked = checked as boolean;
+                        setIsRecurring(isChecked);
+                        if (
+                          isChecked &&
+                          (recurrenceFreq === FREQUENCIES.NONE ||
+                            !recurrenceFreq)
+                        ) {
+                          setRecurrenceFreq(FREQUENCIES.WEEKLY);
+                          const recurrenceStart = localDateFromParts(
+                            startDay,
+                            startTime,
+                            isAllDay
+                          );
+                          const weekdayNum = recurrenceStart.getDay();
+                          const weekdays = [
+                            "SU",
+                            "MO",
+                            "TU",
+                            "WE",
+                            "TH",
+                            "FR",
+                            "SA",
+                          ];
+                          const weekday = weekdays[weekdayNum];
+                          setRecurrenceByDay([weekday]);
+                        }
+                      }}
+                      data-testid="recurring-event-checkbox"
+                    />
+                    <Label htmlFor="recurring" className="text-sm">
+                      Recurring event
+                    </Label>
+                  </div>
+
+                  {renderRecurrenceOptions()}
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                type="text"
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="event-location"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                data-testid="event-description-input"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="event-description resize-none"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="recurring"
-                checked={isRecurring}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked as boolean;
-                  setIsRecurring(isChecked);
-                  if (
-                    isChecked &&
-                    (recurrenceFreq === FREQUENCIES.NONE || !recurrenceFreq)
-                  ) {
-                    setRecurrenceFreq(FREQUENCIES.WEEKLY);
-                    const recurrenceStart = localDateFromParts(
-                      startDay,
-                      startTime,
-                      isAllDay
-                    );
-                    const weekdayNum = recurrenceStart.getDay();
-                    const weekdays = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
-                    const weekday = weekdays[weekdayNum];
-                    setRecurrenceByDay([weekday]);
-                  }
-                }}
-                data-testid="recurring-event-checkbox"
-              />
-              <Label htmlFor="recurring" className="text-sm">
-                Recurring event
-              </Label>
-            </div>
-
-            {renderRecurrenceOptions()}
-
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex flex-none items-center justify-between gap-3 border-t border-black/[0.06] bg-[#fffdf5] px-4 py-3 sm:px-6 sm:py-4">
               {event?.id ? (
                 <Button
                   type="button"
@@ -735,6 +771,7 @@ export function EventModal({
     setRecurrenceInterval(1);
     setRecurrenceByDay([]);
     setFormError(null);
+    setShowDetails(false);
   }
 }
 
@@ -788,7 +825,12 @@ function DateTimeFields({
       <legend className="text-sm font-medium">
         {label} <span className="text-[#c65f40]">*</span>
       </legend>
-      <div className={cn("grid gap-2", !allDay && "grid-cols-[1fr_112px]")}>
+      <div
+        className={cn(
+          "grid min-w-0 gap-2",
+          !allDay && "grid-cols-[minmax(0,1fr)_minmax(0,112px)]"
+        )}
+      >
         <label className="relative">
           <CalendarDays className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35" />
           <Input
@@ -800,7 +842,7 @@ function DateTimeFields({
             min={minDate}
             onChange={(event) => onDateChange(event.target.value)}
             onClick={(event) => event.currentTarget.showPicker?.()}
-            className={cn(pickerClassName, "pl-8")}
+            className={cn(pickerClassName, "min-w-0 pl-8")}
             required
           />
         </label>
@@ -814,7 +856,7 @@ function DateTimeFields({
               value={time}
               onChange={(event) => onTimeChange(event.target.value)}
               onClick={(event) => event.currentTarget.showPicker?.()}
-              className={cn(pickerClassName, "pl-8")}
+              className={cn(pickerClassName, "min-w-0 pl-8")}
               required
             />
           </label>

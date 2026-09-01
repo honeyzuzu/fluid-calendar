@@ -13,7 +13,10 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { TaskModal } from "@/components/tasks/TaskModal";
 
 import { getEventEditability } from "@/lib/calendar-drag";
-import { getSelectionRange } from "@/lib/calendar-selection";
+import {
+  getSelectionRange,
+  getTapSelectionRange,
+} from "@/lib/calendar-selection";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 
@@ -66,7 +69,9 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
   const [isTask, setIsTask] = useState(false);
   const eventModalStore = useEventModalStore();
-  const [clickedElement, setClickedElement] = useState<HTMLElement | null>(null);
+  const [clickedElement, setClickedElement] = useState<HTMLElement | null>(
+    null
+  );
   const { handleEventDrop, handleEventResize } = useCalendarDragHandlers();
 
   // Update events when the calendar view changes
@@ -193,6 +198,15 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
     setIsEventModalOpen(true);
   };
 
+  const handleDateClick = (date: Date, allDay: boolean) => {
+    const range = getTapSelectionRange(date, allDay);
+    onDateClick?.(date);
+    setSelectedDate(range.start);
+    setSelectedEndDate(range.end);
+    setSelectedEvent({ allDay: range.allDay });
+    setIsEventModalOpen(true);
+  };
+
   const handleEventModalClose = () => {
     setIsEventModalOpen(false);
     eventModalStore.setOpen(false);
@@ -316,7 +330,7 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
           omitCommas: true,
         }}
         height="100%"
-        dateClick={(arg) => onDateClick?.(arg.date)}
+        dateClick={(arg) => handleDateClick(arg.date, arg.allDay)}
         eventClick={handleEventClick}
         select={handleDateSelect}
         selectable={true}

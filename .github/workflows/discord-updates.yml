@@ -57,10 +57,16 @@ jobs:
             const brainDumpUpdate = files.some((file) =>
               file.filename.includes("brain-dump")
             );
+            const calendarUpdate = files.some((file) =>
+              file.filename.startsWith("src/components/calendar/") ||
+              file.filename.startsWith("src/app/(common)/calendar/")
+            );
             core.setOutput(
               "preview_url",
               brainDumpUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/brain-dump"
+                : calendarUpdate
+                  ? "https://sunnie-planner-prod.up.railway.app/preview/calendar-event"
                 : "https://sunnie-planner-prod.up.railway.app/preview/plan"
             );
 

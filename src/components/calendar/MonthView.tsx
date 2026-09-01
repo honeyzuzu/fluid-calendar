@@ -13,7 +13,10 @@ import FullCalendar from "@fullcalendar/react";
 import { TaskModal } from "@/components/tasks/TaskModal";
 
 import { getEventEditability } from "@/lib/calendar-drag";
-import { getSelectionRange } from "@/lib/calendar-selection";
+import {
+  getSelectionRange,
+  getTapSelectionRange,
+} from "@/lib/calendar-selection";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 
@@ -66,7 +69,9 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
   const [isTask, setIsTask] = useState(false);
   const eventModalStore = useEventModalStore();
-  const [clickedElement, setClickedElement] = useState<HTMLElement | null>(null);
+  const [clickedElement, setClickedElement] = useState<HTMLElement | null>(
+    null
+  );
   const { handleEventDrop } = useCalendarDragHandlers();
 
   // Update events when the calendar view changes
@@ -190,6 +195,15 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     setIsEventModalOpen(true);
   };
 
+  const handleDateClick = (date: Date, allDay: boolean) => {
+    const range = getTapSelectionRange(date, allDay);
+    onDateClick?.(date);
+    setSelectedDate(range.start);
+    setSelectedEndDate(range.end);
+    setSelectedEvent({ allDay: range.allDay });
+    setIsEventModalOpen(true);
+  };
+
   const handleEventModalClose = () => {
     setIsEventModalOpen(false);
     eventModalStore.setOpen(false);
@@ -282,7 +296,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         displayEventEnd={true}
         firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
         height="100%"
-        dateClick={(arg) => onDateClick?.(arg.date)}
+        dateClick={(arg) => handleDateClick(arg.date, arg.allDay)}
         eventClick={handleEventClick}
         select={handleDateSelect}
         selectable={true}

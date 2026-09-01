@@ -35,3 +35,20 @@ export function getSelectionRange(selectInfo: SelectionInfo): SelectionRange {
     allDay: selectInfo.allDay,
   };
 }
+
+/** Creates a sensible one-tap event range without requiring a long press. */
+export function getTapSelectionRange(
+  date: Date,
+  allDay: boolean
+): SelectionRange {
+  const start = new Date(date);
+  const end = new Date(date);
+
+  if (allDay) {
+    end.setDate(end.getDate() + 1);
+  } else {
+    end.setHours(end.getHours() + 1);
+  }
+
+  return { start, end, allDay };
+}

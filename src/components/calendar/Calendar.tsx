@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 
 import dynamic from "next/dynamic";
+
+import { Plus } from "lucide-react";
 import { HiMenu } from "react-icons/hi";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
@@ -14,11 +16,12 @@ import { WeekView } from "@/components/calendar/WeekView";
 import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
 import { SponsorshipBanner } from "@/components/ui/sponsorship-banner";
 
-import { useAutoSchedule } from "@/hooks/use-auto-schedule";
-
-import { addDays, formatDate, newDate, subDays } from "@/lib/date-utils";
+import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { isSaasEnabled } from "@/lib/config";
+import { addDays, formatDate, newDate, subDays } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+
+import { useAutoSchedule } from "@/hooks/use-auto-schedule";
 
 import {
   useCalendarStore,
@@ -31,9 +34,10 @@ import { CalendarEvent, CalendarFeed } from "@/types/calendar";
 
 // Dynamically import the appropriate version of the LifetimeAccessBanner
 const LifetimeAccessBanner = dynamic(
-  () => import(`./LifetimeAccessBanner.${isSaasEnabled ? "saas" : "open"}`).then(
-    (mod) => mod.LifetimeAccessBanner
-  ),
+  () =>
+    import(`./LifetimeAccessBanner.${isSaasEnabled ? "saas" : "open"}`).then(
+      (mod) => mod.LifetimeAccessBanner
+    ),
   { ssr: false } // Disable SSR for this component to prevent import errors
 );
 
@@ -50,6 +54,7 @@ export function Calendar({
   const { isSidebarOpen, setSidebarOpen, isHydrated } = useCalendarUIStore();
   const { setFeeds, setEvents } = useCalendarStore();
   const handleAutoSchedule = useAutoSchedule();
+  const eventModalStore = useEventModalStore();
 
   // Use initial data from server for hydration
   useEffect(() => {
@@ -102,6 +107,17 @@ export function Calendar({
       const days = view === "day" ? 1 : 7;
       setDate(addDays(currentDate, days));
     }
+  };
+
+  const handleAddEvent = () => {
+    const now = newDate();
+    const start = newDate(currentDate);
+    const roundedMinutes = Math.ceil(now.getMinutes() / 15) * 15;
+    start.setHours(now.getHours(), roundedMinutes, 0, 0);
+
+    eventModalStore.setDefaultDate(start);
+    eventModalStore.setDefaultEndDate(newDate(start.getTime() + 60 * 60_000));
+    eventModalStore.setOpen(true);
   };
 
   return (
@@ -226,6 +242,15 @@ export function Calendar({
 
           {/* View Switching Buttons */}
           <div className="flex w-full shrink-0 items-center justify-between gap-1 md:ml-auto md:w-auto md:justify-start md:gap-2">
+            <button
+              onClick={handleAddEvent}
+              data-testid="add-event-button"
+              className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-[#64734a] px-3 py-1.5 text-sm font-semibold text-white shadow-[0_2px_0_#465331] transition hover:-translate-y-0.5 md:mr-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="md:hidden lg:inline">Add event</span>
+              <span className="hidden md:inline lg:hidden">Add</span>
+            </button>
             <button
               onClick={() => setView("day")}
               className={cn(

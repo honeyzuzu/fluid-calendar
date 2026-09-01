@@ -1,4 +1,7 @@
-import { getSelectionRange } from "@/lib/calendar-selection";
+import {
+  getSelectionRange,
+  getTapSelectionRange,
+} from "@/lib/calendar-selection";
 
 describe("getSelectionRange", () => {
   it("keeps the full range for a multi-day all-day drag (exclusive end, not collapsed)", () => {
@@ -8,7 +11,11 @@ describe("getSelectionRange", () => {
     const start = new Date(2026, 5, 10, 0, 0, 0); // Wed Jun 10 2026 local
     const exclusiveEnd = new Date(2026, 5, 13, 0, 0, 0); // Sat Jun 13 2026 local
 
-    const { start: rangeStart, end, allDay } = getSelectionRange({
+    const {
+      start: rangeStart,
+      end,
+      allDay,
+    } = getSelectionRange({
       start,
       end: exclusiveEnd,
       allDay: true,
@@ -24,7 +31,11 @@ describe("getSelectionRange", () => {
     const start = new Date(2026, 5, 10, 0, 0, 0);
     const exclusiveEnd = new Date(2026, 5, 11, 0, 0, 0); // next day, exclusive
 
-    const { start: rangeStart, end, allDay } = getSelectionRange({
+    const {
+      start: rangeStart,
+      end,
+      allDay,
+    } = getSelectionRange({
       start,
       end: exclusiveEnd,
       allDay: true,
@@ -62,5 +73,25 @@ describe("getSelectionRange", () => {
 
     expect(end).toEqual(exclusiveEnd);
     expect(end.getDate()).toBe(9);
+  });
+});
+
+describe("getTapSelectionRange", () => {
+  it("creates a one-hour event from a tap on a time slot", () => {
+    const start = new Date(2026, 8, 3, 14, 30);
+    const range = getTapSelectionRange(start, false);
+
+    expect(range.start).toEqual(start);
+    expect(range.end).toEqual(new Date(2026, 8, 3, 15, 30));
+    expect(range.allDay).toBe(false);
+  });
+
+  it("creates a single-day event from a tap on a date cell", () => {
+    const start = new Date(2026, 8, 3);
+    const range = getTapSelectionRange(start, true);
+
+    expect(range.start).toEqual(start);
+    expect(range.end).toEqual(new Date(2026, 8, 4));
+    expect(range.allDay).toBe(true);
   });
 });

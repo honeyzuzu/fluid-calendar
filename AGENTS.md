@@ -217,6 +217,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Recently used custom colors are saved as quick-access colors.
 - Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.
 - Timed events use separate native date and time pickers plus 30-minute, one-hour, 90-minute, and two-hour quick-duration choices.
+- Calendar headers include an Add event button on desktop and mobile, while a normal tap/click on an empty calendar slot also opens a pre-filled one-hour event.
+- The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
 
 ### Focus and friend visibility
 
@@ -240,7 +242,7 @@ Workflow: `.github/workflows/discord-updates.yml`
 - Trigger: GitHub `deployment_status` events from Railway, plus optional manual dispatch.
 - A normal announcement runs only after Railway reports `success`.
 - The message says `Live now - ready to try!` and links to production and the commit.
-- A headless Chromium process captures `https://sunnie-planner-prod.up.railway.app/preview/plan` at 1440x1000.
+- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump and Calendar releases select their matching preview; other releases use `/preview/plan`.
 - The screenshot is attached directly to the Discord webhook message.
 - If screenshot capture fails, the text announcement still posts.
 - Commits that change only `.github/` automation are skipped.
@@ -248,7 +250,7 @@ Workflow: `.github/workflows/discord-updates.yml`
 - Use clear feature commit subjects and bodies because they become the Discord title and description.
 - Batch a user request into one user-facing commit where practical. Mark follow-up infrastructure-only commits `[skip discord]` to avoid duplicate announcements.
 
-`src/app/preview/plan/page.tsx` is public and contains fake data only. Keep it visually aligned with meaningful planning UI changes. Never place real user data, credentials, or private calendar information in a preview route.
+Preview routes under `src/app/preview` are public and contain fake data only. Keep them visually aligned with meaningful UI changes. Never place real user data, credentials, or private calendar information in a preview route.
 
 The inherited `.github/workflows/docker-publish.yml` targets the upstream maintainer’s Docker Hub image and credentials. It is intentionally manual-only and must not be re-enabled on every push unless Sunnie gets its own registry and credentials.
 
@@ -296,5 +298,5 @@ Pre-commit hooks run lint and TypeScript checks. Preserve unrelated user changes
 - Outlook implementation remains partially exposed and needs a deliberate removal pass if it is no longer wanted.
 - Google OAuth availability depends on correct production URLs, scopes, consent mode, verification state, and approved test users.
 - Calendar/provider credentials deserve an encryption-at-rest review before use outside the trusted friend/family group.
-- The public Discord screenshot currently always uses the planning preview; future major Calendar, Tasks, Friends, or Settings releases may benefit from additional fake-data preview routes and commit-to-preview selection.
+- Tasks, Friends, and Settings releases still use the planning preview; future major changes to those surfaces may benefit from matching fake-data preview routes.
 - Continue mobile visual QA as features are added; inherited FluidCalendar layouts were desktop-first.
