@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Check, Palette } from "lucide-react";
 
@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { addRecentColor, MAX_RECENT_COLORS } from "@/lib/recent-colors";
 
 const RECENT_COLORS_STORAGE_KEY = "sunnie-recent-custom-colors";
-const CUSTOM_COLOR_COMMIT_DELAY_MS = 350;
 
 export const SUNNIE_PASTEL_COLORS = [
   { name: "Butter", value: "#F6D77A" },
@@ -42,7 +41,7 @@ export function SunnieColorPicker({
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const displayedColor = value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
   const [customColor, setCustomColor] = useState(displayedColor);
-  const customColorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
   const isPreset = SUNNIE_PASTEL_COLORS.some(
     (color) => color.value.toLowerCase() === value?.toLowerCase()
   );
@@ -71,6 +70,7 @@ export function SunnieColorPicker({
 
   useEffect(() => {
     setCustomColor(displayedColor);
+    setHasUnappliedCustomColor(false);
   }, [displayedColor]);
 
   const handleCustomColor = (color: string) => {
@@ -89,19 +89,16 @@ export function SunnieColorPicker({
     onChange(color);
   };
 
-  const queueCustomColor = (color: string) => {
+  const previewCustomColor = (color: string) => {
     setCustomColor(color);
+    setHasUnappliedCustomColor(
+      color.toLowerCase() !== displayedColor.toLowerCase()
+    );
+  };
 
-    if (customColorTimer.current) {
-      clearTimeout(customColorTimer.current);
-    }
-
-    // Native color inputs emit repeatedly while their selector is dragged.
-    // Wait until the drag settles so consumers persist only the final color.
-    customColorTimer.current = setTimeout(() => {
-      customColorTimer.current = null;
-      handleCustomColor(color);
-    }, CUSTOM_COLOR_COMMIT_DELAY_MS);
+  const applyCustomColor = () => {
+    handleCustomColor(customColor);
+    setHasUnappliedCustomColor(false);
   };
 
   return (
@@ -167,7 +164,7 @@ export function SunnieColorPicker({
           <input
             type="color"
             value={customColor}
-            onChange={(event) => queueCustomColor(event.target.value)}
+            onChange={(event) => previewCustomColor(event.target.value)}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             aria-label="Choose a custom color"
           />
@@ -177,10 +174,24 @@ export function SunnieColorPicker({
               value && !isPreset && "ring-2 ring-ring ring-offset-2"
             )}
           >
+            <span
+              className="h-4 w-4 rounded-full border border-black/10"
+              style={{ backgroundColor: customColor }}
+              aria-hidden="true"
+            />
             <Palette className="h-4 w-4" />
             Custom
           </span>
         </label>
+
+        <Button
+          type="button"
+          size="sm"
+          onClick={applyCustomColor}
+          disabled={!hasUnappliedCustomColor}
+        >
+          Apply color
+        </Button>
 
         {allowDefault && (
           <Button
