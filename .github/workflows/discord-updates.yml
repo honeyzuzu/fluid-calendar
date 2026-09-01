@@ -1,9 +1,7 @@
 name: Discord feature updates
 
 on:
-  push:
-    branches:
-      - main
+  deployment_status:
   workflow_dispatch:
     inputs:
       title:
@@ -17,25 +15,67 @@ on:
 
 permissions:
   contents: read
+  deployments: read
 
 jobs:
   announce:
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     env:
       DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
     steps:
+      - name: Check out Sunnie Planner
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install screenshot browser
+        continue-on-error: true
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+
+      - name: Capture the deployed planning preview
+        continue-on-error: true
+        run: >-
+          npx playwright screenshot
+          --browser chromium
+          --color-scheme light
+          --viewport-size "1440, 1000"
+          --wait-for-selector "[data-discord-preview-ready]"
+          --wait-for-timeout 1500
+          --timeout 60000
+          https://sunnie-planner-prod.up.railway.app/preview/plan
+          sunnie-update.png
+
       - name: Post update to Discord
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require("fs");
             const webhookUrl = process.env.DISCORD_RELEASE_WEBHOOK;
             if (!webhookUrl) {
               core.warning("DISCORD_RELEASE_WEBHOOK is not configured; skipping announcement.");
               return;
             }
 
-            const headCommit = context.payload.head_commit;
-            const message = headCommit?.message ?? "";
+            const deployment = context.payload.deployment;
+            const sha = deployment?.sha || context.sha;
+            let message = "";
+            try {
+              const commit = await github.rest.repos.getCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+              });
+              message = commit.data.commit.message;
+            } catch (error) {
+              core.warning(`Could not load commit details: ${error.message}`);
+            }
             const [commitTitle, ...bodyLines] = message.split("\n");
             if (commitTitle.includes("[skip discord]")) {
               core.info("Commit requested that the Discord announcement be skipped.");
@@ -45,8 +85,7 @@ jobs:
             const inputs = context.payload.inputs ?? {};
             const title = inputs.title || commitTitle || "Sunnie Planner update";
             const details = inputs.details || bodyLines.join("\n").trim();
-            const commitUrl = headCommit?.url
-              ?? `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+            const commitUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
 
             const payload = {
               username: "Sunnie Planner Updates",
@@ -72,17 +111,49 @@ jobs:
                     },
                   ],
                   footer: {
-                    text: `Commit ${context.sha.slice(0, 7)}`,
+                    text: `Commit ${sha.slice(0, 7)}`,
                   },
                   timestamp: new Date().toISOString(),
+                  ...(fs.existsSync("sunnie-update.png") && {
+                    image: {
+                      url: "attachment://sunnie-update.png",
+                    },
+                  }),
                 },
               ],
+              ...(fs.existsSync("sunnie-update.png") && {
+                attachments: [
+                  {
+                    id: 0,
+                    filename: "sunnie-update.png",
+                    description: "Sunnie Planner feature preview",
+                  },
+                ],
+              }),
             };
+
+            let requestBody;
+            let headers;
+            if (fs.existsSync("sunnie-update.png")) {
+              const screenshot = fs.readFileSync("sunnie-update.png");
+              const form = new FormData();
+              form.append("payload_json", JSON.stringify(payload));
+              form.append(
+                "files[0]",
+                new Blob([screenshot], { type: "image/png" }),
+                "sunnie-update.png"
+              );
+              requestBody = form;
+            } else {
+              core.warning("Screenshot capture failed; sending the text announcement only.");
+              requestBody = JSON.stringify(payload);
+              headers = { "Content-Type": "application/json" };
+            }
 
             const response = await fetch(`${webhookUrl}?wait=true`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
+              headers,
+              body: requestBody,
             });
 
             if (!response.ok) {
