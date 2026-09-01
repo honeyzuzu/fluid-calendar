@@ -198,6 +198,9 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Daily and weekly planning
 
 - `/plan` stores a daily intention and completion state in `DailyPlan`.
+- Today’s intention appears in a compact shared reminder beneath the main navigation on every authenticated app page; the empty state links back to Plan with “Set your daily intention!”
+- Saving an intention turns the Plan tile into a completed-style card and plays a small celebratory animation. Users can reopen it to make changes.
+- “Inspire me” selects a non-repeating quote from a curated built-in quote/author list and places it in the intention editor; it does not require AI or an external API.
 - `Task.plannedWeekStart` stores the Monday for the task’s selected weekly pool.
 - The flow is Backlog -> This week -> selected day.
 - Users can add and remove tasks from a week or day.

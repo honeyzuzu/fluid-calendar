@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "@/components/dnd/DndProvider";
 import { AppNav } from "@/components/navigation/AppNav";
 import { VersionBadge } from "@/components/navigation/VersionBadge";
+import { DailyIntentionBanner } from "@/components/planning/DailyIntentionBanner";
 import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -80,6 +81,7 @@ export default function RootLayout({
               onClose={() => setShortcutsOpen(false)}
             />
             <AppNav />
+            <DailyIntentionBanner />
             <div
               aria-hidden="true"
               className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[#f8c95d]/10 blur-3xl"

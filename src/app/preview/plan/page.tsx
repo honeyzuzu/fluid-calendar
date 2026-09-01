@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Clock3,
   Plus,
-  Save,
   Sparkles,
   Sun,
   X,
@@ -107,6 +106,18 @@ export default function PlanningPreviewPage() {
           </div>
         </div>
       </header>
+
+      <aside className="border-b border-[#e4dfbd] bg-[#fff4c9] px-5 py-2 text-[#5c5537] lg:px-8">
+        <div className="mx-auto flex max-w-[1480px] items-center gap-2.5 text-sm">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#f4c85b] text-[#624b18] shadow-[0_2px_0_#d9a53c]">
+            <Sun className="h-4 w-4" />
+          </span>
+          <span className="font-semibold">Today&apos;s intention</span>
+          <span className="text-black/55">
+            Finish the important things, then leave room for friends.
+          </span>
+        </div>
+      </aside>
 
       <section className="mx-auto max-w-[1480px] px-5 py-7 lg:px-8">
         <div className="mb-6 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
@@ -288,16 +299,15 @@ export default function PlanningPreviewPage() {
           </section>
 
           <aside className="space-y-5">
-            <section className="rounded-2xl bg-[#5f7048] p-5 text-[#fffbea] shadow-[0_8px_0_#465535]">
-              <div className="flex items-center gap-2 text-xs font-medium text-white/65">
-                <Sparkles className="h-3.5 w-3.5 text-[#f4c85b]" /> Daily
-                intention
+            <section className="rounded-2xl border border-[#cddcaf] bg-[#eef3df] p-5 text-[#4f6039] shadow-[0_8px_0_#c8d8aa]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
+                <Check className="h-4 w-4" /> Today&apos;s intention is set
               </div>
-              <p className="mt-4 min-h-[92px] rounded-xl border border-white/15 bg-white/[0.08] p-3 text-sm leading-relaxed text-white/90">
+              <p className="mt-4 min-h-[72px] text-base font-medium leading-relaxed text-[#435032]">
                 Finish the important things, then leave room for friends.
               </p>
-              <span className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#f8dc8a]">
-                <Save className="h-3.5 w-3.5" /> Save intention
+              <span className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#687d4c] underline decoration-[#a9bd88] underline-offset-4">
+                Change intention
               </span>
             </section>
             <div className="flex w-full items-center justify-between rounded-2xl bg-[#f4c85b] px-5 py-4 text-[#4b3b18]">

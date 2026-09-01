@@ -2,18 +2,29 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
+import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock3,
+  Dices,
   Loader2,
+  Pencil,
   Plus,
   Save,
   Sparkles,
   X,
 } from "lucide-react";
+
+import {
+  DAILY_INTENTION_UPDATED_EVENT,
+  localDateKey,
+  randomIntentionQuote,
+} from "@/lib/daily-intention";
+import { cn } from "@/lib/utils";
 
 type TaskRecord = {
   id: string;
@@ -55,13 +66,6 @@ type FriendBlock = {
   color: string;
   source: "calendar" | "focus";
 };
-
-function dateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function isSameLocalDay(value: string | null, selectedDate: Date) {
   if (!value) return false;
@@ -113,12 +117,14 @@ export default function PlanPage() {
   const [friendBlocks, setFriendBlocks] = useState<FriendBlock[]>([]);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
   const [intention, setIntention] = useState("");
+  const [editingIntention, setEditingIntention] = useState(true);
+  const [intentionJustSaved, setIntentionJustSaved] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [scheduling, setScheduling] = useState<"day" | "week" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const selectedKey = dateKey(selectedDate);
+  const selectedKey = localDateKey(selectedDate);
   const weekStart = useMemo(
     () => startOfLocalWeek(selectedDate),
     [selectedDate]
@@ -128,7 +134,7 @@ export default function PlanPage() {
     end.setDate(end.getDate() + 7);
     return end;
   }, [weekStart]);
-  const weekStartKey = dateKey(weekStart);
+  const weekStartKey = localDateKey(weekStart);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -156,6 +162,7 @@ export default function PlanPage() {
       setFriendBlocks(sharedData);
       setPlan(planData);
       setIntention(planData?.intention ?? "");
+      setEditingIntention(!planData?.intention?.trim());
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to load your plan"
@@ -209,7 +216,7 @@ export default function PlanPage() {
     0
   );
 
-  const savePlan = async (completed?: boolean) => {
+  const savePlan = async (completed?: boolean, celebrateIntention = false) => {
     setSaving(true);
     setError(null);
     try {
@@ -223,6 +230,18 @@ export default function PlanPage() {
         }),
       }).then((response) => expectJson<DailyPlanRecord>(response));
       setPlan(saved);
+      if (selectedKey === localDateKey()) {
+        window.dispatchEvent(
+          new CustomEvent(DAILY_INTENTION_UPDATED_EVENT, {
+            detail: { date: selectedKey, intention: saved.intention },
+          })
+        );
+      }
+      if (celebrateIntention && saved.intention?.trim()) {
+        setEditingIntention(false);
+        setIntentionJustSaved(true);
+        window.setTimeout(() => setIntentionJustSaved(false), 1600);
+      }
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to save your plan"
@@ -762,27 +781,89 @@ export default function PlanPage() {
               </section>
 
               <aside className="space-y-5">
-                <section className="rounded-2xl bg-[#5f7048] p-5 text-[#fffbea] shadow-[0_8px_0_#465535]">
-                  <div className="flex items-center gap-2 text-xs font-medium text-white/65">
-                    <Sparkles className="h-3.5 w-3.5 text-[#f4c85b]" />
-                    Daily intention
-                  </div>
-                  <textarea
-                    value={intention}
-                    onChange={(event) => setIntention(event.target.value)}
-                    placeholder="What would make today meaningful?"
-                    rows={5}
-                    className="mt-4 w-full resize-none rounded-xl border border-white/15 bg-white/[0.08] p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-[#f4c85b]"
-                  />
-                  <button
-                    onClick={() => savePlan()}
-                    disabled={saving}
-                    className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#f8dc8a] disabled:opacity-50"
-                  >
-                    <Save className="h-3.5 w-3.5" />
-                    Save intention
-                  </button>
-                </section>
+                <motion.section
+                  animate={
+                    intentionJustSaved
+                      ? { scale: [1, 1.025, 1], rotate: [0, -0.4, 0.4, 0] }
+                      : { scale: 1, rotate: 0 }
+                  }
+                  transition={{ duration: 0.55, ease: "easeOut" }}
+                  className={cn(
+                    "relative overflow-hidden rounded-2xl p-5 transition-colors",
+                    !editingIntention && plan?.intention?.trim()
+                      ? "border border-[#cddcaf] bg-[#eef3df] text-[#4f6039] shadow-[0_8px_0_#c8d8aa]"
+                      : "bg-[#5f7048] text-[#fffbea] shadow-[0_8px_0_#465535]"
+                  )}
+                >
+                  <AnimatePresence>
+                    {intentionJustSaved && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.7 }}
+                        animate={{ opacity: [0, 1, 1, 0], scale: [0.7, 1, 1] }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.5 }}
+                        className="pointer-events-none absolute right-4 top-3 flex items-center gap-1 text-xs font-semibold text-[#718e50]"
+                      >
+                        <Sparkles className="h-4 w-4 text-[#e2a83e]" /> Saved!
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {!editingIntention && plan?.intention?.trim() ? (
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
+                        <CheckCircle2 className="h-4 w-4" /> Today&apos;s
+                        intention is set
+                      </div>
+                      <p className="mt-4 text-base font-medium leading-relaxed text-[#435032]">
+                        {plan.intention}
+                      </p>
+                      <button
+                        onClick={() => setEditingIntention(true)}
+                        className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#687d4c] underline decoration-[#a9bd88] underline-offset-4"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Change intention
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-white/65">
+                        <Sparkles className="h-3.5 w-3.5 text-[#f4c85b]" />
+                        Set your daily intention!
+                      </div>
+                      <textarea
+                        value={intention}
+                        onChange={(event) => setIntention(event.target.value)}
+                        placeholder="What would make today meaningful?"
+                        rows={5}
+                        className="mt-4 w-full resize-none rounded-xl border border-white/15 bg-white/[0.08] p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-[#f4c85b]"
+                      />
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setIntention(randomIntentionQuote(intention))
+                          }
+                          className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 hover:bg-white/15"
+                        >
+                          <Dices className="h-3.5 w-3.5" /> Inspire me
+                        </button>
+                        <button
+                          onClick={() => savePlan(undefined, true)}
+                          disabled={saving || !intention.trim()}
+                          className="flex items-center gap-2 text-xs font-semibold text-[#f8dc8a] disabled:opacity-40"
+                        >
+                          {saving ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Save className="h-3.5 w-3.5" />
+                          )}
+                          Save intention
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </motion.section>
                 <button
                   onClick={() => savePlan(!plan?.completedAt)}
                   disabled={saving}
