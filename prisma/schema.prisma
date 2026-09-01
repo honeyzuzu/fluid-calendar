@@ -78,6 +78,7 @@ model User {
   emailVerified        DateTime?
   image                String?
   role                 String                @default("user") // Possible values: "user", "admin"
+  lastActiveAt         DateTime?
   subscription         Subscription?
   accounts             Account[]
   sessions             Session[]
@@ -99,6 +100,8 @@ model User {
   dailyPlans           DailyPlan[]
   friendRequestsSent   FriendConnection[]    @relation("FriendRequester")
   friendRequestsReceived FriendConnection[]  @relation("FriendAddressee")
+
+  @@index([lastActiveAt])
 }
 
 model FriendConnection {

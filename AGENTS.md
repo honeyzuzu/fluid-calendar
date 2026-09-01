@@ -214,6 +214,14 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Accepted friends can expose busy-only or more detailed calendar/focus information according to each side’s visibility selection.
 - Friends appear in daily planning alongside the user’s events and focus blocks.
 
+### Admin presence
+
+- Every visible authenticated Sunnie tab sends a lightweight heartbeat once per minute.
+- `User.lastActiveAt` stores only the latest timestamp; Sunnie does not store page-by-page activity history.
+- Admins can open **Settings -> Online** to see online-now, active-today, and total-account counts plus recent users.
+- “Online now” means a heartbeat was received during the previous five minutes, so the value is intentionally approximate.
+- `/api/presence` can update only the authenticated user, and `/api/admin/presence` is protected by server-side admin authorization.
+
 ## Discord Release Announcements
 
 Workflow: `.github/workflows/discord-updates.yml`

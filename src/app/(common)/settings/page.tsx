@@ -5,19 +5,20 @@ import { Suspense } from "react";
 
 import dynamic from "next/dynamic";
 
+import { SunnieSun } from "@/components/brand/SunnieSun";
 import { AccountManager } from "@/components/settings/AccountManager";
 import { AutoScheduleSettings } from "@/components/settings/AutoScheduleSettings";
 import { CalendarSettings } from "@/components/settings/CalendarSettings";
 import { ImportExportSettings } from "@/components/settings/ImportExportSettings";
 import { LogViewer } from "@/components/settings/LogViewer";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { PresenceDashboard } from "@/components/settings/PresenceDashboard";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import { TaskSyncSettings } from "@/components/settings/TaskSyncSettings";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { UserSettings } from "@/components/settings/UserSettings";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { SunnieSun } from "@/components/brand/SunnieSun";
 
 import { isSaasEnabled } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -53,7 +54,8 @@ type SettingsTab =
   | "waitlist"
   | "import-export"
   | "admin-dashboard"
-  | "notifications";
+  | "notifications"
+  | "presence";
 
 export default function SettingsPage() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -79,6 +81,7 @@ export default function SettingsPage() {
     // Add admin-only tabs
     if (isAdmin) {
       const adminTabs = [
+        { id: "presence", label: "Online" },
         { id: "system", label: "System" },
         { id: "logs", label: "Logs" },
         { id: "user-management", label: "Users" },
@@ -121,6 +124,7 @@ export default function SettingsPage() {
         "import-export",
         "admin-dashboard",
         "notifications",
+        "presence",
       ];
 
       if (allPossibleTabIds.includes(hash)) {
@@ -156,6 +160,7 @@ export default function SettingsPage() {
       "user-management",
       "waitlist",
       "admin-dashboard",
+      "presence",
     ];
 
     // If admin status is still loading and the active tab is admin-only, show loading state
@@ -198,6 +203,8 @@ export default function SettingsPage() {
         return <LogViewer />;
       case "user-management":
         return <UserManagement />;
+      case "presence":
+        return <PresenceDashboard />;
       case "import-export":
         return <ImportExportSettings />;
       case "waitlist":
@@ -227,7 +234,15 @@ export default function SettingsPage() {
     <div className="container px-4 py-5 sm:py-8">
       <div className="mb-7 flex items-center gap-4">
         <SunnieSun className="h-12 w-12" />
-        <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">Make Sunnie yours</p><h1 className="text-3xl font-bold tracking-[-0.045em]">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Calendars, preferences, and friendly little details.</p></div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
+            Make Sunnie yours
+          </p>
+          <h1 className="text-3xl font-bold tracking-[-0.045em]">Settings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Calendars, preferences, and friendly little details.
+          </p>
+        </div>
       </div>
       <div className="flex flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">

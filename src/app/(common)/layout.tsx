@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "@/components/dnd/DndProvider";
 import { AppNav } from "@/components/navigation/AppNav";
 import { VersionBadge } from "@/components/navigation/VersionBadge";
+import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { SetupCheck } from "@/components/setup/SetupCheck";
@@ -66,6 +67,7 @@ export default function RootLayout({
   return (
     <div className="sunnie-app relative flex min-h-screen flex-col overflow-x-clip">
       <SessionProvider>
+        <PresenceHeartbeat />
         <PrivacyProvider>
           <DndProvider>
             <SetupCheck />
@@ -78,8 +80,14 @@ export default function RootLayout({
               onClose={() => setShortcutsOpen(false)}
             />
             <AppNav />
-            <div aria-hidden="true" className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[#f8c95d]/10 blur-3xl" />
-            <div aria-hidden="true" className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[#b8d98b]/15 blur-3xl" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[#f8c95d]/10 blur-3xl"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[#b8d98b]/15 blur-3xl"
+            />
             <main className="relative z-[1] flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
               <NotificationProvider>{children}</NotificationProvider>
             </main>
