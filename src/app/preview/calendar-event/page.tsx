@@ -184,9 +184,9 @@ function TaskBlock({
       className={`${className} flex min-w-0 items-center overflow-hidden rounded-[10px] border px-1.5 text-[11px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_1px_3px_rgba(72,70,48,0.12)] ${colors[tone]}`}
       title={title}
     >
-      {!compact && (
-        <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0 opacity-70" />
-      )}
+      <CheckCircle2
+        className={`${compact ? "mr-1 h-2.5 w-2.5" : "mr-1.5 h-3.5 w-3.5"} shrink-0 opacity-70`}
+      />
       <span className="truncate leading-none">{title}</span>
     </div>
   );

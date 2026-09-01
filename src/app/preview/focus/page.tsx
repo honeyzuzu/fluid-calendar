@@ -31,13 +31,16 @@ export default function FocusPreviewPage() {
             (task, index) => (
               <div
                 key={task}
-                className={`mt-3 rounded-2xl p-3 text-sm font-semibold ${
+                className={`mt-3 flex items-center justify-between gap-2 rounded-2xl p-3 text-sm font-semibold ${
                   index === 0
                     ? "bg-[#eef3df] text-[#566344]"
                     : "border border-[#ebe6d2] text-[#777158]"
                 }`}
               >
-                {task}
+                <span>{task}</span>
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[#9fb18a] bg-white/70 text-transparent">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
               </div>
             )
           )}
@@ -154,7 +157,7 @@ export default function FocusPreviewPage() {
                 </p>
                 <div className="mt-5 space-y-2">
                   <span className="flex items-center gap-2 rounded-2xl bg-[#f4c85b] px-4 py-3 text-sm font-bold text-[#56431b]">
-                    <Check className="h-4 w-4" /> Complete task
+                    <Check className="h-4 w-4" /> Complete task · +1 sun drop
                   </span>
                   <span className="flex items-center gap-2 rounded-2xl border border-[#dad3b7] bg-white px-4 py-3 text-sm font-semibold text-[#716b50]">
                     <Pencil className="h-4 w-4" /> Edit task

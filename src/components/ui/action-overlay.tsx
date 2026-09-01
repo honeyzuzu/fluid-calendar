@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import confetti from "canvas-confetti";
+import { Sun } from "lucide-react";
 
 import { logger } from "@/lib/logger";
 
@@ -17,7 +18,7 @@ export function ActionOverlay({
   type,
   message,
   onComplete,
-  autoHideDuration = 1500,
+  autoHideDuration,
 }: ActionOverlayProps) {
   // Log when the overlay is shown
   useEffect(() => {
@@ -26,42 +27,24 @@ export function ActionOverlay({
       message: message || null,
     });
 
-    // For celebration, trigger confetti
-    if (type === "celebration") {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    // One slow pastel shower feels celebratory without creating visual urgency.
+    if (type === "celebration" && !reduceMotion) {
       try {
-        const duration = 1000;
-        const animationEnd = Date.now() + duration;
-
-        // Create a confetti burst
-        const randomInRange = (min: number, max: number) => {
-          return Math.random() * (max - min) + min;
-        };
-
         confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
+          particleCount: 38,
+          spread: 88,
+          startVelocity: 17,
+          gravity: 0.45,
+          ticks: 220,
+          scalar: 0.72,
+          origin: { y: 0.52 },
+          colors: ["#F4C85B", "#A9C98B", "#8ECAE6", "#F0A6CA"],
+          disableForReducedMotion: true,
         });
-
-        // Create a confetti animation interval
-        const interval = setInterval(() => {
-          const timeLeft = animationEnd - Date.now();
-
-          if (timeLeft <= 0) {
-            clearInterval(interval);
-            return;
-          }
-
-          confetti({
-            particleCount: 50,
-            angle: randomInRange(55, 125),
-            spread: randomInRange(50, 70),
-            origin: { y: 0.6 },
-          });
-        }, 250);
-
-        // Clean up interval
-        return () => clearInterval(interval);
       } catch (error) {
         logger.error("[ActionOverlay] Error triggering confetti", {
           error: error instanceof Error ? error.message : String(error),
@@ -69,19 +52,21 @@ export function ActionOverlay({
       }
     }
 
-    // Auto-hide the overlay after specified duration if onComplete is provided
-    if (autoHideDuration && onComplete) {
+    const hideAfter =
+      autoHideDuration ??
+      (type === "celebration" ? 2800 : type === "error" ? 3000 : 0);
+    if (hideAfter && onComplete) {
       const timer = setTimeout(() => {
         logger.debug("[ActionOverlay] Auto-hiding overlay", { type });
         onComplete();
-      }, autoHideDuration);
+      }, hideAfter);
 
       return () => clearTimeout(timer);
     }
   }, [type, message, onComplete, autoHideDuration]);
 
   return (
-    <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[10000] flex animate-[sunnie-overlay-fade_500ms_ease-out] flex-col items-center justify-center bg-[#fffdf5]/82 backdrop-blur-sm motion-reduce:animate-none">
       {type === "loading" && (
         <div className="mb-4 h-12 w-12 animate-spin text-blue-600">
           <svg
@@ -106,7 +91,11 @@ export function ActionOverlay({
         </div>
       )}
 
-      {type === "celebration" && <div className="mb-4 text-5xl">🎉</div>}
+      {type === "celebration" && (
+        <div className="mb-5 grid h-24 w-24 animate-[sunnie-celebration-bloom_2400ms_cubic-bezier(0.16,0.8,0.25,1)] place-items-center rounded-full bg-[#fff0b8] text-[#d0912d] shadow-[0_8px_30px_rgba(224,173,67,0.18)] motion-reduce:animate-none">
+          <Sun className="h-12 w-12 fill-[#f4c85b]" />
+        </div>
+      )}
 
       {type === "error" && <div className="mb-4 text-5xl text-red-500">❌</div>}
 

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { isSaasEnabled } from "@/lib/config";
+import { awardSunDrops, completionEarnsSunDrop } from "@/lib/focus-rewards";
 
 import {
   NewTag,
@@ -116,6 +117,13 @@ export const useTaskStore = create<TaskState>()(
       },
 
       updateTask: async (id: string, updates: UpdateTask) => {
+        const previousStatus = get().tasks.find(
+          (task) => task.id === id
+        )?.status;
+        const earnsSunDrop = completionEarnsSunDrop(
+          previousStatus,
+          updates.status
+        );
         set({ loading: true, error: null });
         try {
           const response = await fetch(`/api/tasks/${id}`, {
@@ -135,6 +143,7 @@ export const useTaskStore = create<TaskState>()(
               task.id === id ? updatedTask : task
             ),
           }));
+          if (earnsSunDrop) awardSunDrops(1);
           await get().triggerScheduleAllTasks();
           return updatedTask;
         } catch (error) {

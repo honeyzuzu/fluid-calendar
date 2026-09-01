@@ -99,7 +99,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
         {...listeners}
         style={style}
         className={cn(
-          "cursor-grab rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)]",
+          "cursor-grab animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)] motion-reduce:animate-none motion-reduce:transform-none",
           isDragging && "opacity-50"
         )}
       >

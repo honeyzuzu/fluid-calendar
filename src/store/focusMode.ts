@@ -180,8 +180,7 @@ export const useFocusModeStore = create<FocusModeStore>()(
           return;
         }
 
-        // Show loading overlay
-        get().startProcessing("celebration", "Task completed! 🎉");
+        get().startProcessing("loading", "Finishing your task...");
 
         // First update the task status in the database
         const taskStore = useTaskStore.getState();
@@ -215,6 +214,7 @@ export const useFocusModeStore = create<FocusModeStore>()(
 
             // Refresh tasks to make sure our tasks list is up-to-date
             await taskStore.fetchTasks();
+            get().startProcessing("celebration", "Task completed! ☀️");
             // Wait for celebration to finish (3 seconds)
             // Move to next task if available
             const queuedTaskIds = get().getQueuedTaskIds();
@@ -222,7 +222,8 @@ export const useFocusModeStore = create<FocusModeStore>()(
             set({
               currentTaskId: nextTaskId || null,
             });
-            get().stopProcessing();
+            // The gentle celebration overlay dismisses itself after its
+            // animation, rather than disappearing as soon as the request ends.
           } catch (error) {
             // Show error overlay
             get().startProcessing(

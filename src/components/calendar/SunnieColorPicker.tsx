@@ -6,20 +6,13 @@ import { Check, Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { SUNNIE_PASTEL_COLORS } from "@/lib/calendar-colors";
+import { MAX_RECENT_COLORS, addRecentColor } from "@/lib/recent-colors";
 import { cn } from "@/lib/utils";
-import { addRecentColor, MAX_RECENT_COLORS } from "@/lib/recent-colors";
 
 const RECENT_COLORS_STORAGE_KEY = "sunnie-recent-custom-colors";
 
-export const SUNNIE_PASTEL_COLORS = [
-  { name: "Butter", value: "#F6D77A" },
-  { name: "Peach", value: "#F4BFA6" },
-  { name: "Blush", value: "#F1AEC2" },
-  { name: "Lavender", value: "#CBBBF2" },
-  { name: "Sky", value: "#A9D8EE" },
-  { name: "Mint", value: "#A9DDB8" },
-  { name: "Sage", value: "#BECB91" },
-] as const;
+export { SUNNIE_PASTEL_COLORS } from "@/lib/calendar-colors";
 
 interface SunnieColorPickerProps {
   value?: string | null;
@@ -39,7 +32,8 @@ export function SunnieColorPicker({
   className,
 }: SunnieColorPickerProps) {
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  const displayedColor = value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
+  const displayedColor =
+    value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
   const [customColor, setCustomColor] = useState(displayedColor);
   const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
   const isPreset = SUNNIE_PASTEL_COLORS.some(

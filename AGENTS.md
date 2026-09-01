@@ -176,6 +176,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 - App name, metadata, favicon, Google OAuth logo, setup page, sign-in page, settings, and primary application surfaces use Sunnie branding.
 - Visual language uses warm cream backgrounds, sunny yellow accents, leafy greens, peach, pastel colors, rounded cards, and the Sunnie sun icon.
+- Motion is intentionally restrained: task cards gently rise on entry, calendar task blocks lift slightly on hover, focus pets respond subtly, and sun-drop badges use a one-shot pop. All custom motion respects reduced-motion preferences.
+- Task completion uses a slow 2.8-second sunny bloom and one light pastel confetti shower rather than a rapid repeated burst.
 - The former bottom-right “island” control was removed.
 - Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens.
 - The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
@@ -195,6 +197,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Manual calendar placement locks a task so later auto-scheduling does not unexpectedly move it.
 - Task list and board views are inherited and retained.
 - The Tasks workspace is centered at a readable maximum width. Its filters form a compact toolbar on desktop, list cards gain columns as space permits, and board columns stay centered rather than leaving the content stranded against one edge.
+- The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 
 ### Brain Dump and task tune-up
@@ -226,6 +229,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
 - The color picker includes a pastel Sunnie rainbow plus a custom color input.
+- Event presets use a distinct cool, playful palette (pool blue, bubblegum, periwinkle, aqua, orchid, blueberry, and dragonfruit) so none reuse the coral, gold, mint, or lavender task-urgency colors.
 - Custom colors are applied only after explicit confirmation, avoiding accidental commits while dragging.
 - Recently used custom colors are saved as quick-access colors.
 - Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.
@@ -233,7 +237,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Calendar headers include an Add event button on desktop and mobile, while a normal tap/click on an empty calendar slot also opens a pre-filled one-hour event.
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
 - Scheduled task blocks use rounded, softly filled pastel urgency colors rather than a blue block with a hard side stripe. High is coral, medium is sunny gold, low is mint, and tasks without a priority are lavender.
-- Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, removes decorative icon/padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar.
+- Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, uses a smaller check icon and reduced padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar. Every calendar task retains a check icon.
 
 ### Focus and friend visibility
 
@@ -241,6 +245,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play a soft synthesized three-note chime when setup, focus, or break time ends. The chime can be disabled.
 - The setup checklist covers a drink/snack, workspace, subtasks, and distractions. The user's subtask outline remains visible during setup and focus instead of disappearing between phases.
 - Users can choose among six built-in emoji focus pets. Completed focus rounds earn non-punitive “sun drops,” and the pet changes its encouragement across setup, focus, pause, and break phases.
+- Completing any previously unfinished task awards one sun drop in that browser, including completion from Tasks, Calendar, Focus, or the Focus sidebar. Marking it incomplete does not remove the earned drop, and repeatedly saving an already-completed task does not award duplicates.
 - A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.
 - The Focus card shows the task's energy, urgency/priority, estimate, and description. The inherited schedule-fit score is intentionally not shown.
 - The separate right-side quick-actions panel was removed. At the end of every focus round, the timer offers Complete task and Edit task alongside break/continue choices.

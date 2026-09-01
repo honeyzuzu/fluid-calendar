@@ -75,11 +75,19 @@ export const CalendarEventContent = memo(function CalendarEventContent({
         status === TaskStatus.COMPLETED && "text-gray-500 line-through"
       )}
     >
-      <div className="flex w-full items-center gap-1.5">
+      <div
+        className={cn(
+          "flex w-full items-center",
+          isCompactTimedTask ? "gap-1" : "gap-1.5"
+        )}
+      >
         {isTask ? (
-          !isCompactTimedTask && (
-            <IoCheckmarkCircle className="h-3.5 w-3.5 flex-shrink-0 text-current opacity-70" />
-          )
+          <IoCheckmarkCircle
+            className={cn(
+              "flex-shrink-0 text-current opacity-70",
+              isCompactTimedTask ? "h-2.5 w-2.5" : "h-3.5 w-3.5"
+            )}
+          />
         ) : showTimeChip ? (
           isRecurring ? (
             <IoRepeat

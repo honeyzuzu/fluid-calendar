@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { Check } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 import { format, isBefore, newDate } from "@/lib/date-utils";
@@ -15,7 +17,7 @@ import { Task, TaskStatus } from "@/types/task";
 
 export function TaskQueue() {
   const { switchToTask, currentTaskId, getQueuedTasks } = useFocusModeStore();
-  const { tasks } = useTaskStore();
+  const { tasks, updateTask } = useTaskStore();
 
   // State to track expanded sections
   const [expandedSections, setExpandedSections] = useState<{
@@ -92,25 +94,44 @@ export function TaskQueue() {
     }));
   };
 
+  const toggleTaskCompletion = async (task: Task) => {
+    try {
+      await updateTask(task.id, {
+        status:
+          task.status === TaskStatus.COMPLETED
+            ? TaskStatus.TODO
+            : TaskStatus.COMPLETED,
+      });
+    } catch (error) {
+      logger.error("[TaskQueue] Failed to toggle task completion", {
+        taskId: task.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
   // Render a task button
   const renderTaskButton = (task: Task) => (
-    <Button
+    <div
       key={task.id}
-      variant="ghost"
       className={cn(
-        "h-auto w-full justify-start px-3 py-2",
-        "hover:bg-accent hover:text-accent-foreground",
+        "group flex w-full items-center gap-1 rounded-xl px-1 py-1 transition hover:bg-accent/70",
         task.id === currentTaskId &&
           "bg-accent font-medium text-accent-foreground"
       )}
-      onClick={() => switchToTask(task.id)}
     >
-      <div className="flex w-full flex-col items-start text-left">
+      <button
+        type="button"
+        className="min-w-0 flex-1 px-2 py-1 text-left"
+        onClick={() => switchToTask(task.id)}
+      >
         <div className="flex w-full items-center justify-between">
           <span
             className={cn(
               "truncate font-medium",
               task.id === currentTaskId && "text-accent-foreground",
+              task.status === TaskStatus.COMPLETED &&
+                "text-muted-foreground line-through",
               "task-title"
             )}
           >
@@ -131,16 +152,32 @@ export function TaskQueue() {
                   {format(task.postponedUntil, "MM/dd")}
                 </span>
               )}
-
-            {task.status === TaskStatus.COMPLETED && task.completedAt && (
-              <span className="rounded bg-green-200 px-1.5 py-0.5 text-xs font-medium text-green-900 dark:bg-green-900/50 dark:text-green-100">
-                ✓
-              </span>
-            )}
           </div>
         </div>
-      </div>
-    </Button>
+      </button>
+      <button
+        type="button"
+        onClick={() => void toggleTaskCompletion(task)}
+        aria-label={
+          task.status === TaskStatus.COMPLETED
+            ? `Mark ${task.title} incomplete`
+            : `Mark ${task.title} complete`
+        }
+        title={
+          task.status === TaskStatus.COMPLETED
+            ? "Mark incomplete"
+            : "Mark complete"
+        }
+        className={cn(
+          "grid h-8 w-8 shrink-0 place-items-center rounded-full border transition duration-300",
+          task.status === TaskStatus.COMPLETED
+            ? "border-[#8fa96c] bg-[#9fb878] text-white shadow-sm"
+            : "border-[#cfc9af] bg-white/70 text-transparent hover:scale-105 hover:border-[#91a96f] hover:text-[#718958]"
+        )}
+      >
+        <Check className="h-4 w-4" />
+      </button>
+    </div>
   );
 
   // Render a section with a title and tasks

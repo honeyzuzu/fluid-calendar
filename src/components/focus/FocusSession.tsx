@@ -28,6 +28,11 @@ import {
 } from "lucide-react";
 
 import {
+  FOCUS_PREFERENCES_KEY,
+  FOCUS_REWARD_EVENT,
+  FocusRewardDetail,
+} from "@/lib/focus-rewards";
+import {
   BREAK_DURATIONS,
   FOCUS_DURATIONS,
   FOCUS_PETS,
@@ -40,7 +45,6 @@ import {
 } from "@/lib/focus-session";
 import { cn } from "@/lib/utils";
 
-const PREFERENCES_KEY = "sunnie-focus-companion-v1";
 const SESSION_KEY = "sunnie-focus-session-v1";
 const MAX_CUSTOM_IMAGE_BYTES = 750_000;
 
@@ -117,7 +121,9 @@ export function FocusSession({
 
   useEffect(() => {
     try {
-      const storedPreferences = window.localStorage.getItem(PREFERENCES_KEY);
+      const storedPreferences = window.localStorage.getItem(
+        FOCUS_PREFERENCES_KEY
+      );
       const preferences = storedPreferences
         ? (JSON.parse(storedPreferences) as Partial<FocusPreferences>)
         : {};
@@ -175,6 +181,18 @@ export function FocusSession({
   }, [taskId]);
 
   useEffect(() => {
+    const handleReward = (event: Event) => {
+      const detail = (event as CustomEvent<FocusRewardDetail>).detail;
+      if (detail && Number.isFinite(detail.sunDrops)) {
+        setSunDrops(detail.sunDrops);
+      }
+    };
+
+    window.addEventListener(FOCUS_REWARD_EVENT, handleReward);
+    return () => window.removeEventListener(FOCUS_REWARD_EVENT, handleReward);
+  }, []);
+
+  useEffect(() => {
     if (!hydrated) return;
     const preferences: FocusPreferences = {
       petId,
@@ -184,7 +202,10 @@ export function FocusSession({
       sunDrops,
     };
     try {
-      window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+      window.localStorage.setItem(
+        FOCUS_PREFERENCES_KEY,
+        JSON.stringify(preferences)
+      );
     } catch {
       // Focus mode remains usable if local storage is full or unavailable.
     }
@@ -403,7 +424,7 @@ export function FocusSession({
     <section className="mb-5 overflow-hidden rounded-3xl border border-[#dfdab8] bg-[#fffaf0] shadow-[0_7px_0_#e7dfbf]">
       <div className="grid gap-4 bg-[linear-gradient(135deg,#fff1bd_0%,#eff4df_100%)] p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
         <div
-          className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border-4 border-white text-5xl shadow-md"
+          className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border-4 border-white text-5xl shadow-md transition-transform duration-500 hover:rotate-2 hover:scale-105 motion-reduce:transform-none"
           style={{ backgroundColor: selectedPet.color }}
         >
           {usesCustomPet ? (
@@ -423,7 +444,10 @@ export function FocusSession({
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a6762a]">
               Focus companion
             </p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold text-[#8c6a27]">
+            <span
+              key={sunDrops}
+              className="inline-flex animate-[sunnie-sun-pop_900ms_cubic-bezier(0.2,0.75,0.25,1)] items-center gap-1 rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold text-[#8c6a27] motion-reduce:animate-none"
+            >
               <Sun className="h-3 w-3 fill-[#f4c85b] text-[#d29a30]" />
               {sunDrops} sun {sunDrops === 1 ? "drop" : "drops"}
             </span>
