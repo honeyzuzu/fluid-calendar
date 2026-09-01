@@ -99,7 +99,7 @@ export default function FriendsPage() {
   };
 
   return (
-    <main className="min-h-full bg-[#fff9e8] p-5 text-[#3f432e] lg:p-8">
+    <main className="min-h-full bg-[#fff9e8] p-4 text-[#3f432e] sm:p-5 lg:p-8">
       <div className="mx-auto max-w-5xl">
         <div className="mb-7">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#d0902f]"><UsersRound className="h-4 w-4" />Friends</div>
@@ -112,9 +112,9 @@ export default function FriendsPage() {
         <section className="mb-5 rounded-2xl border border-black/[0.065] bg-white/75 p-5 shadow-sm">
           <h2 className="font-semibold">Add a friend</h2>
           <p className="mt-1 text-xs text-black/42">They need an account on this server first. Enable public signup in Settings → Admin → Users while friends register, then disable it again.</p>
-          <form onSubmit={invite} className="mt-4 flex max-w-xl gap-2">
+          <form onSubmit={invite} className="mt-4 flex max-w-xl flex-col gap-2 sm:flex-row">
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="friend@example.com" className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#84a75e]" />
-            <button disabled={saving || !email.trim()} className="flex items-center gap-2 rounded-xl bg-[#64734a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_#465331] disabled:opacity-40"><MailPlus className="h-4 w-4" />Request</button>
+            <button disabled={saving || !email.trim()} className="flex items-center justify-center gap-2 rounded-xl bg-[#64734a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_#465331] disabled:opacity-40"><MailPlus className="h-4 w-4" />Request</button>
           </form>
         </section>
 

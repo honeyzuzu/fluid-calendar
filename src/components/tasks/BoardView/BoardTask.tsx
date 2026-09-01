@@ -213,7 +213,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
           </div>
         </div>
       </div>
-      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
         <button
           type="button"
           onClick={() => onEdit(task)}

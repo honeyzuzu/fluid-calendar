@@ -49,19 +49,19 @@ export function FocusMode() {
         />
       )}
 
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
         {/* Left sidebar with queued tasks */}
-        <aside className="h-full w-80 border-r border-[#dfe2c8] bg-[#fffdf5]">
+        <aside className="order-2 max-h-72 w-full flex-none border-t border-[#dfe2c8] bg-[#fffdf5] md:order-1 md:h-full md:max-h-none md:w-80 md:border-r md:border-t-0">
           <TaskQueue />
         </aside>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(248,201,93,0.12),_transparent_22rem)] p-8">
+        <main className="order-1 min-h-[55vh] flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(248,201,93,0.12),_transparent_22rem)] p-4 sm:p-8 md:order-2 md:min-h-0">
           <FocusedTask task={currentTask} />
         </main>
 
         {/* Right sidebar with quick actions */}
-        <aside className="h-full w-64 border-l border-[#dfe2c8] bg-[#f8f3dc]">
+        <aside className="order-3 w-full flex-none border-t border-[#dfe2c8] bg-[#f8f3dc] md:h-full md:w-64 md:border-l md:border-t-0">
           <QuickActions />
         </aside>
       </div>

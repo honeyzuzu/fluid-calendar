@@ -20,6 +20,7 @@ import { useTaskListViewSettings } from "@/store/taskListViewSettings";
 
 import { EnergyLevel, Task, TaskStatus, TimePreference } from "@/types/task";
 
+import { BoardTask } from "./BoardView/BoardTask";
 import { SortableHeader, StatusFilter, TaskRow } from "./components";
 import {
   compareTaskEnergyLevel,
@@ -178,7 +179,7 @@ export function TaskList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 md:flex md:items-center md:gap-4">
         <StatusFilter
           value={status || []}
           onChange={(value) => setFilters({ status: value })}
@@ -193,7 +194,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-[140px]">
+          <SelectTrigger className="h-9 w-full md:w-[140px]">
             <SelectValue placeholder="All Energy" />
           </SelectTrigger>
           <SelectContent>
@@ -215,7 +216,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-[140px]">
+          <SelectTrigger className="h-9 w-full md:w-[140px]">
             <SelectValue placeholder="All Times" />
           </SelectTrigger>
           <SelectContent>
@@ -228,7 +229,7 @@ export function TaskList({
           </SelectContent>
         </Select>
 
-        <div className="flex flex-1 gap-2">
+        <div className="col-span-2 flex flex-1 gap-2 md:col-span-1">
           <Input
             value={search || ""}
             onChange={(e) =>
@@ -250,7 +251,7 @@ export function TaskList({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="col-span-2 flex items-center gap-2 md:col-span-1">
           <Checkbox
             id="hideUpcomingTasks"
             checked={hideUpcomingTasks}
@@ -267,7 +268,23 @@ export function TaskList({
         </div>
       </div>
 
-      <div className="flex-1 rounded-lg border bg-background">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto md:hidden">
+        {sortedTasks.map((task) => (
+          <BoardTask
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+        {sortedTasks.length === 0 && (
+          <div className="rounded-xl border border-dashed bg-background py-8 text-center text-sm text-muted-foreground">
+            No tasks found. Try adjusting your filters or create a new task.
+          </div>
+        )}
+      </div>
+
+      <div className="hidden flex-1 rounded-lg border bg-background md:block">
         <div
           className="overflow-auto"
           style={{ maxHeight: "calc(100vh - 250px)" }}

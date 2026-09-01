@@ -99,7 +99,7 @@ export function EventQuickView({
         />
       </PopoverTrigger>
       <PopoverContent
-        className="z-[10000] w-80 rounded-lg border border-border bg-background p-4 shadow-lg"
+        className="z-[10000] w-80 max-w-[calc(100vw-1.5rem)] rounded-lg border border-border bg-background p-4 shadow-lg"
         align="start"
         sideOffset={24}
         onOpenAutoFocus={(e) => e.preventDefault()}

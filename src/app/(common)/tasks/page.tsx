@@ -120,9 +120,9 @@ export default function TasksPage() {
     <div className="flex h-full bg-[#fff9e8]">
       <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
-        <div className="relative z-30 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-6 py-4 backdrop-blur-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-4">
+        <div className="relative z-30 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
                   Little things, lovingly planned
@@ -171,20 +171,23 @@ export default function TasksPage() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="group relative">
+            <div className="flex w-full items-center gap-2 sm:w-auto">
+              <div className="group relative min-w-0 flex-1 sm:flex-none">
                 <Button
                   variant="secondary"
                   onClick={handleAutoSchedule}
                   aria-describedby="auto-schedule-description auto-schedule-tooltip"
+                  className="w-full sm:w-auto"
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Auto-schedule tasks
+                  <span className="sm:hidden">Auto-schedule</span>
+                  <span className="hidden sm:inline">Auto-schedule tasks</span>
                 </Button>
                 <AutoScheduleTooltip id="auto-schedule-tooltip" />
               </div>
               <Button
                 data-create-task-button
+                className="min-w-0 flex-1 sm:flex-none"
                 onClick={() => {
                   setSelectedTask(undefined);
                   // Set initial project ID based on active project
@@ -200,7 +203,8 @@ export default function TasksPage() {
                   setOpen(true);
                 }}
               >
-                Create Task
+                <span className="sm:hidden">New task</span>
+                <span className="hidden sm:inline">Create Task</span>
               </Button>
             </div>
           </div>
@@ -212,7 +216,7 @@ export default function TasksPage() {
           )}
         </div>
 
-        <div className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+        <div className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-6">
           {viewMode === "list" ? (
             <TaskList
               tasks={tasks}

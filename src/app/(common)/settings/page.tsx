@@ -224,15 +224,15 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container py-8">
+    <div className="container px-4 py-5 sm:py-8">
       <div className="mb-7 flex items-center gap-4">
         <SunnieSun className="h-12 w-12" />
         <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">Make Sunnie yours</p><h1 className="text-3xl font-bold tracking-[-0.045em]">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Calendars, preferences, and friendly little details.</p></div>
       </div>
       <div className="flex flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">
-          <Card>
-            <nav className="space-y-1 p-1">
+          <Card className="overflow-x-auto">
+            <nav className="flex gap-1 p-1 lg:block lg:space-y-1">
               {tabs.map((tab) => (
                 <a
                   key={tab.id}
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                     setActiveTab(tab.id as SettingsTab);
                   }}
                   className={cn(
-                    "flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+                    "flex w-auto shrink-0 items-center whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full",
                     !isHydrated && "duration-0",
                     activeTab === tab.id
                       ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"

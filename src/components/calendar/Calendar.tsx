@@ -70,6 +70,18 @@ export function Calendar({
     useTaskStore.getState().fetchTasks();
   }, [initialFeeds, initialEvents, setFeeds, setEvents]);
 
+  // The desktop week layout and open sidebar are too dense for a phone.
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setSidebarOpen(false);
+      if (view === "week" || view === "multiMonth") {
+        setView("day");
+      }
+    }
+    // This is intentionally a one-time responsive initialization.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handlePrevWeek = () => {
     if (view === "month" || view === "multiMonth") {
       const newDate = new Date(currentDate);
@@ -93,16 +105,17 @@ export function Calendar({
   };
 
   return (
-    <div className="flex h-full w-full">
+    <div className="relative flex h-full w-full overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
-          "h-full w-80 flex-none border-r border-[#dfe2c8] bg-[#fffdf5]",
+          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-[#dfe2c8] bg-[#fffdf5] shadow-2xl md:relative md:inset-auto md:z-auto md:w-80 md:shadow-none",
           "transform transition-transform duration-300 ease-in-out",
           !isHydrated && "opacity-0 duration-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          isSidebarOpen
+            ? "translate-x-0 md:ml-0"
+            : "-translate-x-full md:-ml-80"
         )}
-        style={{ marginLeft: isSidebarOpen ? 0 : "-20rem" }}
       >
         <div className="flex h-full flex-col">
           {/* Feed Manager */}
@@ -115,36 +128,71 @@ export function Calendar({
         </div>
       </aside>
 
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close calendar sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="absolute inset-0 z-40 bg-[#3f432e]/25 backdrop-blur-[1px] md:hidden"
+        />
+      )}
+
       {/* Main Content */}
       <main className="flex min-w-0 flex-1 flex-col bg-[#fff9e8]">
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="relative z-30 flex h-16 flex-none items-center overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-4 backdrop-blur-sm">
-          <button
-            onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="rounded-lg p-2 text-foreground hover:bg-muted"
-            title="Toggle Sidebar (b)"
-          >
-            <HiMenu className="h-5 w-5" />
-          </button>
+        <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:h-16 md:flex-row md:items-center md:gap-0 md:px-4">
+          <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
+            <button
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+              className="shrink-0 rounded-lg p-2 text-foreground hover:bg-muted"
+              title="Toggle Sidebar (b)"
+            >
+              <HiMenu className="h-5 w-5" />
+            </button>
 
-          <div className="ml-4 flex items-center gap-4">
+            <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
+              {formatDate(currentDate)}
+            </h1>
+
+            <div className="flex shrink-0 items-center gap-1 md:ml-4 md:gap-2">
+              <button
+                onClick={handlePrevWeek}
+                className="rounded-lg p-1.5 text-foreground hover:bg-muted"
+                data-testid="calendar-prev-week"
+                title="Previous period"
+              >
+                <IoChevronBack className="h-5 w-5" />
+              </button>
+              <button
+                onClick={handleNextWeek}
+                className="rounded-lg p-1.5 text-foreground hover:bg-muted"
+                data-testid="calendar-next-week"
+                title="Next period"
+              >
+                <IoChevronForward className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex w-full items-center gap-1 overflow-x-auto md:ml-3 md:w-auto md:gap-3 md:overflow-visible">
             <button
               onClick={() => setDate(newDate())}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+              className="shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted md:px-3"
               title="Go to Today (t)"
             >
               Today
             </button>
 
-            <div className="group relative">
+            <div className="group relative shrink-0">
               <button
                 onClick={handleAutoSchedule}
                 className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
                 aria-describedby="calendar-auto-schedule-tooltip"
               >
-                Auto Schedule
+                <span className="md:hidden">Schedule</span>
+                <span className="hidden md:inline">Auto Schedule</span>
               </button>
               <AutoScheduleTooltip
                 id="calendar-auto-schedule-tooltip"
@@ -152,7 +200,7 @@ export function Calendar({
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 md:flex">
               <button
                 onClick={handlePrevWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
@@ -171,17 +219,17 @@ export function Calendar({
               </button>
             </div>
 
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="hidden whitespace-nowrap text-xl font-semibold text-foreground md:block">
               {formatDate(currentDate)}
             </h1>
           </div>
 
           {/* View Switching Buttons */}
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex w-full shrink-0 items-center justify-between gap-1 md:ml-auto md:w-auto md:justify-start md:gap-2">
             <button
               onClick={() => setView("day")}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium",
+                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                 view === "day"
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -192,7 +240,7 @@ export function Calendar({
             <button
               onClick={() => setView("week")}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium",
+                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                 view === "week"
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -203,7 +251,7 @@ export function Calendar({
             <button
               onClick={() => setView("month")}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium",
+                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                 view === "month"
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -214,7 +262,7 @@ export function Calendar({
             <button
               onClick={() => setView("multiMonth")}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium",
+                "hidden rounded-lg px-3 py-1.5 text-sm font-medium md:block",
                 view === "multiMonth"
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
