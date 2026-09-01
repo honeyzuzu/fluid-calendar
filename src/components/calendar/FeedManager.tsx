@@ -98,7 +98,6 @@ export function FeedManager() {
                       onChange={(color) => {
                         if (color) {
                           void updateFeed(feed.id, { color });
-                          setColorFeedId(null);
                         }
                       }}
                     />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Check, Palette } from "lucide-react";
 
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { addRecentColor, MAX_RECENT_COLORS } from "@/lib/recent-colors";
 
 const RECENT_COLORS_STORAGE_KEY = "sunnie-recent-custom-colors";
+const CUSTOM_COLOR_COMMIT_DELAY_MS = 350;
 
 export const SUNNIE_PASTEL_COLORS = [
   { name: "Butter", value: "#F6D77A" },
@@ -40,6 +41,8 @@ export function SunnieColorPicker({
 }: SunnieColorPickerProps) {
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const displayedColor = value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
+  const [customColor, setCustomColor] = useState(displayedColor);
+  const customColorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPreset = SUNNIE_PASTEL_COLORS.some(
     (color) => color.value.toLowerCase() === value?.toLowerCase()
   );
@@ -66,18 +69,39 @@ export function SunnieColorPicker({
     }
   }, []);
 
+  useEffect(() => {
+    setCustomColor(displayedColor);
+  }, [displayedColor]);
+
   const handleCustomColor = (color: string) => {
-    const nextColors = addRecentColor(recentColors, color, presetValues);
-    setRecentColors(nextColors);
-    try {
-      window.localStorage.setItem(
-        RECENT_COLORS_STORAGE_KEY,
-        JSON.stringify(nextColors)
-      );
-    } catch {
-      // The picker still works when browser storage is disabled.
-    }
+    setRecentColors((currentColors) => {
+      const nextColors = addRecentColor(currentColors, color, presetValues);
+      try {
+        window.localStorage.setItem(
+          RECENT_COLORS_STORAGE_KEY,
+          JSON.stringify(nextColors)
+        );
+      } catch {
+        // The picker still works when browser storage is disabled.
+      }
+      return nextColors;
+    });
     onChange(color);
+  };
+
+  const queueCustomColor = (color: string) => {
+    setCustomColor(color);
+
+    if (customColorTimer.current) {
+      clearTimeout(customColorTimer.current);
+    }
+
+    // Native color inputs emit repeatedly while their selector is dragged.
+    // Wait until the drag settles so consumers persist only the final color.
+    customColorTimer.current = setTimeout(() => {
+      customColorTimer.current = null;
+      handleCustomColor(color);
+    }, CUSTOM_COLOR_COMMIT_DELAY_MS);
   };
 
   return (
@@ -142,8 +166,8 @@ export function SunnieColorPicker({
           <span className="sr-only">Choose a custom color</span>
           <input
             type="color"
-            value={displayedColor}
-            onChange={(event) => handleCustomColor(event.target.value)}
+            value={customColor}
+            onChange={(event) => queueCustomColor(event.target.value)}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             aria-label="Choose a custom color"
           />
