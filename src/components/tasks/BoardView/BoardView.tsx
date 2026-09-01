@@ -102,8 +102,8 @@ export function BoardView({
   };
 
   return (
-    <div className="flex h-full flex-col bg-background p-2 sm:p-4">
-      <div className="flex flex-1 snap-x snap-mandatory gap-3 overflow-auto sm:gap-4">
+    <div className="flex h-full flex-col rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/70 p-2 shadow-sm sm:p-4">
+      <div className="flex flex-1 snap-x snap-mandatory gap-3 overflow-auto sm:gap-4 lg:justify-center">
         <DndContext onDragEnd={handleDragEnd}>
           {Object.values(TaskStatus).map((status) => (
             <Column

@@ -17,9 +17,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-import { useAutoSchedule } from "@/hooks/use-auto-schedule";
-
 import { cn } from "@/lib/utils";
+
+import { useAutoSchedule } from "@/hooks/use-auto-schedule";
 
 import { useProjectStore } from "@/store/project";
 import { useTaskStore } from "@/store/task";
@@ -121,7 +121,7 @@ export default function TasksPage() {
       <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
         <div className="relative z-30 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+          <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
@@ -217,28 +217,30 @@ export default function TasksPage() {
         </div>
 
         <div className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-6">
-          {viewMode === "list" ? (
-            <TaskList
-              tasks={tasks}
-              onEdit={(task) => {
-                setSelectedTask(task);
-                setOpen(true);
-              }}
-              onDelete={handleDeleteTask}
-              onStatusChange={handleStatusChange}
-              onInlineEdit={handleInlineEdit}
-            />
-          ) : (
-            <BoardView
-              tasks={tasks}
-              onEdit={(task) => {
-                setSelectedTask(task);
-                setOpen(true);
-              }}
-              onDelete={handleDeleteTask}
-              onStatusChange={handleStatusChange}
-            />
-          )}
+          <div className="mx-auto flex h-full w-full max-w-[1480px] flex-col">
+            {viewMode === "list" ? (
+              <TaskList
+                tasks={tasks}
+                onEdit={(task) => {
+                  setSelectedTask(task);
+                  setOpen(true);
+                }}
+                onDelete={handleDeleteTask}
+                onStatusChange={handleStatusChange}
+                onInlineEdit={handleInlineEdit}
+              />
+            ) : (
+              <BoardView
+                tasks={tasks}
+                onEdit={(task) => {
+                  setSelectedTask(task);
+                  setOpen(true);
+                }}
+                onDelete={handleDeleteTask}
+                onStatusChange={handleStatusChange}
+              />
+            )}
+          </div>
         </div>
 
         <TaskModal

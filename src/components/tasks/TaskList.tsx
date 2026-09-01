@@ -179,7 +179,7 @@ export function TaskList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 grid grid-cols-2 gap-2 2xl:flex 2xl:items-center 2xl:gap-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/80 p-3 shadow-sm xl:flex xl:items-center xl:gap-3">
         <StatusFilter
           value={status || []}
           onChange={(value) => setFilters({ status: value })}
@@ -194,7 +194,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full 2xl:w-[140px]">
+          <SelectTrigger className="h-9 w-full xl:w-[140px]">
             <SelectValue placeholder="All Energy" />
           </SelectTrigger>
           <SelectContent>
@@ -216,7 +216,7 @@ export function TaskList({
             })
           }
         >
-          <SelectTrigger className="h-9 w-full 2xl:w-[140px]">
+          <SelectTrigger className="h-9 w-full xl:w-[140px]">
             <SelectValue placeholder="All Times" />
           </SelectTrigger>
           <SelectContent>
@@ -229,7 +229,7 @@ export function TaskList({
           </SelectContent>
         </Select>
 
-        <div className="col-span-2 flex flex-1 gap-2 2xl:col-span-1">
+        <div className="col-span-2 flex flex-1 gap-2 xl:col-span-1">
           <Input
             value={search || ""}
             onChange={(e) =>
@@ -251,7 +251,7 @@ export function TaskList({
           )}
         </div>
 
-        <div className="col-span-2 flex items-center gap-2 2xl:col-span-1">
+        <div className="col-span-2 flex items-center gap-2 xl:col-span-1">
           <Checkbox
             id="hideUpcomingTasks"
             checked={hideUpcomingTasks}
@@ -268,7 +268,7 @@ export function TaskList({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto 2xl:hidden">
+      <div className="grid min-h-0 flex-1 content-start grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1800px]:hidden">
         {sortedTasks.map((task) => (
           <BoardTask
             key={task.id}
@@ -278,13 +278,13 @@ export function TaskList({
           />
         ))}
         {sortedTasks.length === 0 && (
-          <div className="rounded-xl border border-dashed bg-background py-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed bg-background py-8 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3 2xl:col-span-4">
             No tasks found. Try adjusting your filters or create a new task.
           </div>
         )}
       </div>
 
-      <div className="hidden flex-1 rounded-lg border bg-background 2xl:block">
+      <div className="hidden flex-1 overflow-hidden rounded-2xl border border-[#e3dfc8] bg-[#fffdf7] shadow-sm min-[1800px]:block">
         <div
           className="overflow-auto"
           style={{ maxHeight: "calc(100vh - 250px)" }}

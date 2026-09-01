@@ -68,12 +68,18 @@ jobs:
               file.filename.startsWith("src/components/focus/") ||
               file.filename.startsWith("src/app/(common)/focus/")
             );
+            const tasksUpdate = files.some((file) =>
+              file.filename.startsWith("src/components/tasks/") ||
+              file.filename.startsWith("src/app/(common)/tasks/")
+            );
             core.setOutput(
               "preview_url",
               onboardingUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/onboarding"
                 : focusUpdate
                   ? "https://sunnie-planner-prod.up.railway.app/preview/focus"
+                : tasksUpdate
+                  ? "https://sunnie-planner-prod.up.railway.app/preview/tasks"
                 : brainDumpUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/brain-dump"
                 : calendarUpdate

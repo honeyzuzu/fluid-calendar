@@ -99,7 +99,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
         {...listeners}
         style={style}
         className={cn(
-          "cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
+          "cursor-grab rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)]",
           isDragging && "opacity-50"
         )}
       >

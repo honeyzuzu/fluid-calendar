@@ -178,7 +178,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Visual language uses warm cream backgrounds, sunny yellow accents, leafy greens, peach, pastel colors, rounded cards, and the Sunnie sun icon.
 - The former bottom-right “island” control was removed.
 - Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens.
-- The detailed Tasks table is reserved for very wide (`2xl`) windows. Smaller desktop and mobile widths use task cards so users are not forced to discover a hidden horizontal scrollbar.
+- The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
 - The upstream support banner on the calendar is intentionally compact.
 
 ### First-time onboarding
@@ -194,6 +194,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Tasks default to `isAutoScheduled = true`; users opt out rather than opt in.
 - Manual calendar placement locks a task so later auto-scheduling does not unexpectedly move it.
 - Task list and board views are inherited and retained.
+- The Tasks workspace is centered at a readable maximum width. Its filters form a compact toolbar on desktop, list cards gain columns as space permits, and board columns stay centered rather than leaving the content stranded against one edge.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 
 ### Brain Dump and task tune-up
@@ -262,7 +263,7 @@ Workflow: `.github/workflows/discord-updates.yml`
 - Trigger: GitHub `deployment_status` events from Railway, plus optional manual dispatch.
 - A normal announcement runs only after Railway reports `success`.
 - The message says `Live now - ready to try!` and links to production and the commit.
-- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump, Calendar, Focus, and onboarding releases select their matching preview; other releases use `/preview/plan`.
+- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump, Calendar, Focus, Tasks, and onboarding releases select their matching preview; other releases use `/preview/plan`.
 - The screenshot is attached directly to the Discord webhook message.
 - If screenshot capture fails, the text announcement still posts.
 - Commits that change only `.github/` automation are skipped.
@@ -318,5 +319,5 @@ Pre-commit hooks run lint and TypeScript checks. Preserve unrelated user changes
 - Outlook implementation remains partially exposed and needs a deliberate removal pass if it is no longer wanted.
 - Google OAuth availability depends on correct production URLs, scopes, consent mode, verification state, and approved test users.
 - Calendar/provider credentials deserve an encryption-at-rest review before use outside the trusted friend/family group.
-- Tasks, Friends, and Settings releases still use the planning preview; future major changes to those surfaces may benefit from matching fake-data preview routes.
+- Friends and Settings releases still use the planning preview; future major changes to those surfaces may benefit from matching fake-data preview routes.
 - Continue mobile visual QA as features are added; inherited FluidCalendar layouts were desktop-first.
