@@ -213,6 +213,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Focus mode and task time blocks are retained.
 - Accepted friends can expose busy-only or more detailed calendar/focus information according to each side’s visibility selection.
 - Friends appear in daily planning alongside the user’s events and focus blocks.
+- The Friends navigation tab shows a warm notification dot while an incoming friend request is pending, on desktop and mobile.
 
 ### Admin presence
 

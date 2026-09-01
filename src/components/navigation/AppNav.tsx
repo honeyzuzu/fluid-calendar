@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { BsListTask, BsCalendar } from "react-icons/bs";
-import { HiOutlineLightBulb, HiOutlineSearch, HiOutlineSparkles, HiOutlineUserGroup } from "react-icons/hi";
+import { BsCalendar, BsListTask } from "react-icons/bs";
+import {
+  HiOutlineLightBulb,
+  HiOutlineSearch,
+  HiOutlineSparkles,
+  HiOutlineUserGroup,
+} from "react-icons/hi";
 import { RiKeyboardLine } from "react-icons/ri";
 
-import { cn } from "@/lib/utils";
 import { SunnieSun } from "@/components/brand/SunnieSun";
+
+import { cn } from "@/lib/utils";
+
+import { usePendingFriendRequests } from "@/hooks/usePendingFriendRequests";
 
 import { useShortcutsStore } from "@/store/shortcuts";
 
@@ -21,6 +29,7 @@ interface AppNavProps {
 export function AppNav({ className }: AppNavProps) {
   const pathname = usePathname();
   const { setOpen: setShortcutsOpen } = useShortcutsStore();
+  const hasPendingFriendRequest = usePendingFriendRequests();
 
   // Function to trigger command palette
   const openCommandPalette = () => {
@@ -43,79 +52,90 @@ export function AppNav({ className }: AppNavProps) {
 
   return (
     <>
-    <nav
-      className={cn(
-        "relative z-10 min-h-16 flex-none border-b border-[#dfe2c8] bg-[#fff9e8]/95 shadow-[0_3px_18px_rgba(95,103,64,0.06)] backdrop-blur-md",
-        className
-      )}
-    >
-      <div className="h-full px-3 sm:px-4">
-        <div className="flex min-h-16 items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1 xl:gap-3">
-            <Link
-              href="/calendar"
-              className={cn(
-                "mr-2 flex shrink-0 items-center gap-2 xl:mr-4",
-                pathname === "/calendar" ? "text-primary" : "text-foreground hover:text-primary"
-              )}
-            >
-              <SunnieSun className="h-9 w-9" />
-              <span className="text-sm font-semibold tracking-tight md:hidden xl:inline">
-                Sunnie
-                <span className="hidden xl:inline"> Planner</span>
-              </span>
-            </Link>
-            <div className="hidden items-center gap-1 md:flex xl:gap-3">
-              {links.map((link) => {
-                const Icon = link.icon;
-                const isActive = pathname === link.href;
+      <nav
+        className={cn(
+          "relative z-10 min-h-16 flex-none border-b border-[#dfe2c8] bg-[#fff9e8]/95 shadow-[0_3px_18px_rgba(95,103,64,0.06)] backdrop-blur-md",
+          className
+        )}
+      >
+        <div className="h-full px-3 sm:px-4">
+          <div className="flex min-h-16 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1 xl:gap-3">
+              <Link
+                href="/calendar"
+                className={cn(
+                  "mr-2 flex shrink-0 items-center gap-2 xl:mr-4",
+                  pathname === "/calendar"
+                    ? "text-primary"
+                    : "text-foreground hover:text-primary"
+                )}
+              >
+                <SunnieSun className="h-9 w-9" />
+                <span className="text-sm font-semibold tracking-tight md:hidden xl:inline">
+                  Sunnie
+                  <span className="hidden xl:inline"> Planner</span>
+                </span>
+              </Link>
+              <div className="hidden items-center gap-1 md:flex xl:gap-3">
+                {links.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
 
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
-                      isActive
-                        ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-                        : "text-[#626849] hover:bg-[#eef3df] hover:text-[#4f5d39]"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden lg:inline">{link.label}</span>
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
+                        isActive
+                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                          : "text-[#626849] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                      )}
+                    >
+                      <span className="relative">
+                        <Icon className="h-4 w-4" />
+                        {link.href === "/friends" &&
+                          hasPendingFriendRequest && (
+                            <span
+                              aria-label="Pending friend request"
+                              className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fff9e8] bg-[#e7895b]"
+                            />
+                          )}
+                      </span>
+                      <span className="hidden lg:inline">{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                onClick={openCommandPalette}
+                className="hidden items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39] xl:flex"
+                title="Search or run a command (⌘K)"
+              >
+                <HiOutlineSearch className="h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
+                <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
+                  ⌘K
+                </kbd>
+              </button>
+              <button
+                onClick={() => setShortcutsOpen(true)}
+                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                title="View Keyboard Shortcuts (Press ?)"
+              >
+                <RiKeyboardLine className="h-4 w-4" />
+                <span className="hidden xl:inline">Shortcuts</span>
+                <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
+                  ?
+                </kbd>
+              </button>
+              <UserMenu />
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              onClick={openCommandPalette}
-              className="hidden items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39] xl:flex"
-              title="Search or run a command (⌘K)"
-            >
-              <HiOutlineSearch className="h-4 w-4" />
-              <span className="hidden sm:inline">Search</span>
-              <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
-                ⌘K
-              </kbd>
-            </button>
-            <button
-              onClick={() => setShortcutsOpen(true)}
-              className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39]"
-              title="View Keyboard Shortcuts (Press ?)"
-            >
-              <RiKeyboardLine className="h-4 w-4" />
-              <span className="hidden xl:inline">Shortcuts</span>
-              <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
-                ?
-              </kbd>
-            </button>
-            <UserMenu />
-          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
       <nav
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md md:hidden"
@@ -141,7 +161,15 @@ export function AppNav({ className }: AppNavProps) {
                   isActive && "bg-[#f8e4a1] shadow-sm"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <span className="relative">
+                  <Icon className="h-4 w-4" />
+                  {link.href === "/friends" && hasPendingFriendRequest && (
+                    <span
+                      aria-label="Pending friend request"
+                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fffdf5] bg-[#e7895b]"
+                    />
+                  )}
+                </span>
               </span>
               <span className="truncate">{link.label}</span>
             </Link>
