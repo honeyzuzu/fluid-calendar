@@ -134,8 +134,8 @@ export default function TasksPage() {
                   id="auto-schedule-description"
                   className="mt-1 max-w-xl text-xs text-muted-foreground"
                 >
-                  Auto-schedule fits opted-in tasks into free time during the
-                  next 7 days.
+                  Auto-schedule fits unfinished tasks into free time during the
+                  next 7 days. New tasks are included by default.
                   <Link
                     href="/settings#auto-schedule"
                     className="ml-1 font-medium text-primary hover:underline"

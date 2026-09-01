@@ -18,9 +18,9 @@ export function AutoScheduleTooltip({
         align === "right" ? "right-0" : "left-0"
       )}
     >
-      Sunnie schedules only unfinished tasks with Auto-Schedule turned on. It
-      avoids conflicts, respects your working hours, and uses duration,
-      priority, energy, and preferred time to choose a spot.
+      New tasks join Auto-schedule automatically. Turn it off inside a task to
+      opt that task out. Sunnie avoids conflicts, respects your working hours,
+      and uses duration, priority, energy, and preferred time to choose a spot.
     </div>
   );
 }

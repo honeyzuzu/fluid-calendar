@@ -107,7 +107,7 @@ export function TaskModal({
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceRule, setRecurrenceRule] = useState<string | undefined>();
   const [isAutoScheduled, setIsAutoScheduled] = useState(
-    task?.isAutoScheduled || false
+    task?.isAutoScheduled ?? true
   );
   const [scheduleLocked, setScheduleLocked] = useState(
     task?.scheduleLocked || false
@@ -391,8 +391,9 @@ export function TaskModal({
               <div>
                 <Label>Auto-Schedule</Label>
                 <p className="text-sm text-muted-foreground">
-                  Make this task eligible when you run Auto-schedule. Sunnie
-                  will look for free time in the next 7 days.
+                  On by default. Turn this off to keep the task out of
+                  Auto-schedule; otherwise Sunnie will look for free time in
+                  the next 7 days.
                 </p>
               </div>
               <Switch

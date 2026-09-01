@@ -248,7 +248,7 @@ model Task {
   preferredTime String? // enum: 'morning', 'afternoon', 'evening'
 
   // Auto-scheduling
-  isAutoScheduled Boolean   @default(false)
+  isAutoScheduled Boolean   @default(true)
   scheduleLocked  Boolean   @default(false)
   scheduledStart  DateTime?
   scheduledEnd    DateTime?

@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
             priority: task.priority,
             energyLevel: task.energyLevel,
             preferredTime: task.preferredTime,
-            isAutoScheduled: task.isAutoScheduled || false,
+            isAutoScheduled: task.isAutoScheduled ?? true,
             scheduleLocked: task.scheduleLocked || false,
             scheduledStart: task.scheduledStart,
             scheduledEnd: task.scheduledEnd,

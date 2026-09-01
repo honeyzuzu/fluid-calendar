@@ -145,6 +145,8 @@ export async function POST(request: NextRequest) {
         ...taskData,
         // Associate the task with the current user
         userId,
+        // Tasks participate in auto-scheduling unless explicitly opted out.
+        isAutoScheduled: taskData.isAutoScheduled ?? true,
         isRecurring: !!recurrenceRule,
         recurrenceRule: standardizedRecurrenceRule,
         ...(tagIds && {

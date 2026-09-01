@@ -22,7 +22,7 @@ export function useAutoSchedule() {
     if (eligibleTasks.length === 0) {
       toast.info("Nothing is ready to auto-schedule", {
         description:
-          "Open a task, turn on Auto-Schedule, and leave Lock Schedule off.",
+          "Create an unfinished task, or open one and make sure Auto-Schedule is on and Lock Schedule is off.",
       });
       return;
     }
