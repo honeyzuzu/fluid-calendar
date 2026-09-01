@@ -4,6 +4,7 @@ export type ThemeMode = "light" | "dark" | "system";
 export type CalendarView = "day" | "week" | "month" | "agenda";
 
 export interface UserSettings {
+  onboardingVersion?: number;
   theme: ThemeMode;
   defaultView: CalendarView;
   timeZone: string;

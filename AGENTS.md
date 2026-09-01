@@ -179,6 +179,13 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The detailed Tasks table is reserved for very wide (`2xl`) windows. Smaller desktop and mobile widths use task cards so users are not forced to discover a hidden horizontal scrollbar.
 - The upstream support banner on the calendar is intentionally compact.
 
+### First-time onboarding
+
+- `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `1` intentionally defaults every existing and future account to incomplete until that user finishes it once.
+- The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
+- Tour progress survives same-tab OAuth redirects through session storage, while completion is persisted per user in PostgreSQL by `/api/onboarding`.
+- Each step contains a short curated quote with its author. The tour has Back/Next controls but no permanent skip; an interrupted user resumes until the current version is completed.
+
 ### Tasks and projects
 
 - Tasks support status, title, descriptions, start/due dates, duration, priority, energy, preferred time, tags, projects, recurrence, and external sync metadata.

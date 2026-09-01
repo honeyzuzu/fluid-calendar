@@ -61,9 +61,14 @@ jobs:
               file.filename.startsWith("src/components/calendar/") ||
               file.filename.startsWith("src/app/(common)/calendar/")
             );
+            const onboardingUpdate = files.some((file) =>
+              file.filename.includes("onboarding")
+            );
             core.setOutput(
               "preview_url",
-              brainDumpUpdate
+              onboardingUpdate
+                ? "https://sunnie-planner-prod.up.railway.app/preview/onboarding"
+                : brainDumpUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/brain-dump"
                 : calendarUpdate
                   ? "https://sunnie-planner-prod.up.railway.app/preview/calendar-event"
