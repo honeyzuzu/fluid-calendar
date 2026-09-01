@@ -5,6 +5,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      title:
+        description: Feature name
+        required: true
+        default: Sunnie Planner update
+      details:
+        description: What changed
+        required: false
+        default: A new improvement is ready to try.
 
 permissions:
   contents: read
@@ -26,9 +35,16 @@ jobs:
             }
 
             const headCommit = context.payload.head_commit;
-            const message = headCommit?.message ?? "Discord updates are connected";
-            const [title, ...bodyLines] = message.split("\n");
-            const details = bodyLines.join("\n").trim();
+            const message = headCommit?.message ?? "";
+            const [commitTitle, ...bodyLines] = message.split("\n");
+            if (commitTitle.includes("[skip discord]")) {
+              core.info("Commit requested that the Discord announcement be skipped.");
+              return;
+            }
+
+            const inputs = context.payload.inputs ?? {};
+            const title = inputs.title || commitTitle || "Sunnie Planner update";
+            const details = inputs.details || bodyLines.join("\n").trim();
             const commitUrl = headCommit?.url
               ?? `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
 
@@ -49,7 +65,9 @@ jobs:
                     },
                     {
                       name: "Status",
-                      value: "Deploying now — it may take Railway a few minutes.",
+                      value: context.eventName === "workflow_dispatch"
+                        ? "Live now — ready to try!"
+                        : "Deploying now — it may take Railway a few minutes.",
                       inline: true,
                     },
                   ],
