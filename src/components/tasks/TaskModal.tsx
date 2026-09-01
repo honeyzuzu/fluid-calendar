@@ -391,7 +391,8 @@ export function TaskModal({
               <div>
                 <Label>Auto-Schedule</Label>
                 <p className="text-sm text-muted-foreground">
-                  Let the system schedule this task automatically
+                  Make this task eligible when you run Auto-schedule. Sunnie
+                  will look for free time in the next 7 days.
                 </p>
               </div>
               <Switch

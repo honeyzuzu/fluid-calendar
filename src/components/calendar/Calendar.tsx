@@ -142,6 +142,7 @@ export function Calendar({
             <button
               onClick={handleAutoSchedule}
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
+              title="Fit opted-in, unlocked tasks into free time during the next 7 days"
             >
               Auto Schedule
             </button>

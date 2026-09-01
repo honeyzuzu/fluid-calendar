@@ -40,7 +40,7 @@ interface TaskState {
   ) => Promise<void>;
 
   // Auto-scheduling actions
-  scheduleAllTasks: () => Promise<void>;
+  scheduleAllTasks: () => Promise<Task[]>;
   triggerScheduleAllTasks: () => Promise<void>;
 }
 
@@ -389,6 +389,7 @@ export const useTaskStore = create<TaskState>()(
           ) as Task[];
 
           set({ tasks: mergedTasks });
+          return updatedTasks;
         } catch (error) {
           set({ error: error as Error });
           throw error;

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 
+import Link from "next/link";
+
+import { Sparkles } from "lucide-react";
 import { BsKanban, BsListTask } from "react-icons/bs";
 import { toast } from "sonner";
 
@@ -110,14 +113,86 @@ export default function TasksPage() {
     }
   };
 
+  const handleAutoSchedule = async () => {
+    const eligibleTasks = tasks.filter(
+      (task) =>
+        task.isAutoScheduled &&
+        !task.scheduleLocked &&
+        task.status !== TaskStatus.COMPLETED &&
+        task.status !== TaskStatus.IN_PROGRESS
+    );
+
+    if (eligibleTasks.length === 0) {
+      toast.info("Nothing is ready to auto-schedule", {
+        description:
+          "Open a task, turn on Auto-Schedule, and leave Lock Schedule off.",
+      });
+      return;
+    }
+
+    try {
+      const updatedTasks = await scheduleAllTasks();
+      const eligibleIds = new Set(eligibleTasks.map((task) => task.id));
+      const scheduledCount = updatedTasks.filter(
+        (task) =>
+          eligibleIds.has(task.id) && task.scheduledStart && task.scheduledEnd
+      ).length;
+
+      if (scheduledCount === 0) {
+        toast.info("Sunnie couldn’t find an open time", {
+          description:
+            "It checked the next 7 days. Try widening your hours or calendars in Auto-Schedule Settings.",
+        });
+        return;
+      }
+
+      const unscheduledCount = eligibleTasks.length - scheduledCount;
+      const taskLabel = scheduledCount === 1 ? "task" : "tasks";
+      toast.success(
+        scheduledCount + " " + taskLabel + " placed on your calendar",
+        {
+          description:
+            unscheduledCount > 0
+              ? unscheduledCount +
+                " couldn’t fit into your available time in the next 7 days."
+              : "You can see the new time blocks on the Calendar page.",
+        }
+      );
+    } catch {
+      toast.error("Auto-scheduling failed", {
+        description: "Please try again or review your Auto-Schedule Settings.",
+      });
+    }
+  };
+
   return (
     <div className="flex h-full bg-[#fff9e8]">
       <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
         <div className="border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-6 py-4 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">Little things, lovingly planned</p><h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">Tasks</h1></div>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
+                  Little things, lovingly planned
+                </p>
+                <h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">
+                  Tasks
+                </h1>
+                <p
+                  id="auto-schedule-description"
+                  className="mt-1 max-w-xl text-xs text-muted-foreground"
+                >
+                  Auto-schedule fits opted-in tasks into free time during the
+                  next 7 days.
+                  <Link
+                    href="/settings#auto-schedule"
+                    className="ml-1 font-medium text-primary hover:underline"
+                  >
+                    Adjust its rules.
+                  </Link>
+                </p>
+              </div>
               <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
                 <button
                   onClick={() => setViewMode("list")}
@@ -146,14 +221,26 @@ export default function TasksPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  scheduleAllTasks();
-                }}
-              >
-                Auto Schedule
-              </Button>
+              <div className="group relative">
+                <Button
+                  variant="secondary"
+                  onClick={handleAutoSchedule}
+                  aria-describedby="auto-schedule-description auto-schedule-tooltip"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Auto-schedule tasks
+                </Button>
+                <div
+                  id="auto-schedule-tooltip"
+                  role="tooltip"
+                  className="pointer-events-none absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-[#dfe2c8] bg-[#fffdf5] p-3 text-xs leading-relaxed text-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  Sunnie schedules only unfinished tasks with Auto-Schedule
+                  turned on. It avoids conflicts, respects your working hours,
+                  and uses duration, priority, energy, and preferred time to
+                  choose a spot.
+                </div>
+              </div>
               <Button
                 data-create-task-button
                 onClick={() => {
