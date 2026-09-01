@@ -64,10 +64,16 @@ jobs:
             const onboardingUpdate = files.some((file) =>
               file.filename.includes("onboarding")
             );
+            const focusUpdate = files.some((file) =>
+              file.filename.startsWith("src/components/focus/") ||
+              file.filename.startsWith("src/app/(common)/focus/")
+            );
             core.setOutput(
               "preview_url",
               onboardingUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/onboarding"
+                : focusUpdate
+                  ? "https://sunnie-planner-prod.up.railway.app/preview/focus"
                 : brainDumpUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/brain-dump"
                 : calendarUpdate

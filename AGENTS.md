@@ -232,7 +232,11 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ### Focus and friend visibility
 
-- Focus mode and task time blocks are retained.
+- Focus mode begins with a selectable 5- or 10-minute setup checklist for a drink/snack, workspace, subtasks, and distractions. Users then choose a 15-, 25-, 45-, or 60-minute focus round and a timed 5-, 10-, or 15-minute break.
+- Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play a soft synthesized three-note chime when setup, focus, or break time ends. The chime can be disabled.
+- Users can choose among six built-in emoji focus pets. Completed focus rounds earn non-punitive “sun drops,” and the pet changes its encouragement across setup, focus, pause, and break phases.
+- A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.
+- The inherited `Task.scheduleScore` is labeled “Schedule fit” in Focus with a hover/focus explanation. It measures the auto-scheduler's slot match, not the user's concentration or productivity.
 - Accepted friends can expose busy-only or more detailed calendar/focus information according to each side’s visibility selection.
 - Friends appear in daily planning alongside the user’s events and focus blocks.
 - The Friends navigation tab shows a warm notification dot while an incoming friend request is pending, on desktop and mobile.

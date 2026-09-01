@@ -1,11 +1,15 @@
 "use client";
 
+import { HelpCircle } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 import { format } from "@/lib/date-utils";
 
 import { Task, TaskStatus } from "@/types/task";
+
+import { FocusSession } from "./FocusSession";
 
 interface FocusedTaskProps {
   task: Task | null;
@@ -84,6 +88,8 @@ export function FocusedTask({ task }: FocusedTaskProps) {
         </div>
       </div>
 
+      <FocusSession key={task.id} taskId={task.id} taskTitle={task.title} />
+
       <div className="mb-6 grid grid-cols-2 gap-4">
         {task.dueDate && (
           <div>
@@ -107,9 +113,29 @@ export function FocusedTask({ task }: FocusedTaskProps) {
             <p className="text-muted-foreground">{task.duration} minutes</p>
           </div>
         )}
-        {task.scheduleScore && (
-          <div>
-            <h3 className="mb-1 text-sm font-medium">Focus Score</h3>
+        {task.scheduleScore != null && (
+          <div className="col-span-2 sm:col-span-1">
+            <div className="mb-1 flex items-center gap-1.5">
+              <h3 className="text-sm font-medium">Schedule fit</h3>
+              <span className="group relative inline-flex">
+                <button
+                  type="button"
+                  aria-label="What is schedule fit?"
+                  className="grid h-5 w-5 place-items-center rounded-full text-[#7b7d62] hover:bg-[#eef3df] hover:text-[#53643e] focus:bg-[#eef3df] focus:text-[#53643e] focus:outline-none"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </button>
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute bottom-full left-0 z-30 mb-2 w-64 rounded-2xl border border-[#ded8bd] bg-[#fffdf7] p-3 text-xs font-normal leading-relaxed text-[#68634d] opacity-0 shadow-xl transition group-focus-within:opacity-100 group-hover:opacity-100"
+                >
+                  This is the auto-scheduler&apos;s fit score for this time
+                  slot. It considers working hours, energy, preferred time,
+                  urgency, priority, buffers, and nearby project work. It does
+                  not grade your concentration or productivity.
+                </span>
+              </span>
+            </div>
             <p className="text-muted-foreground">
               {task.scheduleScore.toFixed(2)}
             </p>
