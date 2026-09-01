@@ -1,9 +1,9 @@
 name: Docker Publish
 
 on:
-  push:
-    branches: ["main"]
-    tags: ["v*.*.*"]
+  # This upstream image publisher targets eibrahim/fluid-calendar and requires
+  # Docker Hub credentials that Sunnie Planner does not use. Keep it available
+  # for an intentional manual run without failing every Railway deployment.
   workflow_dispatch:
 
 env:
