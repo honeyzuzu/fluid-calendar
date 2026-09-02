@@ -34,6 +34,16 @@ describe("responsive application shell", () => {
     expect(calendar).toContain("Open calendar sidebar");
     expect(projects).toContain("Open projects sidebar");
     expect(focus).toContain("Open focus task queue");
+    expect(calendar).toContain("rounded-r-xl border border-l-0");
+    expect(projects).toContain("rounded-r-xl border border-l-0");
+    expect(focus).toContain("md:rounded-r-xl md:border-l-0");
+  });
+
+  it("reserves layout space and an opaque surface for an open project panel", () => {
+    const projects = read("src/components/projects/ProjectSidebar.tsx");
+    expect(projects).toContain('isSidebarOpen ? "w-64" : "w-6"');
+    expect(projects).toContain("bg-[#fffdf2]");
+    expect(projects).not.toContain('isSidebarOpen && "xl:w-64"');
   });
 
   it("wraps calendar controls before they can collide", () => {

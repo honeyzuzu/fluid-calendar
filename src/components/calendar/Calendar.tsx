@@ -211,7 +211,7 @@ export function Calendar({
           type="button"
           aria-label="Close calendar sidebar"
           onClick={() => setSidebarOpen(false)}
-          className="absolute -right-4 top-4 z-[60] grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md transition hover:bg-[#eef3df]"
+          className="absolute -right-7 top-4 z-[60] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-[3px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
           title="Close calendar sidebar"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -246,7 +246,7 @@ export function Calendar({
             {!isSidebarOpen && (
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-sm transition hover:bg-[#eef3df]"
+                className="-ml-2 grid h-11 w-7 shrink-0 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-[2px_2px_5px_rgba(70,75,50,0.1)] transition hover:bg-[#eef3df]"
                 title="Open calendar sidebar (b)"
                 aria-label="Open calendar sidebar"
               >

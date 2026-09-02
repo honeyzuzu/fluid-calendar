@@ -169,8 +169,8 @@ export function ProjectSidebar() {
     <>
       <div
         className={cn(
-          "relative hidden h-full w-10 flex-none transition-[width] duration-300 md:block",
-          isSidebarOpen && "xl:w-64"
+          "relative hidden h-full flex-none bg-[#fffdf2] transition-[width] duration-300 md:block",
+          isSidebarOpen ? "w-64" : "w-6"
         )}
       >
         {!isSidebarOpen && (
@@ -179,14 +179,14 @@ export function ProjectSidebar() {
             onClick={() => setIsSidebarOpen(true)}
             aria-label="Open projects sidebar"
             title="Open projects sidebar"
-            className="absolute left-1 top-4 z-40 grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-sm transition hover:bg-[#eef3df]"
+            className="absolute left-0 top-4 z-40 grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf2] text-[#5f6848] shadow-[2px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
         )}
         <aside
           className={cn(
-            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-[#dfe2c8] bg-[#fffdf5] shadow-xl transition-transform duration-300 xl:shadow-none",
+            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-[#d4d9ba] bg-[#fffdf2] shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -195,7 +195,7 @@ export function ProjectSidebar() {
             onClick={() => setIsSidebarOpen(false)}
             aria-label="Close projects sidebar"
             title="Close projects sidebar"
-            className="absolute -right-4 top-4 z-[60] grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md transition hover:bg-[#eef3df]"
+            className="absolute -right-7 top-4 z-[60] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d4d9ba] bg-[#fffdf2] text-[#5f6848] shadow-[3px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>

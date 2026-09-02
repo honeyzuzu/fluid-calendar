@@ -204,7 +204,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Filled task, event, and project surfaces choose warm white text by default and switch to Sunnie's soft near-black when WCAG contrast would otherwise be poor. The project picker is visible as a horizontal chip row on mobile Tasks screens.
 - Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
 - Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task.
-- The task board stacks its status columns on phones and uses three fluid columns from tablet widths upward; it does not rely on fixed 320px columns or a hidden horizontal scrollbar. The desktop Projects panel collapses to a slim arrow rail and becomes an overlay on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
+- The task board stacks its status columns on phones and uses three fluid columns from tablet widths upward; it does not rely on fixed 320px columns or a hidden horizontal scrollbar. The desktop Projects panel collapses to a slim arrow rail and reserves layout space whenever opened, including on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
+- Calendar, Projects, and Focus sidebar controls use attached rectangular edge tabs with one seamless flat side instead of detached circular buttons. Opening the desktop Projects panel always expands its parent layout width from a slim rail to 256px, including constrained desktop windows, so Tasks list/board content shifts rather than sitting underneath it; the panel itself uses an opaque warm-cream surface.
 
 ### Brain Dump and task tune-up
 

@@ -71,8 +71,7 @@ export function FocusMode() {
               isQueueOpen ? "Close focus task queue" : "Open focus task queue"
             }
             className={cn(
-              "absolute top-1.5 z-30 grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md transition hover:bg-[#eef3df] md:top-4",
-              isQueueOpen ? "right-2 md:-right-4" : "left-1.5"
+              "absolute right-2 top-1.5 z-30 grid h-9 w-10 place-items-center rounded-l-xl border border-r-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-[-2px_2px_5px_rgba(70,75,50,0.1)] transition hover:bg-[#eef3df] md:-right-7 md:top-4 md:h-11 md:w-7 md:rounded-l-none md:rounded-r-xl md:border-l-0 md:border-r md:shadow-[3px_2px_5px_rgba(70,75,50,0.12)]"
             )}
           >
             {isQueueOpen ? (
