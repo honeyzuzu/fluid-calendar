@@ -94,7 +94,13 @@ function formatTime(value: string) {
 
 async function expectJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const message = await response.text();
+    const text = await response.text();
+    let message = text;
+    try {
+      message = (JSON.parse(text) as { error?: string }).error || text;
+    } catch {
+      // Keep a plain-text API error as-is.
+    }
     throw new Error(message || `Request failed (${response.status})`);
   }
   return response.json() as Promise<T>;
@@ -388,14 +394,14 @@ export default function PlanPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#fff9e8] p-5 text-[#3f432e] lg:p-8">
-      <div className="mx-auto max-w-[1440px]">
+    <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
+      <div className="mx-auto w-full min-w-0 max-w-[1440px]">
         <div className="mb-7 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
-          <div>
+          <div className="min-w-0">
             <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#c65f40]">
               <Sparkles className="h-3.5 w-3.5" /> Daily planning
             </div>
-            <h1 className="text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
+            <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
               Make space for what matters.
             </h1>
             <p className="mt-2 text-sm text-black/48">
@@ -407,7 +413,7 @@ export default function PlanPage() {
               {` · ${plannedMinutes} minutes planned`}
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex min-w-0 flex-col gap-2 sm:items-end">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => moveDate(-1)}
@@ -471,9 +477,9 @@ export default function PlanPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            <section className="order-1 overflow-hidden rounded-3xl border border-[#dfe3c7] bg-gradient-to-br from-[#fffdf5] via-[#f8f3d8] to-[#edf3df] shadow-[0_12px_35px_rgba(80,86,55,0.08)]">
+            <section className="order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-gradient-to-br from-[#fffdf5] via-[#f8f3d8] to-[#edf3df] shadow-[0_12px_35px_rgba(80,86,55,0.08)]">
               <div className="flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="max-w-xl">
+                <div className="min-w-0 max-w-xl">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
                     <Leaf className="h-4 w-4" /> Your daily landing pad
                   </div>
@@ -485,7 +491,7 @@ export default function PlanPage() {
                     Sunnie find the breathing room.
                   </p>
                 </div>
-                <div className="min-w-48">
+                <div className="w-full min-w-0 lg:w-48 lg:min-w-48">
                   <div className="flex items-center justify-between text-xs font-semibold text-[#5f7048]">
                     <span>Today’s plan</span>
                     <span>{completedPlanningSteps}/3 ready</span>
@@ -539,7 +545,7 @@ export default function PlanPage() {
                           <StepIcon className="h-4 w-4" />
                         )}
                       </span>
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block text-sm font-semibold">
                           {step.label}
                         </span>
@@ -553,7 +559,7 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <section className="order-3 rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
+            <section className="order-3 min-w-0 max-w-full rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-4 shadow-sm sm:p-5">
               <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
                   <h2 className="font-semibold">Plan this week</h2>
@@ -669,10 +675,10 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <div className="order-2 grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
+            <div className="order-2 grid min-w-0 max-w-full gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
               <section
                 data-plan-section="today-list"
-                className="order-2 overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm xl:order-none"
+                className="order-2 min-w-0 max-w-full overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm xl:order-none"
               >
                 <div className="border-b border-black/[0.055] p-5">
                   <h2 className="font-semibold">Today&apos;s list</h2>
@@ -731,7 +737,7 @@ export default function PlanPage() {
                             <Clock3 className="h-3 w-3" />
                             {task.duration ?? 30}m
                             {task.project?.name && ` · ${task.project.name}`}
-                            <label className="ml-auto flex items-center gap-1.5 text-black/45">
+                            <label className="mt-1 flex w-full items-center justify-end gap-1.5 text-black/45 min-[380px]:ml-auto min-[380px]:mt-0 min-[380px]:w-auto">
                               Time
                               <input
                                 type="time"
@@ -808,7 +814,7 @@ export default function PlanPage() {
 
               <section
                 data-plan-section="today-timeline"
-                className="order-3 rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm xl:order-none"
+                className="order-3 min-w-0 max-w-full rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-4 shadow-sm sm:p-5 xl:order-none"
               >
                 <div className="mb-4 flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-black/45" />
@@ -878,7 +884,7 @@ export default function PlanPage() {
                 </div>
               </section>
 
-              <aside className="order-1 space-y-5 xl:order-none">
+              <aside className="order-1 min-w-0 max-w-full space-y-5 xl:order-none">
                 <motion.section
                   data-plan-section="intention-card"
                   animate={

@@ -3,6 +3,7 @@ import { AutoScheduleSettings, Task } from "@prisma/client";
 import { addDays, newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import type { SleepWindow } from "@/lib/sleep-hours";
 
 import { useSettingsStore } from "@/store/settings";
 
@@ -91,12 +92,20 @@ export class SchedulingService {
   }
 
   private userTimeZone?: string;
+  private sleepWindow?: SleepWindow;
 
   private async loadUserTimeZone(userId: string): Promise<void> {
     const userSettings = await prisma.userSettings.findUnique({
       where: { userId },
     });
     this.userTimeZone = userSettings?.timeZone;
+    this.sleepWindow = userSettings
+      ? {
+          start: userSettings.sleepHoursStart,
+          end: userSettings.sleepHoursEnd,
+          configured: userSettings.sleepHoursConfigured,
+        }
+      : undefined;
   }
 
   private getTimeSlotManager(): TimeSlotManagerImpl {
@@ -123,7 +132,8 @@ export class SchedulingService {
     const manager = new TimeSlotManagerImpl(
       settings,
       this.calendarService,
-      this.userTimeZone
+      this.userTimeZone,
+      this.sleepWindow
     );
 
     this.endMetric("getTimeSlotManager", startTime);

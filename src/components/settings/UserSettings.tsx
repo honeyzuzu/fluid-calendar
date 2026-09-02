@@ -208,7 +208,7 @@ export function UserSettings() {
 
       <SettingRow
         label="Sleep Hours"
-        description="Sunnie keeps your usual sleep window in mind while helping you plan."
+        description="Sunnie will not schedule tasks inside your usual sleep window."
       >
         <div className="grid w-full grid-cols-2 gap-3">
           <div className="space-y-1.5">

@@ -7,7 +7,10 @@ import {
 
 describe("daily intention quotes", () => {
   it("keeps a named author with every quote", () => {
-    expect(INTENTION_QUOTES.length).toBeGreaterThan(5);
+    expect(INTENTION_QUOTES.length).toBeGreaterThanOrEqual(30);
+    expect(new Set(INTENTION_QUOTES.map(formatIntentionQuote)).size).toBe(
+      INTENTION_QUOTES.length
+    );
     for (const quote of INTENTION_QUOTES) {
       expect(quote.text.trim()).not.toBe("");
       expect(quote.author.trim()).not.toBe("");

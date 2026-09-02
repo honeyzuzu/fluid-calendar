@@ -47,6 +47,7 @@ describe("responsive application shell", () => {
     const projects = read("src/components/projects/ProjectSidebar.tsx");
     expect(projects).toContain('isSidebarOpen ? "w-64" : "w-6"');
     expect(projects).toContain("bg-[#fffdf2]");
+    expect(projects).toContain("New project");
     expect(projects).not.toContain('isSidebarOpen && "xl:w-64"');
   });
 
@@ -56,5 +57,23 @@ describe("responsive application shell", () => {
     expect(calendar).toContain("2xl:w-auto");
     expect(calendar).toContain("min-w-0 flex-1 truncate");
     expect(calendar).toContain("md:hidden");
+  });
+
+  it("contains primary phone surfaces at narrow widths", () => {
+    const surfaces = [
+      "src/app/(common)/plan/page.tsx",
+      "src/app/(common)/tasks/page.tsx",
+      "src/app/(common)/brain-dump/page.tsx",
+      "src/app/(common)/friends/page.tsx",
+      "src/app/(common)/settings/page.tsx",
+      "src/components/focus/FocusMode.tsx",
+    ].map(read);
+
+    for (const surface of surfaces) {
+      expect(surface).toContain("min-w-0");
+      expect(surface).toContain("overflow-x-clip");
+    }
+    expect(surfaces[0]).toContain("min-[380px]:px-4");
+    expect(surfaces[0]).toContain("max-w-full");
   });
 });

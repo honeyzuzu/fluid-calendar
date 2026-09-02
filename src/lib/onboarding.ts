@@ -50,7 +50,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     id: "sleep-hours",
     title: "Protect your time to rest",
     description:
-      "Add your usual bedtime and wake-up time so Sunnie knows when your day should truly be yours.",
+      "Add your usual bedtime and wake-up time. Sunnie will never auto-schedule tasks inside this window.",
     quote: {
       text: "There is a time for many words, and there is also a time for sleep.",
       author: "Homer",
@@ -148,7 +148,7 @@ export const SLEEP_ONBOARDING_STEPS: OnboardingStep[] = [
     id: "sleep-hours",
     title: "A new way to protect your rest",
     description:
-      "Tell Sunnie your usual sleep hours. This is a quick, one-time setup and you can change it in Settings anytime.",
+      "Tell Sunnie your usual sleep hours so tasks stay out of that window. You can change it in Settings anytime.",
     quote: {
       text: "There is a time for many words, and there is also a time for sleep.",
       author: "Homer",

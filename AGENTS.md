@@ -187,7 +187,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### First-time onboarding
 
 - `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `2` adds sleep-hours setup. Accounts that completed version 1 but have not configured sleep hours receive only the short sleep-hours update rather than repeating the full tour.
-- `UserSettings.sleepHoursStart`, `sleepHoursEnd`, and `sleepHoursConfigured` persist the user's normal rest window in PostgreSQL. Bedtime and wake-up are editable under User Settings as well as onboarding.
+- `UserSettings.sleepHoursStart`, `sleepHoursEnd`, and `sleepHoursConfigured` persist the user's normal rest window in PostgreSQL. Bedtime and wake-up are editable under User Settings as well as onboarding. Auto-scheduling filters out every slot that overlaps the configured window, including overnight windows, and authenticated manual task updates reject scheduled times that overlap it.
 - The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, asks for sleep hours, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
 - New-user onboarding creates a small user-named practice task on the Tasks step, selects it in Focus, and immediately opens Focus next so the combined setup/focus/break Pomodoro controls are visible during the tour.
 - Tour progress survives same-tab OAuth redirects through session storage, while completion is persisted per user in PostgreSQL by `/api/onboarding`.
@@ -222,10 +222,11 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - `/plan` stores a daily intention and completion state in `DailyPlan`.
 - Today’s intention appears in a compact shared reminder beneath the main navigation on every authenticated app page; the empty state links back to Plan with “Set your daily intention!”
 - Saving an intention turns the Plan tile into a completed-style card and plays a small celebratory animation. Users can reopen it to make changes.
-- “Inspire me” selects a non-repeating quote from a curated built-in quote/author list and places it in the intention editor; it does not require AI or an external API.
+- “Inspire me” selects from 36 curated built-in quotes with named authors and places one in the intention editor; it does not require AI or an external API. The browser remembers the 10 most recently served quotes and avoids them until fresher choices are used.
 - `Task.plannedWeekStart` stores the Monday for the task’s selected weekly pool.
 - The flow is Backlog -> This week -> selected day.
 - The Plan page begins with an interactive three-step daily landing pad: set an intention, choose today’s tasks, and give those tasks time. On mobile, the intention card appears before the task list and timeline; weekly planning remains available below the daily workspace.
+- Primary Plan tiles and the Tasks, Brain Dump, Friends, Focus, and Settings roots explicitly contain horizontal overflow and allow grid/flex children to shrink. Plan uses narrower gutters below 380px, removes phone-width minimums from its progress tile, and stacks dense manual-time controls at the narrowest width.
 - Users can add and remove tasks from a week or day.
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
 - `Schedule week` schedules the weekly pool inside the selected Monday-Sunday window.

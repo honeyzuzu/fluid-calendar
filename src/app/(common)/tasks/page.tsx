@@ -126,7 +126,7 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex h-full bg-[#fff9e8]">
+    <div className="flex h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8]">
       <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
         <div className="relative z-30 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-4">

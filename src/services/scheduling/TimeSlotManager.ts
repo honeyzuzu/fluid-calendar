@@ -7,15 +7,16 @@ import {
   addMinutes,
   areIntervalsOverlapping,
   differenceInHours,
+  fromZonedTime,
   getDay,
   newDate,
   roundDateUp,
   setHours,
   setMinutes,
-  fromZonedTime,
   toZonedTime,
 } from "@/lib/date-utils";
 import { prisma } from "@/lib/prisma";
+import { type SleepWindow, overlapsSleepHours } from "@/lib/sleep-hours";
 
 import { useSettingsStore } from "@/store/settings";
 
@@ -55,7 +56,8 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
   constructor(
     private settings: AutoScheduleSettings,
     private calendarService: CalendarService,
-    timeZone?: string
+    timeZone?: string,
+    private sleepWindow?: SleepWindow
   ) {
     this.slotScorer = new SlotScorer(settings);
     // On the server the settings store holds no user state, so callers
@@ -301,7 +303,10 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
         startHour >= this.settings.workHourStart &&
         endHour <= this.settings.workHourEnd &&
         startHour < this.settings.workHourEnd; // Ensure start is before work hours end
-      const result = isWorkDay && isWithinWorkHours;
+      const result =
+        isWorkDay &&
+        isWithinWorkHours &&
+        !overlapsSleepHours(localStart, localEnd, this.sleepWindow);
       if (result) {
         slot.isWithinWorkHours = true;
       }
@@ -319,6 +324,10 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     const slotDay = getDay(localStart);
 
     if (!workDays.includes(slotDay)) {
+      return false;
+    }
+
+    if (overlapsSleepHours(localStart, localEnd, this.sleepWindow)) {
       return false;
     }
 

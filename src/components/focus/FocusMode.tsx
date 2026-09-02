@@ -44,7 +44,7 @@ export function FocusMode() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#fff9e8]">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-x-clip bg-[#fff9e8]">
       {isProcessing && actionType && (
         <ActionOverlay
           type={actionType}
@@ -93,7 +93,7 @@ export function FocusMode() {
         </aside>
 
         {/* Main content area */}
-        <main className="order-1 min-h-[55vh] flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(248,201,93,0.12),_transparent_22rem)] p-4 sm:p-8 md:order-2 md:min-h-0">
+        <main className="order-1 min-h-[55vh] min-w-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(248,201,93,0.12),_transparent_22rem)] p-3 min-[380px]:p-4 sm:p-8 md:order-2 md:min-h-0">
           <FocusedTask task={currentTask} />
         </main>
       </div>

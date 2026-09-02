@@ -231,7 +231,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container px-4 py-5 sm:py-8">
+    <div className="container w-full min-w-0 overflow-x-clip px-3 py-5 min-[380px]:px-4 sm:py-8">
       <div className="mb-7 flex items-center gap-4">
         <SunnieSun className="h-12 w-12" />
         <div>
@@ -244,7 +244,7 @@ export default function SettingsPage() {
           </p>
         </div>
       </div>
-      <div className="flex flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
+      <div className="flex min-w-0 flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">
           <Card className="overflow-x-auto">
             <nav className="flex gap-1 p-1 lg:block lg:space-y-1">
@@ -270,7 +270,7 @@ export default function SettingsPage() {
             </nav>
           </Card>
         </aside>
-        <div className="mt-6 flex-1 lg:mt-0">
+        <div className="mt-6 min-w-0 flex-1 lg:mt-0">
           <div className="space-y-6">
             <div className={cn("space-y-8", !isHydrated && "opacity-0")}>
               {renderContent()}

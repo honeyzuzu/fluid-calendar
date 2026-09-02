@@ -353,7 +353,7 @@ export function MobileProjectPicker() {
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center gap-1 rounded-lg bg-[#64734a] px-2.5 py-1.5 text-[11px] font-semibold text-white"
           >
-            <HiPlus className="h-3.5 w-3.5" /> New
+            <HiPlus className="h-3.5 w-3.5" /> New project
           </button>
         )}
       </div>

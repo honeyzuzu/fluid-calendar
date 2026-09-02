@@ -4,9 +4,10 @@ import { Task } from "@prisma/client";
 import { RRule } from "rrule";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
-import { newDate } from "@/lib/date-utils";
+import { newDate, toZonedTime } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { overlapsSleepHours } from "@/lib/sleep-hours";
 import {
   deleteTaskBlockEvent,
   schedulePushTaskBlock,
@@ -98,6 +99,47 @@ export async function PUT(
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tagIds, project, projectId, userId: _, ...updates } = json;
+
+    const scheduledStart =
+      updates.scheduledStart === undefined
+        ? task.scheduledStart
+        : updates.scheduledStart
+          ? newDate(updates.scheduledStart)
+          : null;
+    const scheduledEnd =
+      updates.scheduledEnd === undefined
+        ? task.scheduledEnd
+        : updates.scheduledEnd
+          ? newDate(updates.scheduledEnd)
+          : null;
+    if (scheduledStart && scheduledEnd) {
+      const userSettings = await prisma.userSettings.findUnique({
+        where: { userId },
+        select: {
+          timeZone: true,
+          sleepHoursStart: true,
+          sleepHoursEnd: true,
+          sleepHoursConfigured: true,
+        },
+      });
+      if (
+        userSettings &&
+        overlapsSleepHours(
+          toZonedTime(scheduledStart, userSettings.timeZone),
+          toZonedTime(scheduledEnd, userSettings.timeZone),
+          {
+            start: userSettings.sleepHoursStart,
+            end: userSettings.sleepHoursEnd,
+            configured: userSettings.sleepHoursConfigured,
+          }
+        )
+      ) {
+        return NextResponse.json(
+          { error: "Tasks cannot be scheduled during your sleep hours" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Set completedAt when task is marked as completed
     if (

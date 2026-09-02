@@ -184,8 +184,8 @@ export default function BrainDumpPage() {
   };
 
   return (
-    <main className="min-h-full bg-[#fff9e8] p-4 pb-24 text-[#3f432e] sm:p-6 md:pb-6 lg:p-8">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] p-3 pb-24 text-[#3f432e] min-[380px]:p-4 sm:p-6 md:pb-6 lg:p-8">
+      <div className="mx-auto w-full min-w-0 max-w-5xl">
         <header className="mb-6">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#d0902f]">
             <Brain className="h-4 w-4" /> Clear your head
