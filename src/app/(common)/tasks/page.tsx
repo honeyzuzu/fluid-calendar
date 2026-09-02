@@ -8,7 +8,10 @@ import { Sparkles } from "lucide-react";
 import { BsKanban, BsListTask } from "react-icons/bs";
 import { toast } from "sonner";
 
-import { ProjectSidebar } from "@/components/projects/ProjectSidebar";
+import {
+  MobileProjectPicker,
+  ProjectSidebar,
+} from "@/components/projects/ProjectSidebar";
 import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
 import { BoardView } from "@/components/tasks/BoardView/BoardView";
 import { TaskList } from "@/components/tasks/TaskList";
@@ -214,6 +217,8 @@ export default function TasksPage() {
               </Button>
             </div>
           </div>
+
+          <MobileProjectPicker />
 
           {error && (
             <Alert variant="destructive" className="mt-4">

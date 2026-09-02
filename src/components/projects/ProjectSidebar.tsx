@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+import { getReadableTextColor } from "@/lib/color-contrast";
 import { isSaasEnabled } from "@/lib/config";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/project-colors";
 import { cn } from "@/lib/utils";
@@ -276,6 +277,91 @@ export function ProjectSidebar() {
   );
 }
 
+export function MobileProjectPicker() {
+  const { projects, activeProject, setActiveProject } = useProjectStore();
+  const { tasks } = useTaskStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const activeProjects = projects.filter(
+    (project) => project.status === ProjectStatus.ACTIVE
+  );
+  const unassignedTasksCount = tasks.filter(
+    (task) => !task.projectId && task.status !== TaskStatus.COMPLETED
+  ).length;
+
+  return (
+    <div className="mt-3 border-t border-black/[0.055] pt-3 md:hidden">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/40">
+          Projects
+        </span>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center gap-1 rounded-lg bg-[#64734a] px-2.5 py-1.5 text-[11px] font-semibold text-white"
+        >
+          <HiPlus className="h-3.5 w-3.5" /> New
+        </button>
+      </div>
+      <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveProject(null)}
+          className={cn(
+            "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
+            !activeProject
+              ? "border-[#64734a] bg-[#64734a] text-white"
+              : "border-black/10 bg-white/70 text-[#414530]"
+          )}
+        >
+          All tasks
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveProject(NO_PROJECT as Project)}
+          className={cn(
+            "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
+            activeProject?.id === NO_PROJECT.id
+              ? "border-[#64734a] bg-[#eef3df] text-[#414530] ring-1 ring-[#64734a]"
+              : "border-black/10 bg-white/70 text-[#414530]"
+          )}
+        >
+          No project · {unassignedTasksCount}
+        </button>
+        {activeProjects.map((project) => {
+          const tileColor = project.color || DEFAULT_PROJECT_COLOR;
+          const textColor = getReadableTextColor(tileColor);
+          const count = tasks.filter(
+            (task) =>
+              task.projectId === project.id &&
+              task.status !== TaskStatus.COMPLETED
+          ).length;
+
+          return (
+            <button
+              key={project.id}
+              type="button"
+              onClick={() => setActiveProject(project)}
+              className={cn(
+                "shrink-0 snap-start rounded-xl border border-black/10 px-3 py-2 text-xs font-semibold shadow-sm",
+                activeProject?.id === project.id &&
+                  "ring-2 ring-[#596741] ring-offset-2"
+              )}
+              style={{ backgroundColor: tileColor, color: textColor }}
+            >
+              {project.name} · {count}
+            </button>
+          );
+        })}
+      </div>
+
+      <ProjectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </div>
+  );
+}
+
 interface ProjectItemProps {
   project: Project;
   isActive: boolean;
@@ -305,30 +391,32 @@ function ProjectItem({
 
   // Check if project has any task mappings
   const hasMappings = mappings.length > 0;
+  const tileColor = project.color || DEFAULT_PROJECT_COLOR;
+  const textColor = getReadableTextColor(tileColor);
 
   return (
     <div
       {...droppableProps}
       className={cn(
-        "group flex min-h-11 w-full cursor-pointer items-center space-x-2 rounded-xl border border-black/10 px-3 py-2.5 text-[#414530] shadow-[0_1px_2px_rgba(65,69,48,0.06)] transition hover:-translate-y-0.5 hover:brightness-[1.02] hover:shadow-sm motion-reduce:transform-none",
+        "group flex min-h-11 w-full cursor-pointer items-center space-x-2 rounded-xl border border-black/10 px-3 py-2.5 shadow-[0_1px_2px_rgba(65,69,48,0.06)] transition hover:-translate-y-0.5 hover:brightness-[1.02] hover:shadow-sm motion-reduce:transform-none",
         isActive && "ring-2 ring-[#596741] ring-offset-2 ring-offset-[#fffdf5]",
         isOver &&
           "z-10 scale-[1.03] ring-2 ring-[#d0912e] ring-offset-2 ring-offset-[#fffdf5]"
       )}
-      style={{ backgroundColor: project.color || DEFAULT_PROJECT_COLOR }}
+      style={{ backgroundColor: tileColor, color: textColor }}
       onClick={() => setActiveProject(project)}
     >
-      <HiFolderOpen className="h-4 w-4 shrink-0 text-black/45" />
+      <HiFolderOpen className="h-4 w-4 shrink-0 opacity-70" />
       <span className="project-name flex-1 truncate font-medium">
         {project.name}
       </span>
-      <span className="text-xs text-black/45">{taskCount}</span>
+      <span className="text-xs opacity-70">{taskCount}</span>
 
       {hasMappings && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 p-0.5 text-black/55 opacity-0 transition-opacity hover:bg-white/45 group-hover:opacity-100"
+          className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-white/25 group-hover:opacity-100"
           disabled={isSyncing}
           onClick={(e) => {
             e.stopPropagation();
@@ -344,7 +432,7 @@ function ProjectItem({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 p-0.5 text-black/55 opacity-0 transition-opacity hover:bg-white/45 group-hover:opacity-100"
+        className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-white/25 group-hover:opacity-100"
         onClick={(e) => {
           e.stopPropagation();
           onEdit(project);

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Textarea } from "@/components/ui/textarea";
 
+import { getReadableTextColor } from "@/lib/color-contrast";
 import {
   DEFAULT_PROJECT_COLOR,
   SUNNIE_PROJECT_COLORS,
@@ -152,8 +153,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                   className="h-10 w-20 cursor-pointer p-1"
                 />
                 <div
-                  className="flex h-10 flex-1 items-center rounded-xl border px-3 text-xs font-medium text-[#414530]"
-                  style={{ backgroundColor: color }}
+                  className="flex h-10 flex-1 items-center rounded-xl border px-3 text-xs font-medium"
+                  style={{
+                    backgroundColor: color,
+                    color: getReadableTextColor(color),
+                  }}
                 >
                   Project tile preview
                 </div>

@@ -68,6 +68,10 @@ jobs:
               file.filename.startsWith("src/components/focus/") ||
               file.filename.startsWith("src/app/(common)/focus/")
             );
+            const planUpdate = files.some((file) =>
+              file.filename.startsWith("src/app/(common)/plan/") ||
+              file.filename.startsWith("src/components/planning/")
+            );
             const tasksUpdate = files.some((file) =>
               file.filename.startsWith("src/components/tasks/") ||
               file.filename.startsWith("src/app/(common)/tasks/") ||
@@ -80,6 +84,8 @@ jobs:
               "preview_url",
               onboardingUpdate
                 ? "https://sunnie-planner-prod.up.railway.app/preview/onboarding"
+                : planUpdate
+                  ? "https://sunnie-planner-prod.up.railway.app/preview/plan"
                 : focusUpdate
                   ? "https://sunnie-planner-prod.up.railway.app/preview/focus"
                 : tasksUpdate

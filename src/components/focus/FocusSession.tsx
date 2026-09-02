@@ -25,12 +25,15 @@ import {
   Sparkles,
   Square,
   Sun,
+  Volume2,
 } from "lucide-react";
 
 import {
   FOCUS_PREFERENCES_KEY,
   FOCUS_REWARD_EVENT,
   FocusRewardDetail,
+  awardSunDrops,
+  loadSunDrops,
 } from "@/lib/focus-rewards";
 import {
   BREAK_DURATIONS,
@@ -53,8 +56,52 @@ type FocusPreferences = {
   customPetImage: string | null;
   customPetName: string;
   soundEnabled: boolean;
+  chimeId: ChimeId;
   sunDrops: number;
 };
+
+type ChimeId = "sunrise" | "garden" | "cozy";
+
+const CHIME_OPTIONS: Array<{
+  id: ChimeId;
+  name: string;
+  description: string;
+  wave: OscillatorType;
+  notes: Array<{ frequency: number; offset: number; duration: number }>;
+}> = [
+  {
+    id: "sunrise",
+    name: "Soft sunrise",
+    description: "A warm three-note lift",
+    wave: "sine",
+    notes: [
+      { frequency: 523.25, offset: 0, duration: 0.72 },
+      { frequency: 659.25, offset: 0.17, duration: 0.72 },
+      { frequency: 783.99, offset: 0.34, duration: 0.82 },
+    ],
+  },
+  {
+    id: "garden",
+    name: "Garden bells",
+    description: "Two light, airy bells",
+    wave: "sine",
+    notes: [
+      { frequency: 880, offset: 0, duration: 0.9 },
+      { frequency: 1174.66, offset: 0.22, duration: 1.05 },
+    ],
+  },
+  {
+    id: "cozy",
+    name: "Cozy wooden",
+    description: "A lower, mellow finish",
+    wave: "triangle",
+    notes: [
+      { frequency: 392, offset: 0, duration: 0.58 },
+      { frequency: 493.88, offset: 0.2, duration: 0.62 },
+      { frequency: 587.33, offset: 0.4, duration: 0.78 },
+    ],
+  },
+];
 
 type PersistedFocusState = {
   taskId: string;
@@ -108,6 +155,7 @@ export function FocusSession({
   const [customPetImage, setCustomPetImage] = useState<string | null>(null);
   const [customPetName, setCustomPetName] = useState("My focus buddy");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [chimeId, setChimeId] = useState<ChimeId>("sunrise");
   const [sunDrops, setSunDrops] = useState(0);
   const [imageError, setImageError] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -132,7 +180,15 @@ export function FocusSession({
       setCustomPetImage(preferences.customPetImage || null);
       setCustomPetName(preferences.customPetName || "My focus buddy");
       setSoundEnabled(preferences.soundEnabled ?? true);
+      setChimeId(
+        CHIME_OPTIONS.some((option) => option.id === preferences.chimeId)
+          ? preferences.chimeId!
+          : "sunrise"
+      );
       setSunDrops(savedSunDrops);
+      const accountSunDrops = loadSunDrops(savedSunDrops).then((total) => {
+        if (total !== null) setSunDrops(total);
+      });
 
       const storedSession = window.localStorage.getItem(SESSION_KEY);
       if (storedSession) {
@@ -160,7 +216,7 @@ export function FocusSession({
                 setEndsAt(Date.now() + focusSeconds * 1000);
                 setIsRunning(true);
               } else if (saved.phase === "focus") {
-                setSunDrops(savedSunDrops + 1);
+                void accountSunDrops.then(() => awardSunDrops(1));
                 setPhase(nextPhaseAfterTimer(saved.phase));
               } else {
                 setPhase(nextPhaseAfterTimer(saved.phase));
@@ -189,7 +245,12 @@ export function FocusSession({
     };
 
     window.addEventListener(FOCUS_REWARD_EVENT, handleReward);
-    return () => window.removeEventListener(FOCUS_REWARD_EVENT, handleReward);
+    const refreshRewards = () => void loadSunDrops();
+    window.addEventListener("focus", refreshRewards);
+    return () => {
+      window.removeEventListener(FOCUS_REWARD_EVENT, handleReward);
+      window.removeEventListener("focus", refreshRewards);
+    };
   }, []);
 
   useEffect(() => {
@@ -199,6 +260,7 @@ export function FocusSession({
       customPetImage,
       customPetName,
       soundEnabled,
+      chimeId,
       sunDrops,
     };
     try {
@@ -209,7 +271,15 @@ export function FocusSession({
     } catch {
       // Focus mode remains usable if local storage is full or unavailable.
     }
-  }, [customPetImage, customPetName, hydrated, petId, soundEnabled, sunDrops]);
+  }, [
+    chimeId,
+    customPetImage,
+    customPetName,
+    hydrated,
+    petId,
+    soundEnabled,
+    sunDrops,
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -244,40 +314,52 @@ export function FocusSession({
     taskId,
   ]);
 
-  const prepareAudio = useCallback(() => {
-    if (!soundEnabled) return;
-    if (!audioContextRef.current) {
-      audioContextRef.current = new AudioContext();
-    }
-    if (audioContextRef.current.state === "suspended") {
-      void audioContextRef.current.resume();
-    }
-  }, [soundEnabled]);
+  const prepareAudio = useCallback(
+    (force = false) => {
+      if (!soundEnabled && !force) return null;
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+      return audioContextRef.current;
+    },
+    [soundEnabled]
+  );
 
-  const playGentleChime = useCallback(() => {
-    if (!soundEnabled) return;
-    prepareAudio();
-    const context = audioContextRef.current;
-    if (!context) return;
+  const playGentleChime = useCallback(
+    async (previewId?: ChimeId) => {
+      const isPreview = Boolean(previewId);
+      if (!soundEnabled && !isPreview) return;
+      const context = prepareAudio(isPreview);
+      if (!context) return;
 
-    const start = context.currentTime + 0.03;
-    [523.25, 659.25, 783.99].forEach((frequency, index) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.0001, start + index * 0.16);
-      gain.gain.exponentialRampToValueAtTime(0.12, start + index * 0.16 + 0.04);
-      gain.gain.exponentialRampToValueAtTime(
-        0.0001,
-        start + index * 0.16 + 0.65
-      );
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start(start + index * 0.16);
-      oscillator.stop(start + index * 0.16 + 0.7);
-    });
-  }, [prepareAudio, soundEnabled]);
+      if (context.state === "suspended") {
+        await context.resume();
+      }
+
+      const selectedChime =
+        CHIME_OPTIONS.find((option) => option.id === (previewId || chimeId)) ||
+        CHIME_OPTIONS[0];
+      const start = context.currentTime + 0.03;
+
+      selectedChime.notes.forEach(({ frequency, offset, duration }) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = selectedChime.wave;
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start + offset);
+        gain.gain.exponentialRampToValueAtTime(0.16, start + offset + 0.035);
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          start + offset + duration
+        );
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(start + offset);
+        oscillator.stop(start + offset + duration + 0.05);
+      });
+    },
+    [chimeId, prepareAudio, soundEnabled]
+  );
 
   useEffect(() => {
     if (!isRunning || !endsAt) return;
@@ -293,7 +375,7 @@ export function FocusSession({
       finishingRef.current = true;
       setIsRunning(false);
       setEndsAt(null);
-      playGentleChime();
+      void playGentleChime();
       if (phase === "setup") {
         const focusSeconds = focusMinutes * 60;
         setPhase("focus");
@@ -301,7 +383,7 @@ export function FocusSession({
         setEndsAt(Date.now() + focusSeconds * 1000);
         setIsRunning(true);
       } else {
-        if (phase === "focus") setSunDrops((current) => current + 1);
+        if (phase === "focus") void awardSunDrops(1);
         setPhase(nextPhaseAfterTimer(phase));
       }
       window.setTimeout(() => {
@@ -324,7 +406,8 @@ export function FocusSession({
   }, [isRunning, phase, remainingSeconds]);
 
   const startTimer = (timerPhase: "setup" | "focus" | "break") => {
-    prepareAudio();
+    const context = prepareAudio();
+    if (context?.state === "suspended") void context.resume();
     const minutes =
       timerPhase === "setup"
         ? setupMinutes
@@ -347,7 +430,8 @@ export function FocusSession({
   };
 
   const resumeTimer = () => {
-    prepareAudio();
+    const context = prepareAudio();
+    if (context?.state === "suspended") void context.resume();
     setEndsAt(Date.now() + remainingSeconds * 1000);
     setIsRunning(true);
   };
@@ -463,9 +547,7 @@ export function FocusSession({
           type="button"
           onClick={() => setSoundEnabled((current) => !current)}
           className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-white/65 px-3 py-2 text-xs font-semibold text-[#68684f] hover:bg-white"
-          title={
-            soundEnabled ? "Completion chime is on" : "Completion chime is off"
-          }
+          title={soundEnabled ? "Timer chimes are on" : "Timer chimes are off"}
         >
           {soundEnabled ? (
             <Bell className="h-3.5 w-3.5" />
@@ -779,6 +861,58 @@ export function FocusSession({
           {imageError && (
             <p className="mt-2 text-xs text-red-700">{imageError}</p>
           )}
+        </details>
+
+        <details className="group mt-4 border-t border-[#e7e0c5] pt-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl text-xs font-bold text-[#716b50]">
+            Choose your timer chime
+            <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
+          </summary>
+          <p className="mt-2 text-xs leading-relaxed text-[#8a846b]">
+            Sunnie plays your chime when setup, focus, and break timers finish.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {CHIME_OPTIONS.map((option) => {
+              const selected = chimeId === option.id;
+              return (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center gap-2 rounded-2xl border p-2 transition",
+                    selected
+                      ? "border-[#9fb878] bg-[#eff4e2] shadow-sm"
+                      : "border-[#e3ddc4] bg-white/60"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChimeId(option.id);
+                      setSoundEnabled(true);
+                    }}
+                    className="min-w-0 flex-1 rounded-xl px-1 py-1.5 text-left"
+                    aria-pressed={selected}
+                  >
+                    <span className="block text-xs font-bold text-[#585b45]">
+                      {option.name}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] text-[#858069]">
+                      {option.description}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void playGentleChime(option.id)}
+                    aria-label={`Preview ${option.name}`}
+                    title={`Hear ${option.name}`}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-[#607249] shadow-sm transition hover:scale-105 motion-reduce:transform-none"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </details>
       </div>
     </section>

@@ -143,7 +143,7 @@ export const useTaskStore = create<TaskState>()(
               task.id === id ? updatedTask : task
             ),
           }));
-          if (earnsSunDrop) awardSunDrops(1);
+          if (earnsSunDrop) void awardSunDrops(1);
           await get().triggerScheduleAllTasks();
           return updatedTask;
         } catch (error) {

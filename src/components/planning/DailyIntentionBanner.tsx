@@ -5,12 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-import { ArrowRight, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, Leaf } from "lucide-react";
 
 import {
   DAILY_INTENTION_UPDATED_EVENT,
   localDateKey,
 } from "@/lib/daily-intention";
+import { cn } from "@/lib/utils";
 
 type DailyPlanResponse = { intention: string | null } | null;
 type IntentionUpdate = { date: string; intention: string | null };
@@ -63,11 +64,7 @@ export function DailyIntentionBanner() {
         className="mx-auto flex max-w-[1480px] items-center gap-2.5 rounded-xl px-1 py-0.5 transition hover:text-[#4d5c38]"
       >
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#f4c85b] text-[#624b18] shadow-[0_2px_0_#d9a53c]">
-          {intention ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Sparkles className="h-4 w-4" />
-          )}
+          <Leaf className={cn("h-4 w-4", !intention && "opacity-65")} />
         </span>
         <div className="min-w-0 flex-1 text-xs sm:flex sm:items-baseline sm:gap-2 sm:text-sm">
           <span className="font-semibold">

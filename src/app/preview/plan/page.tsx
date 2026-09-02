@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  Leaf,
+  ListChecks,
   Plus,
   Sparkles,
   Sun,
@@ -110,7 +112,7 @@ export default function PlanningPreviewPage() {
       <aside className="border-b border-[#e4dfbd] bg-[#fff4c9] px-5 py-2 text-[#5c5537] lg:px-8">
         <div className="mx-auto flex max-w-[1480px] items-center gap-2.5 text-sm">
           <span className="grid h-7 w-7 place-items-center rounded-full bg-[#f4c85b] text-[#624b18] shadow-[0_2px_0_#d9a53c]">
-            <Sun className="h-4 w-4" />
+            <Leaf className="h-4 w-4" />
           </span>
           <span className="font-semibold">Today&apos;s intention</span>
           <span className="text-black/55">
@@ -154,6 +156,60 @@ export default function PlanningPreviewPage() {
             </div>
           </div>
         </div>
+
+        <section className="mb-5 overflow-hidden rounded-3xl border border-[#e7d89f] bg-[linear-gradient(120deg,#fff3bf_0%,#f4f4db_54%,#e8f0d9_100%)] p-5 shadow-[0_7px_0_#e8ddae]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#8b6d27]">
+                <Leaf className="h-4 w-4" /> Your daily landing pad
+              </div>
+              <h2 className="mt-1 text-xl font-semibold">
+                Shape a calm, realistic day in three little steps.
+              </h2>
+            </div>
+            <div className="flex min-w-[240px] items-center gap-2">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/70">
+                <div className="h-full w-2/3 rounded-full bg-[#7e965c]" />
+              </div>
+              <span className="text-xs font-bold text-[#63724d]">2 of 3</span>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[
+              {
+                Icon: Leaf,
+                label: "Set intention",
+                detail: "Done",
+                done: true,
+              },
+              {
+                Icon: ListChecks,
+                label: "Choose today’s tasks",
+                detail: "3 selected",
+                done: true,
+              },
+              {
+                Icon: Clock3,
+                label: "Make time for them",
+                detail: "1 needs a time",
+                done: false,
+              },
+            ].map(({ Icon, label, detail, done }) => (
+              <div
+                key={String(label)}
+                className={`flex items-center gap-3 rounded-2xl border px-3 py-3 ${done ? "border-[#cbd9ac] bg-white/75" : "border-[#e2cc88] bg-[#fff9e4]"}`}
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#eef3df] text-[#617448]">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span>
+                  <span className="block text-xs font-bold">{label}</span>
+                  <span className="text-[10px] text-black/45">{detail}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
           <div className="mb-4 flex items-end justify-between gap-3">
@@ -301,7 +357,7 @@ export default function PlanningPreviewPage() {
           <aside className="space-y-5">
             <section className="rounded-2xl border border-[#cddcaf] bg-[#eef3df] p-5 text-[#4f6039] shadow-[0_8px_0_#c8d8aa]">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
-                <Check className="h-4 w-4" /> Today&apos;s intention is set
+                <Leaf className="h-4 w-4" /> Today&apos;s intention is set
               </div>
               <p className="mt-4 min-h-[72px] text-base font-medium leading-relaxed text-[#435032]">
                 Finish the important things, then leave room for friends.

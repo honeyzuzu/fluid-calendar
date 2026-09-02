@@ -50,7 +50,10 @@ export async function PATCH(request: NextRequest) {
 
     const userId = auth.userId;
 
-    const updates = await request.json();
+    const updates = (await request.json()) as Record<string, unknown>;
+    // Rewards are incremented only through the authenticated focus-rewards
+    // endpoint; ordinary settings updates cannot overwrite the balance.
+    delete updates.sunDrops;
 
     const settings = await prisma.userSettings.upsert({
       where: { userId },

@@ -4,6 +4,7 @@ import type { EventContentArg } from "@fullcalendar/core";
 import { IoCheckmarkCircle, IoRepeat, IoTimeOutline } from "react-icons/io5";
 
 import { getMonthEventDisplay } from "@/lib/calendar-event-display";
+import { getReadableTextColor } from "@/lib/color-contrast";
 import { isTaskOverdue } from "@/lib/task-utils";
 import { cn } from "@/lib/utils";
 
@@ -62,17 +63,18 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     eventInfo.event.backgroundColor ||
     eventInfo.event.borderColor ||
     DEFAULT_EVENT_COLOR;
+  const textColor = getReadableTextColor(eventColor);
 
   return (
     <div
       data-testid={isTask ? "calendar-task" : "calendar-event"}
       data-priority={priority || "none"}
+      style={{ color: textColor }}
       className={cn(
         "flex h-full flex-col justify-start gap-1 overflow-hidden text-[11px]",
-        isTask && "text-[#4d513d]",
         isCompactTimedTask && "justify-center gap-0",
-        isOverdue && "font-medium text-[#8c4039]",
-        status === TaskStatus.COMPLETED && "text-gray-500 line-through"
+        isOverdue && "font-semibold",
+        status === TaskStatus.COMPLETED && "line-through opacity-65"
       )}
     >
       <div
@@ -92,13 +94,13 @@ export const CalendarEventContent = memo(function CalendarEventContent({
           isRecurring ? (
             <IoRepeat
               className="h-3.5 w-3.5 flex-shrink-0"
-              style={{ color: eventColor }}
+              style={{ color: textColor }}
             />
           ) : (
             <span
               aria-hidden="true"
               className="h-2 w-2 flex-shrink-0 rounded-full"
-              style={{ backgroundColor: eventColor }}
+              style={{ backgroundColor: textColor }}
             />
           )
         ) : isRecurring ? (

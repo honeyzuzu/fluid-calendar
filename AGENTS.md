@@ -1,6 +1,6 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 ## Product Goal
 
@@ -200,6 +200,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 - Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.
+- Filled task, event, and project surfaces choose warm white text by default and switch to Sunnie's soft near-black when WCAG contrast would otherwise be poor. The project picker is visible as a horizontal chip row on mobile Tasks screens.
 - Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
 - Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task.
 
@@ -219,6 +220,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - “Inspire me” selects a non-repeating quote from a curated built-in quote/author list and places it in the intention editor; it does not require AI or an external API.
 - `Task.plannedWeekStart` stores the Monday for the task’s selected weekly pool.
 - The flow is Backlog -> This week -> selected day.
+- The Plan page begins with an interactive three-step daily landing pad: set an intention, choose today’s tasks, and give those tasks time. On mobile, the intention card appears before the task list and timeline; weekly planning remains available below the daily workspace.
 - Users can add and remove tasks from a week or day.
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
 - `Schedule week` schedules the weekly pool inside the selected Monday-Sunday window.
@@ -247,10 +249,10 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Focus and friend visibility
 
 - Focus mode begins with one combined round-planning screen: users choose a 5- or 10-minute setup, 15-, 25-, 45-, or 60-minute focus round, and 5-, 10-, or 15-minute break at the same time. The UI clearly previews the complete sequence, and focus starts automatically when setup ends.
-- Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play a soft synthesized three-note chime when setup, focus, or break time ends. The chime can be disabled.
+- Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play the selected chime when setup, focus, or break time ends. Users can preview and choose Soft sunrise, Garden bells, or Cozy wooden, and can disable timer sounds.
 - The setup checklist covers a drink/snack, workspace, subtasks, and distractions. The user's subtask outline remains visible during setup and focus instead of disappearing between phases.
 - Users can choose among six built-in emoji focus pets. Completed focus rounds earn non-punitive “sun drops,” and the pet changes its encouragement across setup, focus, pause, and break phases.
-- Completing any previously unfinished task awards one sun drop in that browser, including completion from Tasks, Calendar, Focus, or the Focus sidebar. Marking it incomplete does not remove the earned drop, and repeatedly saving an already-completed task does not award duplicates.
+- Completing any previously unfinished task awards one sun drop, including completion from Tasks, Calendar, Focus, or the Focus sidebar. The authenticated total is stored in `UserSettings.sunDrops` and syncs across devices; local storage is only a cache/offline fallback and migrates an existing browser total upward once. Marking a task incomplete does not remove the earned drop, and repeatedly saving an already-completed task does not award duplicates.
 - A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.
 - The Focus card shows the task's energy, urgency/priority, estimate, and description. The inherited schedule-fit score is intentionally not shown.
 - The separate right-side quick-actions panel was removed. At the end of every focus round, the timer offers Complete task and Edit task alongside break/continue choices.

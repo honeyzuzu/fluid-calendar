@@ -46,22 +46,86 @@ export function addSunDropsToPreferences(
   };
 }
 
-export function awardSunDrops(amount = 1): number | null {
+function cacheAndAnnounceSunDrops(sunDrops: number, amount: number) {
   if (typeof window === "undefined") return null;
 
   try {
+    const current = window.localStorage.getItem(FOCUS_PREFERENCES_KEY);
+    const reward = addSunDropsToPreferences(current, 0);
+    const preferences = JSON.parse(reward.serialized) as Record<
+      string,
+      unknown
+    >;
+    window.localStorage.setItem(
+      FOCUS_PREFERENCES_KEY,
+      JSON.stringify({ ...preferences, sunDrops })
+    );
+    window.dispatchEvent(
+      new CustomEvent<FocusRewardDetail>(FOCUS_REWARD_EVENT, {
+        detail: { sunDrops, amount: Math.max(0, amount) },
+      })
+    );
+    return sunDrops;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadSunDrops(localMinimum = 0): Promise<number | null> {
+  if (typeof window === "undefined") return null;
+
+  try {
+    let response = await fetch("/api/focus-rewards", { cache: "no-store" });
+    if (!response.ok) throw new Error("Unable to load sun drops");
+    let reward = (await response.json()) as { sunDrops: number };
+
+    if (localMinimum > reward.sunDrops) {
+      response = await fetch("/api/focus-rewards", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minimum: localMinimum }),
+      });
+      if (!response.ok) throw new Error("Unable to migrate sun drops");
+      reward = (await response.json()) as { sunDrops: number };
+    }
+
+    return cacheAndAnnounceSunDrops(reward.sunDrops, 0);
+  } catch {
+    const cached = addSunDropsToPreferences(
+      window.localStorage.getItem(FOCUS_PREFERENCES_KEY),
+      0
+    ).sunDrops;
+    return cacheAndAnnounceSunDrops(
+      Math.max(cached, Math.max(0, localMinimum)),
+      0
+    );
+  }
+}
+
+export async function awardSunDrops(amount = 1): Promise<number | null> {
+  if (typeof window === "undefined") return null;
+  const safeAmount = Math.max(1, Math.min(10, Math.floor(amount)));
+
+  try {
+    const response = await fetch("/api/focus-rewards", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: safeAmount }),
+    });
+    if (!response.ok) throw new Error("Unable to save sun drops");
+    const reward = (await response.json()) as { sunDrops: number };
+    return cacheAndAnnounceSunDrops(reward.sunDrops, safeAmount);
+  } catch {
     const reward = addSunDropsToPreferences(
       window.localStorage.getItem(FOCUS_PREFERENCES_KEY),
-      amount
+      safeAmount
     );
     window.localStorage.setItem(FOCUS_PREFERENCES_KEY, reward.serialized);
     window.dispatchEvent(
       new CustomEvent<FocusRewardDetail>(FOCUS_REWARD_EVENT, {
-        detail: { sunDrops: reward.sunDrops, amount: Math.max(0, amount) },
+        detail: { sunDrops: reward.sunDrops, amount: safeAmount },
       })
     );
     return reward.sunDrops;
-  } catch {
-    return null;
   }
 }

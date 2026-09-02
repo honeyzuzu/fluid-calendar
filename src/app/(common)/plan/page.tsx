@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Clock3,
   Dices,
+  Leaf,
   Loader2,
   Pencil,
   Plus,
@@ -215,6 +216,44 @@ export default function PlanPage() {
     (total, task) => total + (task.duration ?? 30),
     0
   );
+  const scheduledTaskCount = todayTasks.filter(
+    (task) => task.scheduledStart && task.scheduledEnd
+  ).length;
+  const planningSteps = [
+    {
+      label: "Set an intention",
+      detail: plan?.intention?.trim()
+        ? "Your direction is clear"
+        : "Choose a gentle direction",
+      complete: Boolean(plan?.intention?.trim()),
+      icon: Leaf,
+      target: "intention-card",
+    },
+    {
+      label: "Choose today’s tasks",
+      detail:
+        todayTasks.length > 0
+          ? `${todayTasks.length} task${todayTasks.length === 1 ? "" : "s"} chosen`
+          : "Pull in what matters",
+      complete: todayTasks.length > 0,
+      icon: CheckCircle2,
+      target: "today-list",
+    },
+    {
+      label: "Give them time",
+      detail:
+        scheduledTaskCount > 0
+          ? `${scheduledTaskCount} time-blocked`
+          : "Schedule around your calendar",
+      complete:
+        todayTasks.length > 0 && scheduledTaskCount >= todayTasks.length,
+      icon: Clock3,
+      target: "today-timeline",
+    },
+  ];
+  const completedPlanningSteps = planningSteps.filter(
+    (step) => step.complete
+  ).length;
 
   const savePlan = async (completed?: boolean, celebrateIntention = false) => {
     setSaving(true);
@@ -450,8 +489,90 @@ export default function PlanPage() {
             <Loader2 className="h-7 w-7 animate-spin text-[#d0902f]" />
           </div>
         ) : (
-          <div className="space-y-5">
-            <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
+          <div className="flex flex-col gap-5">
+            <section className="order-1 overflow-hidden rounded-3xl border border-[#dfe3c7] bg-gradient-to-br from-[#fffdf5] via-[#f8f3d8] to-[#edf3df] shadow-[0_12px_35px_rgba(80,86,55,0.08)]">
+              <div className="flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-xl">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
+                    <Leaf className="h-4 w-4" /> Your daily landing pad
+                  </div>
+                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">
+                    Plan your day in three gentle steps.
+                  </h2>
+                  <p className="mt-1 text-sm text-black/45">
+                    Decide what matters, choose a realistic amount, and let
+                    Sunnie find the breathing room.
+                  </p>
+                </div>
+                <div className="min-w-48">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#5f7048]">
+                    <span>Today’s plan</span>
+                    <span>{completedPlanningSteps}/3 ready</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/75">
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        width: `${(completedPlanningSteps / 3) * 100}%`,
+                      }}
+                      className="h-full rounded-full bg-gradient-to-r from-[#f0b947] to-[#7f9b5d]"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid border-t border-black/[0.055] sm:grid-cols-3">
+                {planningSteps.map((step, index) => {
+                  const StepIcon = step.icon;
+                  return (
+                    <button
+                      key={step.label}
+                      type="button"
+                      onClick={() => {
+                        document
+                          .querySelector(`[data-plan-section="${step.target}"]`)
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        if (step.target === "intention-card") {
+                          setEditingIntention(true);
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 px-5 py-4 text-left transition hover:bg-white/55",
+                        index > 0 &&
+                          "border-t border-black/[0.05] sm:border-l sm:border-t-0"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid h-9 w-9 shrink-0 place-items-center rounded-2xl",
+                          step.complete
+                            ? "bg-[#7f9b5d] text-white"
+                            : "bg-white/80 text-[#7a805f]"
+                        )}
+                      >
+                        {step.complete ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <StepIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold">
+                          {step.label}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[11px] text-black/40">
+                          {step.detail}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="order-3 rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
               <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
                   <h2 className="font-semibold">Plan this week</h2>
@@ -567,8 +688,11 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
-              <section className="overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm">
+            <div className="order-2 grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
+              <section
+                data-plan-section="today-list"
+                className="order-2 overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm xl:order-none"
+              >
                 <div className="border-b border-black/[0.055] p-5">
                   <h2 className="font-semibold">Today&apos;s list</h2>
                   <p className="mt-1 text-xs text-black/42">
@@ -701,7 +825,10 @@ export default function PlanPage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
+              <section
+                data-plan-section="today-timeline"
+                className="order-3 rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm xl:order-none"
+              >
                 <div className="mb-4 flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-black/45" />
                   <h2 className="text-sm font-semibold">
@@ -780,8 +907,9 @@ export default function PlanPage() {
                 </div>
               </section>
 
-              <aside className="space-y-5">
+              <aside className="order-1 space-y-5 xl:order-none">
                 <motion.section
+                  data-plan-section="intention-card"
                   animate={
                     intentionJustSaved
                       ? { scale: [1, 1.025, 1], rotate: [0, -0.4, 0.4, 0] }
@@ -789,12 +917,13 @@ export default function PlanPage() {
                   }
                   transition={{ duration: 0.55, ease: "easeOut" }}
                   className={cn(
-                    "relative overflow-hidden rounded-2xl p-5 transition-colors",
+                    "relative overflow-hidden rounded-3xl p-5 transition-colors",
                     !editingIntention && plan?.intention?.trim()
-                      ? "border border-[#cddcaf] bg-[#eef3df] text-[#4f6039] shadow-[0_8px_0_#c8d8aa]"
-                      : "bg-[#5f7048] text-[#fffbea] shadow-[0_8px_0_#465535]"
+                      ? "border border-[#cddcaf] bg-gradient-to-br from-[#f3f7e8] via-[#eaf2dc] to-[#dce9c8] text-[#4f6039] shadow-[0_8px_0_#c8d8aa]"
+                      : "bg-gradient-to-br from-[#718456] via-[#5f7048] to-[#4d5f3a] text-[#fffbea] shadow-[0_8px_0_#465535]"
                   )}
                 >
+                  <Leaf className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rotate-12 opacity-[0.08]" />
                   <AnimatePresence>
                     {intentionJustSaved && (
                       <motion.div
@@ -812,8 +941,8 @@ export default function PlanPage() {
                   {!editingIntention && plan?.intention?.trim() ? (
                     <div>
                       <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
-                        <CheckCircle2 className="h-4 w-4" /> Today&apos;s
-                        intention is set
+                        <Leaf className="h-4 w-4" /> Today&apos;s intention is
+                        set
                       </div>
                       <p className="mt-4 text-base font-medium leading-relaxed text-[#435032]">
                         {plan.intention}
@@ -828,7 +957,7 @@ export default function PlanPage() {
                   ) : (
                     <div>
                       <div className="flex items-center gap-2 text-xs font-medium text-white/65">
-                        <Sparkles className="h-3.5 w-3.5 text-[#f4c85b]" />
+                        <Leaf className="h-3.5 w-3.5 text-[#f4c85b]" />
                         Set your daily intention!
                       </div>
                       <textarea

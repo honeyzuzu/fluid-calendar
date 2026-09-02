@@ -72,51 +72,51 @@ model Session {
 }
 
 model User {
-  id                   String                @id @default(cuid())
-  name                 String?
-  email                String?               @unique
-  emailVerified        DateTime?
-  image                String?
-  role                 String                @default("user") // Possible values: "user", "admin"
-  lastActiveAt         DateTime?
-  subscription         Subscription?
-  accounts             Account[]
-  sessions             Session[]
-  calendars            CalendarFeed[]
-  autoScheduleSettings AutoScheduleSettings?
-  userSettings         UserSettings?
-  calendarSettings     CalendarSettings?
-  notificationSettings NotificationSettings?
-  integrationSettings  IntegrationSettings?
-  dataSettings         DataSettings?
-  tasks                Task[]
-  projects             Project[]
-  connectedAccounts    ConnectedAccount[]
-  tags                 Tag[]
-  JobRecord            JobRecord[]
-  taskProviders        TaskProvider[]
-  TaskChange           TaskChange[]
-  PasswordReset        PasswordReset[]
-  dailyPlans           DailyPlan[]
-  friendRequestsSent   FriendConnection[]    @relation("FriendRequester")
-  friendRequestsReceived FriendConnection[]  @relation("FriendAddressee")
+  id                     String                @id @default(cuid())
+  name                   String?
+  email                  String?               @unique
+  emailVerified          DateTime?
+  image                  String?
+  role                   String                @default("user") // Possible values: "user", "admin"
+  lastActiveAt           DateTime?
+  subscription           Subscription?
+  accounts               Account[]
+  sessions               Session[]
+  calendars              CalendarFeed[]
+  autoScheduleSettings   AutoScheduleSettings?
+  userSettings           UserSettings?
+  calendarSettings       CalendarSettings?
+  notificationSettings   NotificationSettings?
+  integrationSettings    IntegrationSettings?
+  dataSettings           DataSettings?
+  tasks                  Task[]
+  projects               Project[]
+  connectedAccounts      ConnectedAccount[]
+  tags                   Tag[]
+  JobRecord              JobRecord[]
+  taskProviders          TaskProvider[]
+  TaskChange             TaskChange[]
+  PasswordReset          PasswordReset[]
+  dailyPlans             DailyPlan[]
+  friendRequestsSent     FriendConnection[]    @relation("FriendRequester")
+  friendRequestsReceived FriendConnection[]    @relation("FriendAddressee")
 
   @@index([lastActiveAt])
 }
 
 model FriendConnection {
-  id                  String   @id @default(cuid())
-  pairKey             String   @unique
-  status              String   @default("PENDING")
-  requesterVisibility String   @default("BUSY_ONLY")
-  addresseeVisibility String   @default("BUSY_ONLY")
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  pairKey             String    @unique
+  status              String    @default("PENDING")
+  requesterVisibility String    @default("BUSY_ONLY")
+  addresseeVisibility String    @default("BUSY_ONLY")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   acceptedAt          DateTime?
   requesterId         String
   addresseeId         String
-  requester           User     @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-  addressee           User     @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  requester           User      @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee           User      @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
 
   @@index([requesterId, status])
   @@index([addresseeId, status])
@@ -243,13 +243,13 @@ model Task {
   status      String // enum: 'todo', 'in_progress', 'completed'
 
   // Time Management
-  dueDate       DateTime?
-  startDate     DateTime? // When the task becomes active
+  dueDate          DateTime?
+  startDate        DateTime? // When the task becomes active
   plannedWeekStart DateTime? @db.Date // Monday of the week this task belongs to
-  duration      Int? // estimated duration in minutes
-  priority      String? // enum: 'high', 'medium', 'low', 'none'
-  energyLevel   String? // enum: 'high', 'medium', 'low'
-  preferredTime String? // enum: 'morning', 'afternoon', 'evening'
+  duration         Int? // estimated duration in minutes
+  priority         String? // enum: 'high', 'medium', 'low', 'none'
+  energyLevel      String? // enum: 'high', 'medium', 'low'
+  preferredTime    String? // enum: 'morning', 'afternoon', 'evening'
 
   // Auto-scheduling
   isAutoScheduled Boolean   @default(true)
@@ -363,7 +363,7 @@ model AutoScheduleSettings {
   groupByProject Boolean @default(false)
 
   // Calendar block push settings
-  pushTasksToCalendar Boolean  @default(false) // Enable pushing task blocks to calendar
+  pushTasksToCalendar Boolean @default(false) // Enable pushing task blocks to calendar
   pushTasksFeedId     String? // ID of target CalendarFeed (must be GOOGLE type)
 
   // Metadata
@@ -374,17 +374,18 @@ model AutoScheduleSettings {
 }
 
 model UserSettings {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   onboardingVersion Int      @default(0)
-  theme        String   @default("system") // "light", "dark", "system"
-  defaultView  String   @default("week") // "day", "week", "month", "agenda"
-  timeZone     String
-  weekStartDay String   @default("sunday") // "monday", "sunday"
-  timeFormat   String   @default("12h") // "12h", "24h"
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sunDrops          Int      @default(0)
+  theme             String   @default("system") // "light", "dark", "system"
+  defaultView       String   @default("week") // "day", "week", "month", "agenda"
+  timeZone          String
+  weekStartDay      String   @default("sunday") // "monday", "sunday"
+  timeFormat        String   @default("12h") // "12h", "24h"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([userId])
 }

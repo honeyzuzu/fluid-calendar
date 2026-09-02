@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Check, Pencil, Play, Sun } from "lucide-react";
+import { Bell, Check, Pencil, Play, Sun, Volume2 } from "lucide-react";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
 
@@ -162,6 +162,24 @@ export default function FocusPreviewPage() {
                   <span className="flex items-center gap-2 rounded-2xl border border-[#dad3b7] bg-white px-4 py-3 text-sm font-semibold text-[#716b50]">
                     <Pencil className="h-4 w-4" /> Edit task
                   </span>
+                </div>
+                <div className="mt-5 border-t border-[#e1dac0] pt-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#9a8b66]">
+                    Chime for every timer
+                  </p>
+                  <div className="mt-2 space-y-1.5">
+                    {["Soft sunrise", "Garden bells", "Cozy wooden"].map(
+                      (chime, index) => (
+                        <span
+                          key={chime}
+                          className={`flex items-center justify-between rounded-xl border px-3 py-2 text-xs font-semibold ${index === 0 ? "border-[#9fb878] bg-[#eff4e2]" : "border-[#e3ddc4] bg-white/70"}`}
+                        >
+                          {chime}
+                          <Volume2 className="h-3.5 w-3.5 text-[#607249]" />
+                        </span>
+                      )
+                    )}
+                  </div>
                 </div>
               </aside>
             </div>
