@@ -169,36 +169,33 @@ export function ProjectSidebar() {
     <>
       <div
         className={cn(
-          "relative hidden h-full flex-none bg-[#fffdf2] transition-[width] duration-300 md:block",
+          "relative z-40 hidden h-full flex-none bg-[#fffdf2] transition-[width] duration-300 md:block",
           isSidebarOpen ? "w-64" : "w-6"
         )}
       >
-        {!isSidebarOpen && (
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            aria-label="Open projects sidebar"
-            title="Open projects sidebar"
-            className="absolute left-0 top-4 z-40 grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf2] text-[#5f6848] shadow-[2px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
-          >
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen((current) => !current)}
+          aria-label={
+            isSidebarOpen ? "Close projects sidebar" : "Open projects sidebar"
+          }
+          title={
+            isSidebarOpen ? "Close projects sidebar" : "Open projects sidebar"
+          }
+          className="absolute -right-[27px] top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d4d9ba] bg-[#fffdf2] text-[#5f6848] transition-colors hover:bg-[#eef3df]"
+        >
+          {isSidebarOpen ? (
+            <ChevronLeft className="h-5 w-5" />
+          ) : (
             <ChevronRight className="h-5 w-5" />
-          </button>
-        )}
+          )}
+        </button>
         <aside
           className={cn(
             "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-[#d4d9ba] bg-[#fffdf2] shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(false)}
-            aria-label="Close projects sidebar"
-            title="Close projects sidebar"
-            className="absolute -right-7 top-4 z-[60] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d4d9ba] bg-[#fffdf2] text-[#5f6848] shadow-[3px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
           <div className="border-b p-4">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Projects</h2>

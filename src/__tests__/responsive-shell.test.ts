@@ -37,6 +37,10 @@ describe("responsive application shell", () => {
     expect(calendar).toContain("rounded-r-xl border border-l-0");
     expect(projects).toContain("rounded-r-xl border border-l-0");
     expect(focus).toContain("md:rounded-r-xl md:border-l-0");
+    expect(calendar).toContain("xl:left-[319px]");
+    expect(calendar).toContain("z-[70]");
+    expect(projects).toContain("setIsSidebarOpen((current) => !current)");
+    expect(projects).toContain("-right-[27px]");
   });
 
   it("reserves layout space and an opaque surface for an open project panel", () => {

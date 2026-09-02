@@ -207,15 +207,6 @@ export function Calendar({
             : "-translate-x-full xl:-ml-80"
         )}
       >
-        <button
-          type="button"
-          aria-label="Close calendar sidebar"
-          onClick={() => setSidebarOpen(false)}
-          className="absolute -right-7 top-4 z-[60] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-[3px_2px_5px_rgba(70,75,50,0.12)] transition hover:bg-[#eef3df]"
-          title="Close calendar sidebar"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
         <div className="flex h-full flex-col">
           {/* Feed Manager */}
           <div className="flex-1 overflow-y-auto">
@@ -226,6 +217,29 @@ export function Calendar({
           <SponsorshipBanner />
         </div>
       </aside>
+
+      <button
+        type="button"
+        aria-label={
+          isSidebarOpen ? "Close calendar sidebar" : "Open calendar sidebar"
+        }
+        onClick={() => setSidebarOpen(!isSidebarOpen)}
+        className={cn(
+          "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] transition-[left,background-color] duration-300 hover:bg-[#eef3df]",
+          isSidebarOpen
+            ? "left-[calc(min(20rem,86vw)-1px)] xl:left-[319px]"
+            : "left-0"
+        )}
+        title={
+          isSidebarOpen ? "Close calendar sidebar" : "Open calendar sidebar"
+        }
+      >
+        {isSidebarOpen ? (
+          <ChevronLeft className="h-5 w-5" />
+        ) : (
+          <ChevronRight className="h-5 w-5" />
+        )}
+      </button>
 
       {isSidebarOpen && (
         <button
@@ -243,17 +257,6 @@ export function Calendar({
         {/* Header */}
         <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:flex-row md:flex-wrap md:items-center md:gap-2 md:px-4">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
-            {!isSidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="-ml-2 grid h-11 w-7 shrink-0 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-[2px_2px_5px_rgba(70,75,50,0.1)] transition hover:bg-[#eef3df]"
-                title="Open calendar sidebar (b)"
-                aria-label="Open calendar sidebar"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            )}
-
             <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
               {formatDate(currentDate)}
             </h1>
