@@ -231,6 +231,34 @@
   @apply p-1;
 }
 
+/* Shared friend time is useful context, not the user's own plan. Keep every
+   block soft and visually behind editable events/tasks. */
+.fc .calendar-friend-event {
+  z-index: 1 !important;
+  cursor: default !important;
+  border: 1px dashed rgba(78, 79, 68, 0.28) !important;
+  border-radius: 0.625rem !important;
+  box-shadow: none !important;
+  filter: saturate(0.72);
+  opacity: 0.62;
+  transition:
+    opacity 160ms ease,
+    filter 160ms ease !important;
+}
+
+@media (hover: hover) {
+  .fc .calendar-friend-event:hover {
+    filter: saturate(0.86);
+    opacity: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc .calendar-friend-event {
+    transition: none !important;
+  }
+}
+
 /* Scheduled tasks use soft, filled urgency tones instead of a hard side bar. */
 .fc .calendar-task {
   border: 1px solid rgba(88, 92, 65, 0.16) !important;

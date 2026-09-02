@@ -1,4 +1,5 @@
 import { newDate } from "@/lib/date-utils";
+import { getFriendCalendarColor } from "@/lib/friend-calendar-colors";
 
 import { ExtendedEventProps } from "@/types/calendar";
 
@@ -29,7 +30,11 @@ export type FriendCalendarItem = {
   extendedProps: ExtendedEventProps;
 };
 
-export async function getFriendCalendarItems(start: Date, end: Date) {
+export async function getFriendCalendarItems(
+  start: Date,
+  end: Date,
+  friendColors: Record<string, string> = {}
+) {
   try {
     const response = await fetch(
       `/api/friends/events?start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(end.toISOString())}`,
@@ -38,15 +43,16 @@ export async function getFriendCalendarItems(start: Date, end: Date) {
     if (!response.ok) return [];
     const blocks = (await response.json()) as FriendCalendarBlock[];
 
-    return blocks.map(
-      (block): FriendCalendarItem => ({
+    return blocks.map((block): FriendCalendarItem => {
+      const friendColor = getFriendCalendarColor(block.ownerId, friendColors);
+      return {
         id: `friend-${block.id}`,
         title: `${block.owner} · ${block.title}`,
         start: newDate(block.start),
         end: newDate(block.end),
         location: `Shared by ${block.owner}`,
-        backgroundColor: block.color || "#8f78b7",
-        borderColor: block.color || "#8f78b7",
+        backgroundColor: friendColor,
+        borderColor: friendColor,
         allDay: block.allDay,
         classNames: ["calendar-friend-event"],
         startEditable: false,
@@ -58,8 +64,8 @@ export async function getFriendCalendarItems(start: Date, end: Date) {
           friendSource: block.source,
           calendarName: `${block.owner}'s shared time`,
         },
-      })
-    );
+      };
+    });
   } catch {
     // Friend overlays should never prevent the user's own calendar from loading.
     return [];

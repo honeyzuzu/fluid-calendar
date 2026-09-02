@@ -35,4 +35,12 @@ describe("responsive application shell", () => {
     expect(projects).toContain("Open projects sidebar");
     expect(focus).toContain("Open focus task queue");
   });
+
+  it("wraps calendar controls before they can collide", () => {
+    const calendar = read("src/components/calendar/Calendar.tsx");
+    expect(calendar).toContain("md:flex-wrap");
+    expect(calendar).toContain("2xl:w-auto");
+    expect(calendar).toContain("min-w-0 flex-1 truncate");
+    expect(calendar).toContain("md:hidden");
+  });
 });

@@ -24,6 +24,17 @@ describe("friend calendar visibility", () => {
     expect(manager).toContain("toggleFriendCalendar(connection.friend.id)");
   });
 
+  it("persists one pastel display color per friend", () => {
+    const store = read("src/store/calendar.ts");
+    const manager = read("src/components/calendar/FeedManager.tsx");
+    const styles = read("src/app/globals.css");
+    expect(store).toContain("setFriendCalendarColor");
+    expect(store).toContain("friendCalendarColors: state.friendCalendarColors");
+    expect(manager).toContain("FRIEND_CALENDAR_COLORS");
+    expect(styles).toContain(".calendar-friend-event");
+    expect(styles).toContain("opacity: 0.62");
+  });
+
   it("does not mix friends' availability into the Plan timeline", () => {
     const plan = read("src/app/(common)/plan/page.tsx");
     expect(plan).not.toContain("/api/friends/events");

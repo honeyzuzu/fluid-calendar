@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/popover";
 
 import { newDate } from "@/lib/date-utils";
+import {
+  FRIEND_CALENDAR_COLORS,
+  getFriendCalendarColor,
+} from "@/lib/friend-calendar-colors";
 import { cn } from "@/lib/utils";
 
 import {
@@ -43,8 +47,13 @@ export function FeedManager() {
   const { feeds, removeFeed, toggleFeed, updateFeed, syncFeed } =
     useCalendarStore();
   const { date: currentDate, setDate } = useViewStore();
-  const { hiddenFriendIds, toggleFriendCalendar, friendRefreshRevision } =
-    useCalendarUIStore();
+  const {
+    hiddenFriendIds,
+    toggleFriendCalendar,
+    friendCalendarColors,
+    setFriendCalendarColor,
+    friendRefreshRevision,
+  } = useCalendarUIStore();
 
   useEffect(() => {
     const loadFriendShares = () => {
@@ -211,48 +220,100 @@ export function FeedManager() {
             whether enabled blocks say “Busy,” show details, or stay hidden.
           </p>
           <div className="mt-3 space-y-1.5">
-            {friendShares.map((connection) => (
-              <div
-                key={connection.id}
-                className="flex items-center gap-2 rounded-xl bg-[#f2edf8] px-3 py-2"
-              >
-                <Checkbox
-                  checked={
-                    connection.theirVisibility !== "NONE" &&
-                    !hiddenFriendIds.includes(connection.friend.id)
-                  }
-                  disabled={connection.theirVisibility === "NONE"}
-                  onCheckedChange={() =>
-                    toggleFriendCalendar(connection.friend.id)
-                  }
-                  aria-label={`Show ${connection.friend.name || connection.friend.email || "friend"}'s shared calendar`}
-                  className="h-4 w-4"
-                />
-                <span
-                  className={`h-2.5 w-2.5 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_3px_#e5f0d7]" : "bg-[#aaa5b0]"}`}
-                  title={connection.friend.online ? "Online now" : "Offline"}
-                  aria-label={
-                    connection.friend.online ? "Online now" : "Offline"
-                  }
-                />
-                <span className="min-w-0 flex-1 truncate text-xs font-medium text-[#534763]">
-                  {connection.friend.name ||
-                    connection.friend.email ||
-                    "Friend"}
-                </span>
-                <span className="text-[10px] font-semibold text-[#786a88]">
-                  {connection.theirVisibility === "NONE"
-                    ? "Not shared"
-                    : hiddenFriendIds.includes(connection.friend.id)
-                      ? "Hidden here"
-                      : connection.theirVisibility === "DETAILS"
-                        ? "Details"
-                        : connection.theirVisibility === "BUSY_ONLY"
-                          ? "Busy only"
-                          : "Not shared"}
-                </span>
-              </div>
-            ))}
+            {friendShares.map((connection) => {
+              const friendColor = getFriendCalendarColor(
+                connection.friend.id,
+                friendCalendarColors
+              );
+              return (
+                <div
+                  key={connection.id}
+                  className="flex items-center gap-2 rounded-xl px-3 py-2"
+                  style={{ backgroundColor: `${friendColor}38` }}
+                >
+                  <Checkbox
+                    checked={
+                      connection.theirVisibility !== "NONE" &&
+                      !hiddenFriendIds.includes(connection.friend.id)
+                    }
+                    disabled={connection.theirVisibility === "NONE"}
+                    onCheckedChange={() =>
+                      toggleFriendCalendar(connection.friend.id)
+                    }
+                    aria-label={`Show ${connection.friend.name || connection.friend.email || "friend"}'s shared calendar`}
+                    className="h-4 w-4"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="h-5 w-5 shrink-0 rounded-full border-2 border-white shadow-sm ring-1 ring-black/10 transition hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#7c8d61]"
+                        style={{ backgroundColor: friendColor }}
+                        title={`Change ${connection.friend.name || connection.friend.email || "friend"}'s calendar color`}
+                        aria-label={`Change ${connection.friend.name || connection.friend.email || "friend"}'s calendar color`}
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-64">
+                      <p className="text-sm font-semibold text-[#495036]">
+                        Friend calendar color
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Every shared block from this friend uses the same color.
+                      </p>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        {FRIEND_CALENDAR_COLORS.map((color) => (
+                          <button
+                            key={color.value}
+                            type="button"
+                            onClick={() =>
+                              setFriendCalendarColor(
+                                connection.friend.id,
+                                color.value
+                              )
+                            }
+                            className={cn(
+                              "flex flex-col items-center gap-1.5 rounded-xl p-2 text-[10px] text-[#5b5d50] transition hover:bg-black/[0.035]",
+                              friendColor === color.value &&
+                                "bg-[#eef3df] font-semibold ring-1 ring-[#aebd91]"
+                            )}
+                            title={color.name}
+                          >
+                            <span
+                              className="h-7 w-7 rounded-full border border-black/10 shadow-sm"
+                              style={{ backgroundColor: color.value }}
+                            />
+                            <span className="leading-tight">{color.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_2px_#e5f0d7]" : "bg-[#aaa5b0]"}`}
+                    title={connection.friend.online ? "Online now" : "Offline"}
+                    aria-label={
+                      connection.friend.online ? "Online now" : "Offline"
+                    }
+                  />
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-[#534763]">
+                    {connection.friend.name ||
+                      connection.friend.email ||
+                      "Friend"}
+                  </span>
+                  <span className="text-[10px] font-semibold text-[#786a88]">
+                    {connection.theirVisibility === "NONE"
+                      ? "Not shared"
+                      : hiddenFriendIds.includes(connection.friend.id)
+                        ? "Hidden here"
+                        : connection.theirVisibility === "DETAILS"
+                          ? "Details"
+                          : connection.theirVisibility === "BUSY_ONLY"
+                            ? "Busy only"
+                            : "Not shared"}
+                  </span>
+                </div>
+              );
+            })}
             {!friendShares.length && (
               <p className="rounded-xl border border-dashed border-black/10 px-3 py-3 text-center text-xs text-muted-foreground">
                 No accepted friends are sharing yet.

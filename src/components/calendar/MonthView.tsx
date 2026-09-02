@@ -43,6 +43,9 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const { feeds, getAllCalendarItems, isLoading, removeEvent } =
     useCalendarStore();
   const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
+  const friendCalendarColors = useCalendarUIStore(
+    (state) => state.friendCalendarColors
+  );
   const friendRefreshRevision = useCalendarUIStore(
     (state) => state.friendRefreshRevision
   );
@@ -84,7 +87,11 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
       const items = getAllCalendarItems(arg.start, arg.end);
-      const friendItems = await getFriendCalendarItems(arg.start, arg.end);
+      const friendItems = await getFriendCalendarItems(
+        arg.start,
+        arg.end,
+        friendCalendarColors
+      );
       const formattedItems = items
         .filter((item) => {
           if (item.feedId === "tasks") return true;
@@ -138,7 +145,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         ),
       ]);
     },
-    [feeds, getAllCalendarItems, hiddenFriendIds]
+    [feeds, friendCalendarColors, getAllCalendarItems, hiddenFriendIds]
   );
 
   // Initial data load

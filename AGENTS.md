@@ -234,6 +234,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 - Calendar views and event creation/editing are retained from FluidCalendar.
 - Opening Calendar triggers a background sync shortly after hydration. While the tab remains visible, Google/CalDAV feeds and friend availability refresh every five minutes; returning to a stale tab refreshes them as well. The header refresh control runs the same combined pass and exposes the exact last-refresh time on hover.
+- Calendar header controls wrap into a deliberate second row below very wide desktop widths. Navigation arrows are not duplicated, the date truncates safely, and the control row scrolls only when a phone is too narrow, preventing buttons and labels from collapsing into one another.
 - The calendar feed sidebar becomes an overlay below 1280px so it cannot crush the calendar canvas. Its persistent right/left edge arrows open and close it on desktop, constrained windows, and mobile; the old hamburger toggle is removed.
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
@@ -265,6 +266,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Accepted friends appear only in Day, Week, Month, and Multi-month Calendar views as read-only shared blocks; friend availability is intentionally excluded from the Plan timeline. Blocks are labeled with the friend’s name; `BUSY_ONLY` hides the title while `DETAILS` includes it. Each accepted friend has a persisted show/hide checkbox in the calendar feed sidebar, alongside their current inbound sharing level, so pending, locally hidden, or permission-hidden relationships are obvious.
 - The Friends navigation tab shows a warm notification dot while an incoming friend request is pending, on desktop and mobile.
 - Accepted friend rows show a privacy-friendly online/offline dot derived from the existing five-minute presence heartbeat window. Exact last-active timestamps are not exposed to other users.
+- Each accepted friend has a persisted local display color chosen from a dedicated six-color pastel palette in the Calendar sidebar. All event and focus blocks from that friend use the same selected color regardless of source-calendar color, and shared blocks render with reduced saturation, opacity, and a dashed border so they sit visually behind the userâ€™s editable plan.
 
 ### Admin presence
 

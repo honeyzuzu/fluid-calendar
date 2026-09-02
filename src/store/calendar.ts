@@ -58,10 +58,12 @@ interface UIStore {
   isSidebarOpen: boolean;
   isHydrated: boolean;
   hiddenFriendIds: string[];
+  friendCalendarColors: Record<string, string>;
   friendRefreshRevision: number;
   setSidebarOpen: (isOpen: boolean) => void;
   setHydrated: (hydrated: boolean) => void;
   toggleFriendCalendar: (friendId: string) => void;
+  setFriendCalendarColor: (friendId: string, color: string) => void;
   requestFriendCalendarRefresh: () => void;
 }
 
@@ -71,6 +73,7 @@ export const useCalendarUIStore = create<UIStore>()(
       isSidebarOpen: true,
       isHydrated: false,
       hiddenFriendIds: [],
+      friendCalendarColors: {},
       friendRefreshRevision: 0,
       setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       setHydrated: (hydrated) => set({ isHydrated: hydrated }),
@@ -79,6 +82,13 @@ export const useCalendarUIStore = create<UIStore>()(
           hiddenFriendIds: state.hiddenFriendIds.includes(friendId)
             ? state.hiddenFriendIds.filter((id) => id !== friendId)
             : [...state.hiddenFriendIds, friendId],
+        })),
+      setFriendCalendarColor: (friendId, color) =>
+        set((state) => ({
+          friendCalendarColors: {
+            ...state.friendCalendarColors,
+            [friendId]: color,
+          },
         })),
       requestFriendCalendarRefresh: () =>
         set((state) => ({
@@ -90,6 +100,7 @@ export const useCalendarUIStore = create<UIStore>()(
       partialize: (state) => ({
         isSidebarOpen: state.isSidebarOpen,
         hiddenFriendIds: state.hiddenFriendIds,
+        friendCalendarColors: state.friendCalendarColors,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

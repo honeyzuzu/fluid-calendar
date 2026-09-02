@@ -241,7 +241,7 @@ export function Calendar({
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:h-16 md:flex-row md:items-center md:gap-0 md:px-4">
+        <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:flex-row md:flex-wrap md:items-center md:gap-2 md:px-4">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
             {!isSidebarOpen && (
               <button
@@ -258,7 +258,7 @@ export function Calendar({
               {formatDate(currentDate)}
             </h1>
 
-            <div className="flex shrink-0 items-center gap-1 md:ml-4 md:gap-2">
+            <div className="flex shrink-0 items-center gap-1 md:hidden">
               <button
                 onClick={handlePrevWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
@@ -278,7 +278,7 @@ export function Calendar({
             </div>
           </div>
 
-          <div className="flex w-full items-center gap-1 overflow-x-auto md:ml-3 md:w-auto md:gap-3 md:overflow-visible">
+          <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto md:flex-1 md:gap-2 md:overflow-visible">
             <button
               onClick={() => setDate(newDate())}
               className="shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted md:px-3"
@@ -321,13 +321,13 @@ export function Calendar({
               </button>
             </div>
 
-            <h1 className="hidden whitespace-nowrap text-xl font-semibold text-foreground md:block">
+            <h1 className="hidden min-w-0 flex-1 truncate text-lg font-semibold text-foreground md:block xl:text-xl">
               {formatDate(currentDate)}
             </h1>
           </div>
 
           {/* View Switching Buttons */}
-          <div className="flex w-full shrink-0 items-center justify-between gap-1 md:ml-auto md:w-auto md:justify-start md:gap-2">
+          <div className="flex w-full shrink-0 items-center justify-start gap-1 overflow-x-auto border-t border-[#e7e3cf] pt-1.5 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:overflow-visible 2xl:border-0 2xl:pt-0">
             <button
               type="button"
               onClick={() => void refreshCalendars()}
