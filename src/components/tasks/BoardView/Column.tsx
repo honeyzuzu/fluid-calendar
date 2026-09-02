@@ -49,7 +49,7 @@ export function Column({ status, tasks, onEdit, onDelete }: ColumnProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        "flex w-[85vw] max-w-80 flex-shrink-0 snap-center flex-col rounded-lg border bg-background sm:w-80",
+        "flex min-h-64 min-w-0 w-full flex-col rounded-xl border bg-background md:min-h-0",
         statusColors[status],
         isOver && "relative z-10 ring-2 ring-[#d29b39] ring-offset-2"
       )}

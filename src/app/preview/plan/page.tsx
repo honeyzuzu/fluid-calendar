@@ -111,7 +111,7 @@ export default function PlanningPreviewPage() {
 
       <aside className="border-b border-[#e4dfbd] bg-[#fff4c9] px-5 py-2 text-[#5c5537] lg:px-8">
         <div className="mx-auto flex max-w-[1480px] items-center gap-2.5 text-sm">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#f4c85b] text-[#624b18] shadow-[0_2px_0_#d9a53c]">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#dcebc7] text-[#55703c] shadow-[0_2px_0_#b9d09b]">
             <Leaf className="h-4 w-4" />
           </span>
           <span className="font-semibold">Today&apos;s intention</span>

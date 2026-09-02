@@ -15,6 +15,11 @@ export interface CalendarFeed {
 
 export interface ExtendedEventProps {
   isTask?: boolean;
+  isFriendEvent?: boolean;
+  friendId?: string;
+  friendOwner?: string;
+  friendSource?: "calendar" | "focus";
+  calendarName?: string;
   taskId?: string;
   status?: string;
   priority?: string;

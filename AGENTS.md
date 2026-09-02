@@ -180,6 +180,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Task completion uses a slow 2.8-second sunny bloom and one light pastel confetti shower rather than a rapid repeated burst.
 - The former bottom-right “island” control was removed.
 - Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens.
+- Below 1024px, primary app destinations use the fixed mobile icon bar instead of squeezing or dropping the desktop navigation. Between 1024px and 1280px, the top navigation remains compact and icon-only.
 - The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
 - The upstream support banner on the calendar is intentionally compact.
 
@@ -203,6 +204,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Filled task, event, and project surfaces choose warm white text by default and switch to Sunnie's soft near-black when WCAG contrast would otherwise be poor. The project picker is visible as a horizontal chip row on mobile Tasks screens.
 - Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
 - Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task.
+- The task board stacks its status columns on phones and uses three fluid columns from tablet widths upward; it does not rely on fixed 320px columns or a hidden horizontal scrollbar. The desktop Projects panel collapses to a slim arrow rail and becomes an overlay on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
 
 ### Brain Dump and task tune-up
 
@@ -231,6 +233,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Calendar and colors
 
 - Calendar views and event creation/editing are retained from FluidCalendar.
+- Opening Calendar triggers a background sync shortly after hydration. While the tab remains visible, Google/CalDAV feeds and friend availability refresh every five minutes; returning to a stale tab refreshes them as well. The header refresh control runs the same combined pass and exposes the exact last-refresh time on hover.
+- The calendar feed sidebar becomes an overlay below 1280px so it cannot crush the calendar canvas. Its persistent right/left edge arrows open and close it on desktop, constrained windows, and mobile; the old hamburger toggle is removed.
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
 - The color picker includes a pastel Sunnie rainbow plus a custom color input.
@@ -256,9 +260,11 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.
 - The Focus card shows the task's energy, urgency/priority, estimate, and description. The inherited schedule-fit score is intentionally not shown.
 - The separate right-side quick-actions panel was removed. At the end of every focus round, the timer offers Complete task and Edit task alongside break/continue choices.
+- The Focus task queue has the same persistent side-arrow collapse control on desktop and mobile.
 - Accepted friends can expose busy-only or more detailed calendar/focus information according to each side’s visibility selection.
-- Friends appear in daily planning alongside the user’s events and focus blocks.
+- Accepted friends appear only in Day, Week, Month, and Multi-month Calendar views as read-only shared blocks; friend availability is intentionally excluded from the Plan timeline. Blocks are labeled with the friend’s name; `BUSY_ONLY` hides the title while `DETAILS` includes it. Each accepted friend has a persisted show/hide checkbox in the calendar feed sidebar, alongside their current inbound sharing level, so pending, locally hidden, or permission-hidden relationships are obvious.
 - The Friends navigation tab shows a warm notification dot while an incoming friend request is pending, on desktop and mobile.
+- Accepted friend rows show a privacy-friendly online/offline dot derived from the existing five-minute presence heartbeat window. Exact last-active timestamps are not exposed to other users.
 
 ### Admin presence
 

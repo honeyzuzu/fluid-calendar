@@ -57,8 +57,12 @@ export const useViewStore = create<ViewStore>()(
 interface UIStore {
   isSidebarOpen: boolean;
   isHydrated: boolean;
+  hiddenFriendIds: string[];
+  friendRefreshRevision: number;
   setSidebarOpen: (isOpen: boolean) => void;
   setHydrated: (hydrated: boolean) => void;
+  toggleFriendCalendar: (friendId: string) => void;
+  requestFriendCalendarRefresh: () => void;
 }
 
 export const useCalendarUIStore = create<UIStore>()(
@@ -66,13 +70,26 @@ export const useCalendarUIStore = create<UIStore>()(
     (set) => ({
       isSidebarOpen: true,
       isHydrated: false,
+      hiddenFriendIds: [],
+      friendRefreshRevision: 0,
       setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       setHydrated: (hydrated) => set({ isHydrated: hydrated }),
+      toggleFriendCalendar: (friendId) =>
+        set((state) => ({
+          hiddenFriendIds: state.hiddenFriendIds.includes(friendId)
+            ? state.hiddenFriendIds.filter((id) => id !== friendId)
+            : [...state.hiddenFriendIds, friendId],
+        })),
+      requestFriendCalendarRefresh: () =>
+        set((state) => ({
+          friendRefreshRevision: state.friendRefreshRevision + 1,
+        })),
     }),
     {
       name: "calendar-ui-store",
       partialize: (state) => ({
         isSidebarOpen: state.isSidebarOpen,
+        hiddenFriendIds: state.hiddenFriendIds,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

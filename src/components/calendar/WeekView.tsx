@@ -20,8 +20,9 @@ import {
 import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
+import { getFriendCalendarItems } from "@/lib/friend-calendar";
 
-import { useCalendarStore } from "@/store/calendar";
+import { useCalendarStore, useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
 import { useTaskStore } from "@/store/task";
 
@@ -41,6 +42,10 @@ interface WeekViewProps {
 export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   const { feeds, getAllCalendarItems, isLoading, removeEvent } =
     useCalendarStore();
+  const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
+  const friendRefreshRevision = useCalendarUIStore(
+    (state) => state.friendRefreshRevision
+  );
   const { user: userSettings, calendar: calendarSettings } = useSettingsStore();
   const { updateTask } = useTaskStore();
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent>>();
@@ -80,6 +85,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     async (arg: DatesSetArg) => {
       // Get all calendar items with current task data
       const items = getAllCalendarItems(arg.start, arg.end);
+      const friendItems = await getFriendCalendarItems(arg.start, arg.end);
       const formattedItems = items
         .filter((item) => {
           if (item.feedId === "tasks") return true;
@@ -130,9 +136,14 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       //   events: formattedItems.filter((item) => !item.extendedProps?.isTask)
       //     .length,
       // });
-      setEvents(formattedItems);
+      setEvents([
+        ...formattedItems,
+        ...friendItems.filter(
+          (item) => !hiddenFriendIds.includes(item.extendedProps.friendId || "")
+        ),
+      ]);
     },
-    [feeds, getAllCalendarItems]
+    [feeds, getAllCalendarItems, hiddenFriendIds]
   );
 
   // Initial data load
@@ -157,7 +168,14 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
         view: calendar.view,
       });
     }
-  }, [isLoading, feeds, userSettings.timeZone, handleDatesSet, tasks]);
+  }, [
+    isLoading,
+    feeds,
+    friendRefreshRevision,
+    userSettings.timeZone,
+    handleDatesSet,
+    tasks,
+  ]);
 
   // Update calendar date when currentDate changes
   useEffect(() => {
@@ -173,6 +191,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
 
   const handleEventClick = (info: EventClickArg) => {
     const item = info.event.extendedProps;
+    if (item.isFriendEvent) return;
     const itemId = info.event.id;
     const isTask = item.isTask;
 

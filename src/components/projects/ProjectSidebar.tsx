@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BsArrowRepeat } from "react-icons/bs";
 import { HiFolderOpen, HiPencil, HiPlus } from "react-icons/hi";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ export function ProjectSidebar() {
   } = useProjectStore();
   const { tasks } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | undefined>();
   const [projectMappings, setProjectMappings] = useState<
     Record<string, TaskListMapping[]>
@@ -63,6 +65,15 @@ export function ProjectSidebar() {
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  useEffect(() => {
+    const roomyWindow = window.matchMedia("(min-width: 1280px)");
+    const syncWithWindow = (event?: MediaQueryListEvent) =>
+      setIsSidebarOpen(event?.matches ?? roomyWindow.matches);
+    syncWithWindow();
+    roomyWindow.addEventListener("change", syncWithWindow);
+    return () => roomyWindow.removeEventListener("change", syncWithWindow);
+  }, []);
 
   // Fetch task list mappings for projects
   useEffect(() => {
@@ -156,113 +167,147 @@ export function ProjectSidebar() {
 
   return (
     <>
-      <div className="hidden h-full w-64 flex-col border-r border-[#dfe2c8] bg-[#fffdf5] md:flex">
-        <div className="border-b p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Projects</h2>
-            <Button
-              size="icon"
-              onClick={() => {
-                setSelectedProject(undefined);
-                setIsModalOpen(true);
-              }}
-            >
-              <HiPlus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="space-y-1">
-            <Button
-              variant={!activeProject ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveProject(null)}
-            >
-              All Tasks
-            </Button>
-            <Button
-              variant={
-                activeProject?.id === NO_PROJECT.id ? "secondary" : "ghost"
-              }
-              className="w-full justify-start gap-2"
-              onClick={() => setActiveProject(NO_PROJECT as Project)}
-            >
-              <HiFolderOpen className="h-4 w-4 text-muted-foreground" />
-              <span className="flex-1">No Project</span>
-              <span className="text-xs text-muted-foreground">
-                {unassignedTasksCount}
-              </span>
-            </Button>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1 p-4">
-          {loading ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-sm text-muted-foreground">
-                Loading projects...
-              </div>
-            </div>
-          ) : error ? (
-            <div className="p-2 text-sm text-destructive">{error.message}</div>
-          ) : (
-            <div className="space-y-4">
-              {activeProjects.length > 0 && (
-                <div className="space-y-1">
-                  {activeProjects.map((project) => (
-                    <ProjectItem
-                      key={project.id}
-                      project={project}
-                      isActive={activeProject?.id === project.id}
-                      onEdit={handleEditProject}
-                      mappings={projectMappings[project.id] || []}
-                      isSyncing={syncingProjects.has(project.id)}
-                      onSync={handleSyncProject}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {archivedProjects.length > 0 && (
-                <div className="space-y-1">
-                  <div className="py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Archived
-                  </div>
-                  {archivedProjects.map((project) => (
-                    <ProjectItem
-                      key={project.id}
-                      project={project}
-                      isActive={activeProject?.id === project.id}
-                      onEdit={handleEditProject}
-                      mappings={projectMappings[project.id] || []}
-                      isSyncing={syncingProjects.has(project.id)}
-                      onSync={handleSyncProject}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {projects.length === 0 && (
-                <div className="py-4 text-center text-sm text-muted-foreground">
-                  No projects yet
-                </div>
-              )}
-
-              {/* Remove from project drop zone */}
-              <div
-                {...removeProjectProps}
-                className={cn(
-                  "mt-4 rounded-md border-2 border-dashed p-4 text-center",
-                  isOverRemove
-                    ? "border-destructive bg-destructive/10"
-                    : "border-muted hover:border-muted-foreground/50"
-                )}
-              >
-                <p className="text-sm text-muted-foreground">
-                  Drop here to remove from project
-                </p>
-              </div>
-            </div>
+      <div
+        className={cn(
+          "relative hidden h-full w-10 flex-none transition-[width] duration-300 md:block",
+          isSidebarOpen && "xl:w-64"
+        )}
+      >
+        {!isSidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open projects sidebar"
+            title="Open projects sidebar"
+            className="absolute left-1 top-4 z-40 grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-sm transition hover:bg-[#eef3df]"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
+        <aside
+          className={cn(
+            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-[#dfe2c8] bg-[#fffdf5] shadow-xl transition-transform duration-300 xl:shadow-none",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
-        </ScrollArea>
+        >
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close projects sidebar"
+            title="Close projects sidebar"
+            className="absolute -right-4 top-4 z-[60] grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md transition hover:bg-[#eef3df]"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="border-b p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Projects</h2>
+              <Button
+                size="icon"
+                onClick={() => {
+                  setSelectedProject(undefined);
+                  setIsModalOpen(true);
+                }}
+              >
+                <HiPlus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              <Button
+                variant={!activeProject ? "secondary" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => setActiveProject(null)}
+              >
+                All Tasks
+              </Button>
+              <Button
+                variant={
+                  activeProject?.id === NO_PROJECT.id ? "secondary" : "ghost"
+                }
+                className="w-full justify-start gap-2"
+                onClick={() => setActiveProject(NO_PROJECT as Project)}
+              >
+                <HiFolderOpen className="h-4 w-4 text-muted-foreground" />
+                <span className="flex-1">No Project</span>
+                <span className="text-xs text-muted-foreground">
+                  {unassignedTasksCount}
+                </span>
+              </Button>
+            </div>
+          </div>
+
+          <ScrollArea className="flex-1 p-4">
+            {loading ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-sm text-muted-foreground">
+                  Loading projects...
+                </div>
+              </div>
+            ) : error ? (
+              <div className="p-2 text-sm text-destructive">
+                {error.message}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activeProjects.length > 0 && (
+                  <div className="space-y-1">
+                    {activeProjects.map((project) => (
+                      <ProjectItem
+                        key={project.id}
+                        project={project}
+                        isActive={activeProject?.id === project.id}
+                        onEdit={handleEditProject}
+                        mappings={projectMappings[project.id] || []}
+                        isSyncing={syncingProjects.has(project.id)}
+                        onSync={handleSyncProject}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {archivedProjects.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Archived
+                    </div>
+                    {archivedProjects.map((project) => (
+                      <ProjectItem
+                        key={project.id}
+                        project={project}
+                        isActive={activeProject?.id === project.id}
+                        onEdit={handleEditProject}
+                        mappings={projectMappings[project.id] || []}
+                        isSyncing={syncingProjects.has(project.id)}
+                        onSync={handleSyncProject}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {projects.length === 0 && (
+                  <div className="py-4 text-center text-sm text-muted-foreground">
+                    No projects yet
+                  </div>
+                )}
+
+                {/* Remove from project drop zone */}
+                <div
+                  {...removeProjectProps}
+                  className={cn(
+                    "mt-4 rounded-md border-2 border-dashed p-4 text-center",
+                    isOverRemove
+                      ? "border-destructive bg-destructive/10"
+                      : "border-muted hover:border-muted-foreground/50"
+                  )}
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Drop here to remove from project
+                  </p>
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+        </aside>
       </div>
 
       <ProjectModal
@@ -281,6 +326,7 @@ export function MobileProjectPicker() {
   const { projects, activeProject, setActiveProject } = useProjectStore();
   const { tasks } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const activeProjects = projects.filter(
     (project) => project.status === ProjectStatus.ACTIVE
   );
@@ -291,68 +337,82 @@ export function MobileProjectPicker() {
   return (
     <div className="mt-3 border-t border-black/[0.055] pt-3 md:hidden">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/40">
+        <button
+          type="button"
+          onClick={() => setIsExpanded((current) => !current)}
+          aria-expanded={isExpanded}
+          className="inline-flex items-center gap-1.5 rounded-lg py-1 pr-2 text-[10px] font-bold uppercase tracking-[0.12em] text-black/50"
+        >
+          {isExpanded ? (
+            <ChevronLeft className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
           Projects
-        </span>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-1 rounded-lg bg-[#64734a] px-2.5 py-1.5 text-[11px] font-semibold text-white"
-        >
-          <HiPlus className="h-3.5 w-3.5" /> New
         </button>
+        {isExpanded && (
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg bg-[#64734a] px-2.5 py-1.5 text-[11px] font-semibold text-white"
+          >
+            <HiPlus className="h-3.5 w-3.5" /> New
+          </button>
+        )}
       </div>
-      <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <button
-          type="button"
-          onClick={() => setActiveProject(null)}
-          className={cn(
-            "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
-            !activeProject
-              ? "border-[#64734a] bg-[#64734a] text-white"
-              : "border-black/10 bg-white/70 text-[#414530]"
-          )}
-        >
-          All tasks
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveProject(NO_PROJECT as Project)}
-          className={cn(
-            "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
-            activeProject?.id === NO_PROJECT.id
-              ? "border-[#64734a] bg-[#eef3df] text-[#414530] ring-1 ring-[#64734a]"
-              : "border-black/10 bg-white/70 text-[#414530]"
-          )}
-        >
-          No project · {unassignedTasksCount}
-        </button>
-        {activeProjects.map((project) => {
-          const tileColor = project.color || DEFAULT_PROJECT_COLOR;
-          const textColor = getReadableTextColor(tileColor);
-          const count = tasks.filter(
-            (task) =>
-              task.projectId === project.id &&
-              task.status !== TaskStatus.COMPLETED
-          ).length;
+      {isExpanded && (
+        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            type="button"
+            onClick={() => setActiveProject(null)}
+            className={cn(
+              "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
+              !activeProject
+                ? "border-[#64734a] bg-[#64734a] text-white"
+                : "border-black/10 bg-white/70 text-[#414530]"
+            )}
+          >
+            All tasks
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveProject(NO_PROJECT as Project)}
+            className={cn(
+              "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
+              activeProject?.id === NO_PROJECT.id
+                ? "border-[#64734a] bg-[#eef3df] text-[#414530] ring-1 ring-[#64734a]"
+                : "border-black/10 bg-white/70 text-[#414530]"
+            )}
+          >
+            No project · {unassignedTasksCount}
+          </button>
+          {activeProjects.map((project) => {
+            const tileColor = project.color || DEFAULT_PROJECT_COLOR;
+            const textColor = getReadableTextColor(tileColor);
+            const count = tasks.filter(
+              (task) =>
+                task.projectId === project.id &&
+                task.status !== TaskStatus.COMPLETED
+            ).length;
 
-          return (
-            <button
-              key={project.id}
-              type="button"
-              onClick={() => setActiveProject(project)}
-              className={cn(
-                "shrink-0 snap-start rounded-xl border border-black/10 px-3 py-2 text-xs font-semibold shadow-sm",
-                activeProject?.id === project.id &&
-                  "ring-2 ring-[#596741] ring-offset-2"
-              )}
-              style={{ backgroundColor: tileColor, color: textColor }}
-            >
-              {project.name} · {count}
-            </button>
-          );
-        })}
-      </div>
+            return (
+              <button
+                key={project.id}
+                type="button"
+                onClick={() => setActiveProject(project)}
+                className={cn(
+                  "shrink-0 snap-start rounded-xl border border-black/10 px-3 py-2 text-xs font-semibold shadow-sm",
+                  activeProject?.id === project.id &&
+                    "ring-2 ring-[#596741] ring-offset-2"
+                )}
+                style={{ backgroundColor: tileColor, color: textColor }}
+              >
+                {project.name} · {count}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <ProjectModal
         isOpen={isModalOpen}

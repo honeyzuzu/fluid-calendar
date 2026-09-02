@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
 
-import { Plus } from "lucide-react";
-import { HiMenu } from "react-icons/hi";
+import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 import { DayView } from "@/components/calendar/DayView";
@@ -51,8 +50,17 @@ export function Calendar({
   initialEvents = [],
 }: CalendarProps) {
   const { date: currentDate, setDate, view, setView } = useViewStore();
-  const { isSidebarOpen, setSidebarOpen, isHydrated } = useCalendarUIStore();
-  const { setFeeds, setEvents } = useCalendarStore();
+  const {
+    isSidebarOpen,
+    setSidebarOpen,
+    isHydrated,
+    requestFriendCalendarRefresh,
+  } = useCalendarUIStore();
+  const { feeds, setFeeds, setEvents, syncAllFeeds } = useCalendarStore();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const refreshInFlight = useRef(false);
+  const lastRefreshedAtRef = useRef<Date | null>(null);
   const handleAutoSchedule = useAutoSchedule();
   const eventModalStore = useEventModalStore();
 
@@ -75,10 +83,76 @@ export function Calendar({
     useTaskStore.getState().fetchTasks();
   }, [initialFeeds, initialEvents, setFeeds, setEvents]);
 
-  // The desktop week layout and open sidebar are too dense for a phone.
+  const latestFeedSync = useMemo(() => {
+    const timestamps = feeds
+      .map((feed) => (feed.lastSync ? newDate(feed.lastSync).getTime() : 0))
+      .filter(Boolean);
+    return timestamps.length ? new Date(Math.max(...timestamps)) : null;
+  }, [feeds]);
+
   useEffect(() => {
-    if (window.matchMedia("(max-width: 767px)").matches) {
+    if (latestFeedSync) {
+      lastRefreshedAtRef.current = latestFeedSync;
+      setLastRefreshedAt(latestFeedSync);
+    }
+  }, [latestFeedSync]);
+
+  const refreshCalendars = useCallback(async () => {
+    if (refreshInFlight.current || document.visibilityState === "hidden")
+      return;
+    refreshInFlight.current = true;
+    setIsRefreshing(true);
+    try {
+      await syncAllFeeds();
+      // Friend blocks are fetched directly from the server by every calendar
+      // view, so this revision refreshes them in the same pass as local feeds.
+      requestFriendCalendarRefresh();
+      const refreshedAt = new Date();
+      lastRefreshedAtRef.current = refreshedAt;
+      setLastRefreshedAt(refreshedAt);
+    } finally {
+      refreshInFlight.current = false;
+      setIsRefreshing(false);
+    }
+  }, [requestFriendCalendarRefresh, syncAllFeeds]);
+
+  useEffect(() => {
+    // Refresh shortly after opening Calendar, then every five minutes while
+    // the tab is visible. This keeps external API usage modest.
+    const initialRefresh = window.setTimeout(
+      () => void refreshCalendars(),
+      1200
+    );
+    const interval = window.setInterval(
+      () => void refreshCalendars(),
+      5 * 60_000
+    );
+    const handleFocus = () => {
+      if (
+        !lastRefreshedAtRef.current ||
+        Date.now() - lastRefreshedAtRef.current.getTime() >= 5 * 60_000
+      ) {
+        void refreshCalendars();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.clearTimeout(initialRefresh);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [refreshCalendars]);
+
+  const refreshTitle = lastRefreshedAt
+    ? `Refresh calendars now. Last refreshed ${lastRefreshedAt.toLocaleString()}. Auto-refreshes every 5 minutes.`
+    : "Refresh calendars now. Auto-refreshes every 5 minutes.";
+
+  // Keep the calendar canvas usable before the layout reaches phone width.
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 1279px)").matches) {
       setSidebarOpen(false);
+    }
+    if (window.matchMedia("(max-width: 767px)").matches) {
       if (view === "week" || view === "multiMonth") {
         setView("day");
       }
@@ -125,14 +199,23 @@ export function Calendar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-[#dfe2c8] bg-[#fffdf5] shadow-2xl md:relative md:inset-auto md:z-auto md:w-80 md:shadow-none",
+          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-[#dfe2c8] bg-[#fffdf5] shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
           "transform transition-transform duration-300 ease-in-out",
           !isHydrated && "opacity-0 duration-0",
           isSidebarOpen
-            ? "translate-x-0 md:ml-0"
-            : "-translate-x-full md:-ml-80"
+            ? "translate-x-0 xl:ml-0"
+            : "-translate-x-full xl:-ml-80"
         )}
       >
+        <button
+          type="button"
+          aria-label="Close calendar sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="absolute -right-4 top-4 z-[60] grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md transition hover:bg-[#eef3df]"
+          title="Close calendar sidebar"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
         <div className="flex h-full flex-col">
           {/* Feed Manager */}
           <div className="flex-1 overflow-y-auto">
@@ -149,7 +232,7 @@ export function Calendar({
           type="button"
           aria-label="Close calendar sidebar"
           onClick={() => setSidebarOpen(false)}
-          className="absolute inset-0 z-40 bg-[#3f432e]/25 backdrop-blur-[1px] md:hidden"
+          className="absolute inset-0 z-40 bg-[#3f432e]/25 backdrop-blur-[1px] xl:hidden"
         />
       )}
 
@@ -160,13 +243,16 @@ export function Calendar({
         {/* Header */}
         <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:h-16 md:flex-row md:items-center md:gap-0 md:px-4">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
-            <button
-              onClick={() => setSidebarOpen(!isSidebarOpen)}
-              className="shrink-0 rounded-lg p-2 text-foreground hover:bg-muted"
-              title="Toggle Sidebar (b)"
-            >
-              <HiMenu className="h-5 w-5" />
-            </button>
+            {!isSidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-sm transition hover:bg-[#eef3df]"
+                title="Open calendar sidebar (b)"
+                aria-label="Open calendar sidebar"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
 
             <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
               {formatDate(currentDate)}
@@ -242,6 +328,18 @@ export function Calendar({
 
           {/* View Switching Buttons */}
           <div className="flex w-full shrink-0 items-center justify-between gap-1 md:ml-auto md:w-auto md:justify-start md:gap-2">
+            <button
+              type="button"
+              onClick={() => void refreshCalendars()}
+              disabled={isRefreshing}
+              aria-label={refreshTitle}
+              title={refreshTitle}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] transition hover:bg-[#eef3df] disabled:opacity-55"
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+              />
+            </button>
             <button
               onClick={handleAddEvent}
               data-testid="add-event-button"

@@ -20,8 +20,9 @@ import {
 import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
+import { getFriendCalendarItems } from "@/lib/friend-calendar";
 
-import { useCalendarStore } from "@/store/calendar";
+import { useCalendarStore, useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
 import { useTaskStore } from "@/store/task";
 
@@ -41,6 +42,10 @@ interface MonthViewProps {
 export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const { feeds, getAllCalendarItems, isLoading, removeEvent } =
     useCalendarStore();
+  const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
+  const friendRefreshRevision = useCalendarUIStore(
+    (state) => state.friendRefreshRevision
+  );
   const { user: userSettings } = useSettingsStore();
   const { updateTask } = useTaskStore();
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent>>();
@@ -79,6 +84,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
       const items = getAllCalendarItems(arg.start, arg.end);
+      const friendItems = await getFriendCalendarItems(arg.start, arg.end);
       const formattedItems = items
         .filter((item) => {
           if (item.feedId === "tasks") return true;
@@ -125,9 +131,14 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
           },
         }));
 
-      setEvents(formattedItems);
+      setEvents([
+        ...formattedItems,
+        ...friendItems.filter(
+          (item) => !hiddenFriendIds.includes(item.extendedProps.friendId || "")
+        ),
+      ]);
     },
-    [feeds, getAllCalendarItems]
+    [feeds, getAllCalendarItems, hiddenFriendIds]
   );
 
   // Initial data load
@@ -151,7 +162,14 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         view: calendar.view,
       });
     }
-  }, [isLoading, feeds, userSettings.timeZone, handleDatesSet, tasks]);
+  }, [
+    isLoading,
+    feeds,
+    friendRefreshRevision,
+    userSettings.timeZone,
+    handleDatesSet,
+    tasks,
+  ]);
 
   // Update calendar date when currentDate changes
   useEffect(() => {
@@ -167,6 +185,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
 
   const handleEventClick = (info: EventClickArg) => {
     const item = info.event.extendedProps;
+    if (item.isFriendEvent) return;
     const itemId = info.event.id;
     const isTask = item.isTask;
 

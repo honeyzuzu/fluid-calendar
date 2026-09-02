@@ -57,17 +57,6 @@ type DailyPlanRecord = {
   completedAt: string | null;
 };
 
-type FriendBlock = {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay: boolean;
-  owner: string;
-  color: string;
-  source: "calendar" | "focus";
-};
-
 function isSameLocalDay(value: string | null, selectedDate: Date) {
   if (!value) return false;
   const date = new Date(value);
@@ -115,7 +104,6 @@ export default function PlanPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
-  const [friendBlocks, setFriendBlocks] = useState<FriendBlock[]>([]);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
   const [intention, setIntention] = useState("");
   const [editingIntention, setEditingIntention] = useState(true);
@@ -141,10 +129,7 @@ export default function PlanPage() {
     setLoading(true);
     setError(null);
     try {
-      const rangeStart = new Date(`${selectedKey}T00:00:00`);
-      const rangeEnd = new Date(rangeStart);
-      rangeEnd.setDate(rangeEnd.getDate() + 1);
-      const [taskData, eventData, planData, sharedData] = await Promise.all([
+      const [taskData, eventData, planData] = await Promise.all([
         fetch("/api/tasks").then((response) =>
           expectJson<TaskRecord[]>(response)
         ),
@@ -154,13 +139,9 @@ export default function PlanPage() {
         fetch(`/api/daily-plan?date=${selectedKey}`).then((response) =>
           expectJson<DailyPlanRecord | null>(response)
         ),
-        fetch(
-          `/api/friends/events?start=${encodeURIComponent(rangeStart.toISOString())}&end=${encodeURIComponent(rangeEnd.toISOString())}`
-        ).then((response) => expectJson<FriendBlock[]>(response)),
       ]);
       setTasks(taskData);
       setEvents(eventData);
-      setFriendBlocks(sharedData);
       setPlan(planData);
       setIntention(planData?.intention ?? "");
       setEditingIntention(!planData?.intention?.trim());
@@ -857,14 +838,6 @@ export default function PlanPage() {
                         type: "Focus block",
                         color: "#ffd8ca",
                       })),
-                    ...friendBlocks.map((block) => ({
-                      id: `friend-${block.id}`,
-                      title: block.title,
-                      start: block.start,
-                      end: block.end,
-                      type: `${block.owner} · ${block.source === "focus" ? "Focus block" : "Calendar"}`,
-                      color: block.color,
-                    })),
                   ]
                     .sort(
                       (a, b) =>
@@ -892,14 +865,12 @@ export default function PlanPage() {
                       </article>
                     ))}
                   {dayEvents.length === 0 &&
-                    friendBlocks.length === 0 &&
                     !todayTasks.some((task) => task.scheduledStart) && (
                       <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-black/10 text-center">
                         <div>
                           <CalendarDays className="mx-auto h-6 w-6 text-black/20" />
                           <p className="mt-2 text-sm text-black/40">
-                            Your events, focus blocks, and friends&apos; shared
-                            time will appear here.
+                            Your events and focus blocks will appear here.
                           </p>
                         </div>
                       </div>

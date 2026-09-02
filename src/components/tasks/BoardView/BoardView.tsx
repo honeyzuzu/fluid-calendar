@@ -81,8 +81,8 @@ export function BoardView({ tasks, onEdit, onDelete }: BoardViewProps) {
   }, [filteredTasks]);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/70 p-2 shadow-sm sm:p-4">
-      <div className="flex flex-1 snap-x snap-mandatory gap-3 overflow-auto sm:gap-4 lg:justify-center">
+    <div className="flex h-full min-w-0 flex-col rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/70 p-2 shadow-sm sm:p-4">
+      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto sm:gap-4 md:grid-cols-3 md:overflow-y-hidden">
         {Object.values(TaskStatus).map((status) => (
           <Column
             key={status}

@@ -2,6 +2,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   Circle,
   Folder,
   GripVertical,
@@ -74,7 +75,10 @@ export default function TasksPreviewPage() {
       data-discord-preview-ready
       className="flex min-h-screen bg-[#fff9e8] text-[#414530]"
     >
-      <aside className="hidden w-56 shrink-0 border-r border-[#dfe2c8] bg-[#fffdf5] p-4 lg:block">
+      <aside className="relative hidden w-56 shrink-0 border-r border-[#dfe2c8] bg-[#fffdf5] p-4 lg:block">
+        <span className="absolute -right-4 top-5 grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-md">
+          <ChevronLeft className="h-5 w-5" />
+        </span>
         <div className="flex items-center gap-2.5 text-lg font-bold">
           <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f4c85b] shadow-[0_3px_0_#d99e33]">
             <Sun className="h-5 w-5" />

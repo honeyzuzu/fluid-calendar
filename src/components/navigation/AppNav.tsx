@@ -98,12 +98,12 @@ export function AppNav({ className }: AppNavProps) {
                 )}
               >
                 <SunnieSun className="h-9 w-9" />
-                <span className="text-sm font-semibold tracking-tight md:hidden xl:inline">
+                <span className="hidden text-sm font-semibold tracking-tight sm:inline lg:hidden xl:inline">
                   Sunnie
                   <span className="hidden xl:inline"> Planner</span>
                 </span>
               </Link>
-              <div className="hidden items-center gap-1 md:flex xl:gap-3">
+              <div className="hidden items-center gap-1 lg:flex xl:gap-3">
                 {links.map((link) => {
                   const Icon = link.icon;
                   const isActive = pathname === link.href;
@@ -129,7 +129,7 @@ export function AppNav({ className }: AppNavProps) {
                             />
                           )}
                       </span>
-                      <span className="hidden lg:inline">{link.label}</span>
+                      <span className="hidden xl:inline">{link.label}</span>
                     </Link>
                   );
                 })}
@@ -165,7 +165,7 @@ export function AppNav({ className }: AppNavProps) {
       </nav>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
       >
         {links.map((link) => {
           const Icon = link.icon;

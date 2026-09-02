@@ -21,7 +21,12 @@ type FriendConnection = {
   id: string;
   status: "PENDING" | "ACCEPTED";
   direction: "incoming" | "outgoing";
-  friend: { id: string; name: string | null; email: string | null };
+  friend: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    online: boolean;
+  };
   myVisibility: Visibility;
   theirVisibility: Visibility;
 };
@@ -48,8 +53,8 @@ export default function FriendsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       setConnections(
         await fetch("/api/friends").then((response) =>
@@ -62,12 +67,19 @@ export default function FriendsPage() {
         caught instanceof Error ? caught.message : "Unable to load friends"
       );
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void load();
+    const interval = window.setInterval(() => void load(false), 60_000);
+    const handleFocus = () => void load(false);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [load]);
 
   const accepted = useMemo(
@@ -234,9 +246,24 @@ export default function FriendsPage() {
                           .toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">
-                          {connection.friend.name || connection.friend.email}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_3px_#e5f0d7]" : "bg-[#c4c3b9]"}`}
+                            title={
+                              connection.friend.online
+                                ? "Online now"
+                                : "Offline"
+                            }
+                            aria-label={
+                              connection.friend.online
+                                ? "Online now"
+                                : "Offline"
+                            }
+                          />
+                          <p className="truncate text-sm font-semibold">
+                            {connection.friend.name || connection.friend.email}
+                          </p>
+                        </div>
                         {connection.friend.name && (
                           <p className="truncate text-xs text-black/40">
                             {connection.friend.email}

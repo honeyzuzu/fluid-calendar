@@ -1,5 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import Link from "next/link";
+
+import { UsersRound } from "lucide-react";
 import { BsArrowRepeat, BsGoogle, BsMicrosoft, BsTrash } from "react-icons/bs";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,20 +12,57 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+import { newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
-import { useCalendarStore } from "@/store/calendar";
-import { useViewStore } from "@/store/calendar";
+import {
+  useCalendarStore,
+  useCalendarUIStore,
+  useViewStore,
+} from "@/store/calendar";
 
 import { MiniCalendar } from "./MiniCalendar";
 import { SunnieColorPicker } from "./SunnieColorPicker";
 
+type FriendShare = {
+  id: string;
+  status: "PENDING" | "ACCEPTED";
+  friend: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    online: boolean;
+  };
+  theirVisibility: "NONE" | "BUSY_ONLY" | "DETAILS";
+};
+
 export function FeedManager() {
   const [syncingFeeds, setSyncingFeeds] = useState<Set<string>>(new Set());
   const [colorFeedId, setColorFeedId] = useState<string | null>(null);
+  const [friendShares, setFriendShares] = useState<FriendShare[]>([]);
   const { feeds, removeFeed, toggleFeed, updateFeed, syncFeed } =
     useCalendarStore();
   const { date: currentDate, setDate } = useViewStore();
+  const { hiddenFriendIds, toggleFriendCalendar, friendRefreshRevision } =
+    useCalendarUIStore();
+
+  useEffect(() => {
+    const loadFriendShares = () => {
+      fetch("/api/friends", { cache: "no-store" })
+        .then((response) => (response.ok ? response.json() : []))
+        .then((items: FriendShare[]) =>
+          setFriendShares(items.filter((item) => item.status === "ACCEPTED"))
+        )
+        .catch(() => undefined);
+    };
+    loadFriendShares();
+    const interval = window.setInterval(loadFriendShares, 60_000);
+    window.addEventListener("focus", loadFriendShares);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadFriendShares);
+    };
+  }, [friendRefreshRevision]);
 
   const handleRemoveFeed = useCallback(
     async (feedId: string) => {
@@ -74,9 +114,7 @@ export function FeedManager() {
                 />
                 <Popover
                   open={colorFeedId === feed.id}
-                  onOpenChange={(open) =>
-                    setColorFeedId(open ? feed.id : null)
-                  }
+                  onOpenChange={(open) => setColorFeedId(open ? feed.id : null)}
                 >
                   <PopoverTrigger asChild>
                     <button
@@ -107,16 +145,24 @@ export function FeedManager() {
                   {feed.name}
                 </span>
                 {feed.type === "GOOGLE" && (
-                  <BsGoogle className="h-4 w-4 flex-shrink-0 text-muted-foreground" title={feed.url} />
+                  <BsGoogle
+                    className="h-4 w-4 flex-shrink-0 text-muted-foreground"
+                    title={feed.url}
+                  />
                 )}
                 {feed.type === "OUTLOOK" && (
-                  <BsMicrosoft className="h-4 w-4 flex-shrink-0 text-muted-foreground" title={feed.url} />
+                  <BsMicrosoft
+                    className="h-4 w-4 flex-shrink-0 text-muted-foreground"
+                    title={feed.url}
+                  />
                 )}
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleSyncFeed(feed.id)}
                   disabled={syncingFeeds.has(feed.id)}
+                  title={`Refresh ${feed.name}. ${feed.lastSync ? `Last refreshed ${newDate(feed.lastSync).toLocaleString()}.` : "Not refreshed yet."}`}
+                  aria-label={`Refresh ${feed.name}`}
                   className={cn(
                     "rounded-full p-1.5 text-muted-foreground hover:text-foreground",
                     "hover:bg-muted/50 focus:outline-none focus:ring-2",
@@ -145,6 +191,74 @@ export function FeedManager() {
               No calendars added yet
             </p>
           )}
+        </div>
+
+        <div className="border-t border-[#e4e0cc] pt-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="flex items-center gap-2 font-medium text-foreground">
+              <UsersRound className="h-4 w-4 text-[#8069a7]" /> Friends&apos;
+              shared time
+            </h3>
+            <Link
+              href="/friends"
+              className="text-xs font-semibold text-[#687b4c] hover:underline"
+            >
+              Manage
+            </Link>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Use each checkbox like a calendar. Their sharing choice decides
+            whether enabled blocks say “Busy,” show details, or stay hidden.
+          </p>
+          <div className="mt-3 space-y-1.5">
+            {friendShares.map((connection) => (
+              <div
+                key={connection.id}
+                className="flex items-center gap-2 rounded-xl bg-[#f2edf8] px-3 py-2"
+              >
+                <Checkbox
+                  checked={
+                    connection.theirVisibility !== "NONE" &&
+                    !hiddenFriendIds.includes(connection.friend.id)
+                  }
+                  disabled={connection.theirVisibility === "NONE"}
+                  onCheckedChange={() =>
+                    toggleFriendCalendar(connection.friend.id)
+                  }
+                  aria-label={`Show ${connection.friend.name || connection.friend.email || "friend"}'s shared calendar`}
+                  className="h-4 w-4"
+                />
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_3px_#e5f0d7]" : "bg-[#aaa5b0]"}`}
+                  title={connection.friend.online ? "Online now" : "Offline"}
+                  aria-label={
+                    connection.friend.online ? "Online now" : "Offline"
+                  }
+                />
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-[#534763]">
+                  {connection.friend.name ||
+                    connection.friend.email ||
+                    "Friend"}
+                </span>
+                <span className="text-[10px] font-semibold text-[#786a88]">
+                  {connection.theirVisibility === "NONE"
+                    ? "Not shared"
+                    : hiddenFriendIds.includes(connection.friend.id)
+                      ? "Hidden here"
+                      : connection.theirVisibility === "DETAILS"
+                        ? "Details"
+                        : connection.theirVisibility === "BUSY_ONLY"
+                          ? "Busy only"
+                          : "Not shared"}
+                </span>
+              </div>
+            ))}
+            {!friendShares.length && (
+              <p className="rounded-xl border border-dashed border-black/10 px-3 py-3 text-center text-xs text-muted-foreground">
+                No accepted friends are sharing yet.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

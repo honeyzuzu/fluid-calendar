@@ -2,9 +2,9 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Menu,
   Palette,
   Plus,
+  RefreshCw,
   Sun,
   Trash2,
 } from "lucide-react";
@@ -62,7 +62,9 @@ export default function CalendarEventPreviewPage() {
 
       <section className="flex h-[calc(100vh-4rem)] min-w-[780px] flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-[#dce5c8] bg-white/60 px-5">
-          <Menu className="h-5 w-5" />
+          <span className="grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] shadow-sm">
+            <ChevronRight className="h-5 w-5" />
+          </span>
           <button className="rounded-lg bg-white/80 px-3 py-2 text-sm shadow-sm">
             Today
           </button>
@@ -70,6 +72,12 @@ export default function CalendarEventPreviewPage() {
           <ChevronRight className="h-4 w-4" />
           <h1 className="text-xl font-semibold">August 31 – September 4</h1>
           <div className="ml-auto flex items-center gap-2">
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848]"
+              title="Last refreshed September 1 at 10:42 AM. Auto-refreshes every 5 minutes."
+            >
+              <RefreshCw className="h-4 w-4" />
+            </span>
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#64734a] px-3 py-2 text-sm font-semibold text-white shadow-[0_2px_0_#465331]">
               <Plus className="h-4 w-4" /> Add event
             </span>
