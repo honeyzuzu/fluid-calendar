@@ -1,21 +1,17 @@
 import { AutoScheduleSettings } from "@prisma/client";
 import { Task } from "@prisma/client";
 
-import { parseSelectedCalendars, parseWorkDays } from "@/lib/autoSchedule";
+import { parseSelectedCalendars } from "@/lib/autoSchedule";
 import {
-  addDays,
   addMinutes,
   areIntervalsOverlapping,
-  differenceInHours,
-  fromZonedTime,
-  getDay,
-  newDate,
-  roundDateUp,
-  setHours,
-  setMinutes,
   toZonedTime,
 } from "@/lib/date-utils";
 import { prisma } from "@/lib/prisma";
+import {
+  generateCandidateIntervals,
+  isWithinWorkingHours,
+} from "@/lib/scheduling-windows";
 import { type SleepWindow, overlapsSleepHours } from "@/lib/sleep-hours";
 
 import { useSettingsStore } from "@/store/settings";
@@ -52,6 +48,8 @@ export interface TimeSlotManager {
 export class TimeSlotManagerImpl implements TimeSlotManager {
   private slotScorer: SlotScorer;
   private timeZone: string;
+  private scheduledTasksLoaded = false;
+  private scheduledTasksLoadPromise?: Promise<void>;
 
   constructor(
     private settings: AutoScheduleSettings,
@@ -59,10 +57,10 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     timeZone?: string,
     private sleepWindow?: SleepWindow
   ) {
-    this.slotScorer = new SlotScorer(settings);
     // On the server the settings store holds no user state, so callers
     // should pass the user's timezone explicitly (e.g. from UserSettings).
     this.timeZone = timeZone || useSettingsStore.getState().user.timeZone;
+    this.slotScorer = new SlotScorer(settings, new Map(), this.timeZone);
   }
 
   async updateScheduledTasks(userId: string): Promise<void> {
@@ -82,6 +80,19 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
 
     // Update the slot scorer with the latest scheduled tasks
     this.slotScorer.updateScheduledTasks(scheduledTasks);
+    this.scheduledTasksLoaded = true;
+  }
+
+  private async ensureScheduledTasksLoaded(userId: string) {
+    if (this.scheduledTasksLoaded) return;
+    if (!this.scheduledTasksLoadPromise) {
+      this.scheduledTasksLoadPromise = this.updateScheduledTasks(
+        userId
+      ).finally(() => {
+        this.scheduledTasksLoadPromise = undefined;
+      });
+    }
+    await this.scheduledTasksLoadPromise;
   }
 
   async findAvailableSlots(
@@ -93,9 +104,7 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     // Only load scheduled tasks from the database on the first call
     // For subsequent calls, we'll use the in-memory scheduled tasks
     // that have been updated by addScheduledTaskConflict
-    if (this.slotScorer.getScheduledTasks().size === 0) {
-      await this.updateScheduledTasks(userId);
-    }
+    await this.ensureScheduledTasksLoaded(userId);
 
     // If task has a startDate that is beyond our endDate window, return empty slots
     // These tasks will get picked up in a future scheduling run
@@ -123,13 +132,10 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     // 3. Check calendar conflicts
     const availableSlots = await this.removeConflicts(workHourSlots, task);
 
-    // 4. Apply buffer times
-    const slotsWithBuffer = this.applyBufferTimes(availableSlots);
+    // 4. Score slots (conflict checks already include the configured buffer)
+    const scoredSlots = this.scoreSlots(availableSlots, task);
 
-    // 5. Score slots
-    const scoredSlots = this.scoreSlots(slotsWithBuffer, task);
-
-    // 6. Sort by score
+    // 5. Sort by score
     const sortedSlots = this.sortByScore(scoredSlots);
 
     return sortedSlots;
@@ -202,19 +208,9 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
   /**
    * Generates potential time slots for task scheduling.
    *
-   * For the first day (today):
-   * 1. Starts at the later of:
-   *    - Current time + minimum buffer (15 min), rounded up to next 30-min interval
-   *    - Work hours start time
-   * 2. If the calculated start time is past work hours, moves to next day
-   *
-   * For future days:
-   * - Starts at work hours start time
-   *
-   * All days:
-   * - Generates slots at 30-minute intervals
-   * - Each slot has the specified duration
-   * - Continues until reaching the end date
+   * Starts no earlier than the requested window or 15 minutes from now,
+   * rounds to a 30-minute grid, and never lets a task extend past the window.
+   * Workday, work-hour, sleep, and conflict filtering happen afterward.
    *
    * @param duration - Duration of the task in minutes
    * @param startDate - UTC date to start generating slots from
@@ -226,65 +222,25 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     startDate: Date,
     endDate: Date
   ): TimeSlot[] {
-    const slots: TimeSlot[] = [];
     const MINIMUM_BUFFER_MINUTES = 15;
 
-    // Convert start and end dates to local time zone
-    const localStartDate = toZonedTime(startDate, this.timeZone);
-    let localEndDate = toZonedTime(endDate, this.timeZone);
-    const localNow = toZonedTime(newDate(), this.timeZone);
-
-    // For the first day, start at the later of:
-    // 1. Current time + buffer
-    // 2. Work hours start
-    let localCurrentStart = localStartDate;
-
-    // If it's today, handle current time
-    if (localStartDate.toDateString() === localNow.toDateString()) {
-      //question: should we check buffer using the start or the end?
-      // Add minimum buffer to current time
-      localCurrentStart = addMinutes(localCurrentStart, MINIMUM_BUFFER_MINUTES);
-
-      // If this pushes us past work hours, move to next day at work start
-      if (localCurrentStart.getHours() >= this.settings.workHourEnd) {
-        localCurrentStart = addDays(
-          setMinutes(
-            setHours(localCurrentStart, this.settings.workHourStart),
-            0
-          ),
-          1
-        );
-      }
-    } else {
-      // For future days, start exactly at work hours start time
-      localCurrentStart = setMinutes(
-        setHours(localCurrentStart, this.settings.workHourStart),
-        0
-      );
-    }
-
-    localCurrentStart = roundDateUp(localCurrentStart);
-    localEndDate = roundDateUp(localEndDate);
-    // Generate slots advancing by task duration
-    while (localCurrentStart < localEndDate) {
-      const slotEnd = addMinutes(localCurrentStart, duration);
-      // localCurrentStart/slotEnd hold wall-clock values in the user's
-      // timezone; convert back to real UTC instants before storing
-      const slot: TimeSlot = {
-        start: fromZonedTime(localCurrentStart, this.timeZone),
-        end: fromZonedTime(slotEnd, this.timeZone),
+    return generateCandidateIntervals({
+      durationMinutes: duration,
+      startDate,
+      endDate,
+      timeZone: this.timeZone,
+      minimumLeadMinutes: MINIMUM_BUFFER_MINUTES,
+    }).map(
+      (interval): TimeSlot => ({
+        start: interval.start,
+        end: interval.end,
         score: 0,
         conflicts: [],
         energyLevel: null,
         isWithinWorkHours: false,
         hasBufferTime: false,
-      };
-
-      slots.push(slot);
-      localCurrentStart = addMinutes(localCurrentStart, duration);
-    }
-
-    return slots;
+      })
+    );
   }
 
   private filterByWorkHours(slots: TimeSlot[]): TimeSlot[] {
@@ -293,19 +249,8 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
       const localStart = toZonedTime(slot.start, this.timeZone);
       const localEnd = toZonedTime(slot.end, this.timeZone);
 
-      const startHour = localStart.getHours();
-      const endHour = localEnd.getHours();
-      const dayOfWeek = localStart.getDay();
-
-      const workDays = parseWorkDays(this.settings.workDays);
-      const isWorkDay = workDays.includes(dayOfWeek);
-      const isWithinWorkHours =
-        startHour >= this.settings.workHourStart &&
-        endHour <= this.settings.workHourEnd &&
-        startHour < this.settings.workHourEnd; // Ensure start is before work hours end
       const result =
-        isWorkDay &&
-        isWithinWorkHours &&
+        isWithinWorkingHours(localStart, localEnd, this.settings) &&
         !overlapsSleepHours(localStart, localEnd, this.sleepWindow);
       if (result) {
         slot.isWithinWorkHours = true;
@@ -320,25 +265,10 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     const localStart = toZonedTime(slot.start, this.timeZone);
     const localEnd = toZonedTime(slot.end, this.timeZone);
 
-    const workDays = parseWorkDays(this.settings.workDays);
-    const slotDay = getDay(localStart);
-
-    if (!workDays.includes(slotDay)) {
-      return false;
-    }
-
     if (overlapsSleepHours(localStart, localEnd, this.sleepWindow)) {
       return false;
     }
-
-    const startHour = localStart.getHours();
-    const endHour = localEnd.getHours();
-
-    return (
-      startHour >= this.settings.workHourStart &&
-      endHour <= this.settings.workHourEnd &&
-      startHour < this.settings.workHourEnd
-    );
+    return isWithinWorkingHours(localStart, localEnd, this.settings);
   }
 
   private async findCalendarConflicts(
@@ -385,8 +315,13 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     );
 
     // Prepare slots for batch checking
+    const bufferMinutes = Math.max(0, this.settings.bufferMinutes);
     const slotsToCheck = slots.map((slot) => ({
-      slot,
+      slot: {
+        ...slot,
+        start: addMinutes(slot.start, -bufferMinutes),
+        end: addMinutes(slot.end, bufferMinutes),
+      },
       taskId: task.id,
     }));
 
@@ -399,7 +334,7 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     );
 
     // Process results and check for conflicts with in-memory scheduled tasks
-    for (const result of batchResults) {
+    for (const [index, result] of batchResults.entries()) {
       // Add null check to prevent "Cannot read properties of undefined (reading 'slot')"
       if (!result || !result.slot) {
         continue;
@@ -408,7 +343,9 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
       if (result.conflicts.length === 0) {
         // Check for conflicts with in-memory scheduled tasks
         if (!this.hasInMemoryConflict(result.slot)) {
-          availableSlots.push(result.slot);
+          const originalSlot = slots[index];
+          originalSlot.hasBufferTime = true;
+          availableSlots.push(originalSlot);
         }
       } else {
         result.slot.conflicts = result.conflicts;
@@ -416,33 +353,6 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     }
 
     return availableSlots;
-  }
-
-  // TODO: Buffer time implementation needs improvement:
-  // 1. Currently only checks if buffers fit within work hours but doesn't prevent scheduling in buffer times
-  // 2. Should check for conflicts during buffer periods
-  // 3. Consider adjusting slot times to include the buffers
-  // 4. Could factor buffer availability into slot scoring
-  private applyBufferTimes(slots: TimeSlot[]): TimeSlot[] {
-    return slots.map((slot) => {
-      const { beforeBuffer, afterBuffer } = this.calculateBufferTimes(slot);
-      // Only mark as having buffer time if both buffers are within work hours
-      slot.hasBufferTime =
-        beforeBuffer.isWithinWorkHours && afterBuffer.isWithinWorkHours;
-      return slot;
-    });
-  }
-
-  private scoreSlot(slot: TimeSlot): number {
-    const score = this.calculateBaseScore(slot);
-    return score;
-  }
-
-  private calculateBaseScore(slot: TimeSlot): number {
-    // Prefer earlier slots
-    const now = newDate();
-    const hoursSinceNow = differenceInHours(slot.start, now);
-    return -hoursSinceNow; // Higher score for earlier slots
   }
 
   private scoreSlots(slots: TimeSlot[], task: Task): TimeSlot[] {

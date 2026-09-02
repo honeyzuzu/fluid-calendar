@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { repushDirtyBlocks } from "@/lib/task-block-push";
 
 const LOG_SOURCE = "task-schedule-route";
+const MAX_SCHEDULING_WINDOW_MS = 8 * 24 * 60 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +31,10 @@ export async function POST(request: NextRequest) {
       (rangeStart && Number.isNaN(rangeStart.getTime())) ||
       (rangeEnd && Number.isNaN(rangeEnd.getTime())) ||
       ((rangeStart || rangeEnd) && !(rangeStart && rangeEnd)) ||
-      (rangeStart && rangeEnd && rangeEnd <= rangeStart)
+      (rangeStart &&
+        rangeEnd &&
+        (rangeEnd <= rangeStart ||
+          rangeEnd.getTime() - rangeStart.getTime() > MAX_SCHEDULING_WINDOW_MS))
     ) {
       return NextResponse.json(
         { error: "Invalid scheduling window" },

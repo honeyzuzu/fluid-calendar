@@ -231,7 +231,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
 - `Schedule week` schedules the weekly pool inside the selected Monday-Sunday window.
 - The older shared Tasks/Calendar auto-schedule control still schedules all eligible tasks across a rolling seven-day window.
-- Auto-scheduling respects existing calendar conflicts, work hours, duration, priority, energy, preferred time, buffers, and locked schedules.
+- Auto-scheduling respects selected working days and keeps the full task interval inside the user's local working hours. It also respects sleep hours, selected-calendar conflicts, task duration, priority, energy, preferred time, real buffer gaps, and locked schedules. Candidate starts use a stable 30-minute grid, and day/week requests cannot spill beyond their requested window.
+- Placement scores remain internal scheduling data. Confidence/score percentages are intentionally not shown on mobile cards, task rows, task modals, or calendar task details.
 - Empty auto-schedule actions show clear guidance and the controls have explanatory hover content.
 
 ### Calendar and colors

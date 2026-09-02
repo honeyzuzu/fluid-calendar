@@ -324,12 +324,6 @@ export function EventQuickView({
                           {format(newDate(taskItem.scheduledStart), "PPp")} -{" "}
                           {format(newDate(taskItem.scheduledEnd), "p")}
                         </div>
-                        {taskItem.scheduleScore !== undefined && (
-                          <div className="text-xs text-muted-foreground">
-                            Confidence:{" "}
-                            {Math.round((taskItem.scheduleScore ?? 0) * 100)}%
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

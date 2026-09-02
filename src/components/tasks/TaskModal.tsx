@@ -392,8 +392,8 @@ export function TaskModal({
                 <Label>Auto-Schedule</Label>
                 <p className="text-sm text-muted-foreground">
                   On by default. Turn this off to keep the task out of
-                  Auto-schedule; otherwise Sunnie will look for free time in
-                  the next 7 days.
+                  Auto-schedule; otherwise Sunnie will look for free time in the
+                  next 7 days.
                 </p>
               </div>
               <Switch
@@ -424,11 +424,6 @@ export function TaskModal({
                       {format(newDate(task.scheduledStart), "PPp")} to{" "}
                       {format(newDate(task.scheduledEnd), "p")}
                     </div>
-                    {task.scheduleScore && (
-                      <div className="mt-1 text-sm text-primary/70">
-                        Confidence: {Math.round(task.scheduleScore * 100)}%
-                      </div>
-                    )}
                   </div>
                 )}
               </>

@@ -19,8 +19,9 @@ export function AutoScheduleTooltip({
       )}
     >
       New tasks join Auto-schedule automatically. Turn it off inside a task to
-      opt that task out. Sunnie avoids conflicts, respects your working hours,
-      and uses duration, priority, energy, and preferred time to choose a spot.
+      opt that task out. Sunnie avoids conflicts, stays inside your working
+      hours, and uses duration, priority, energy, and preferred time to choose a
+      spot.
     </div>
   );
 }

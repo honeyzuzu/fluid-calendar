@@ -248,11 +248,6 @@ export function TaskRow({
                 <span className="text-sm text-primary">
                   {format(newDate(task.scheduledStart), "MMM d, p")} -{" "}
                   {format(newDate(task.scheduledEnd), "p")}
-                  {task.scheduleScore && (
-                    <span className="ml-1 text-primary/70">
-                      ({Math.round(task.scheduleScore * 100)}%)
-                    </span>
-                  )}
                 </span>
               )}
             </div>

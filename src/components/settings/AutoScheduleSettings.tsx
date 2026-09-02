@@ -47,6 +47,12 @@ export function AutoScheduleSettings() {
     value: i,
     label: formatTime(i, user.timeFormat),
   }));
+  const workStartOptions = timeOptions.filter(
+    (time) => time.value < autoSchedule.workHourEnd
+  );
+  const workEndOptions = timeOptions.filter(
+    (time) => time.value > autoSchedule.workHourStart
+  );
 
   const selectedCalendars = parseSelectedCalendars(
     autoSchedule.selectedCalendars
@@ -95,7 +101,7 @@ export function AutoScheduleSettings() {
 
       <SettingRow
         label="Working Hours"
-        description="Set your preferred working hours for task scheduling"
+        description="Auto-scheduled tasks will stay completely inside these hours on your selected working days"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -113,7 +119,7 @@ export function AutoScheduleSettings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeOptions.map((time) => (
+                  {workStartOptions.map((time) => (
                     <SelectItem key={time.value} value={time.value.toString()}>
                       {time.label}
                     </SelectItem>
@@ -135,7 +141,7 @@ export function AutoScheduleSettings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeOptions.map((time) => (
+                  {workEndOptions.map((time) => (
                     <SelectItem key={time.value} value={time.value.toString()}>
                       {time.label}
                     </SelectItem>
@@ -384,7 +390,9 @@ export function AutoScheduleSettings() {
                         <div className="flex items-center gap-2">
                           <span
                             className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: feed.color || "var(--muted)" }}
+                            style={{
+                              backgroundColor: feed.color || "var(--muted)",
+                            }}
                           />
                           {feed.name}
                         </div>
@@ -394,7 +402,8 @@ export function AutoScheduleSettings() {
               </Select>
               {feeds.filter((feed) => feed.type === "GOOGLE").length === 0 && (
                 <div className="text-sm text-muted-foreground mt-2">
-                  No Google calendars found. Please connect a Google account in Calendar Settings.
+                  No Google calendars found. Please connect a Google account in
+                  Calendar Settings.
                 </div>
               )}
             </div>

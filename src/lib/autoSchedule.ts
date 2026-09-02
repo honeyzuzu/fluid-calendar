@@ -2,7 +2,11 @@ import { AutoScheduleSettings, TimeFormat } from "@/types/settings";
 
 export function parseWorkDays(workDays: string): number[] {
   try {
-    return JSON.parse(workDays);
+    const parsed: unknown = JSON.parse(workDays);
+    if (!Array.isArray(parsed)) return [];
+    return [...new Set(parsed)].filter(
+      (day): day is number => Number.isInteger(day) && day >= 0 && day <= 6
+    );
   } catch {
     return [];
   }
@@ -10,7 +14,12 @@ export function parseWorkDays(workDays: string): number[] {
 
 export function parseSelectedCalendars(calendars: string): string[] {
   try {
-    return JSON.parse(calendars);
+    const parsed: unknown = JSON.parse(calendars);
+    if (!Array.isArray(parsed)) return [];
+    return [...new Set(parsed)].filter(
+      (calendar): calendar is string =>
+        typeof calendar === "string" && calendar.length > 0
+    );
   } catch {
     return [];
   }

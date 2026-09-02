@@ -1,4 +1,8 @@
-import { formatTime } from "@/lib/autoSchedule";
+import {
+  formatTime,
+  parseSelectedCalendars,
+  parseWorkDays,
+} from "@/lib/autoSchedule";
 
 // Issue #129: the time-selection dropdowns in the Auto-Schedule settings tab
 // (Working Hours start/end, energy-level ranges) must honor the user's 12h/24h
@@ -49,5 +53,14 @@ describe("formatTime", () => {
     it("defaults to 24-hour format when no preference is given", () => {
       expect(formatTime(20)).toBe("20:00");
     });
+  });
+});
+
+describe("auto-schedule setting parsing", () => {
+  it("ignores malformed workdays and calendar selections", () => {
+    expect(parseWorkDays('{"not":"days"}')).toEqual([]);
+    expect(parseWorkDays('[1,2,2,8,"3"]')).toEqual([1, 2]);
+    expect(parseSelectedCalendars('{"not":"calendars"}')).toEqual([]);
+    expect(parseSelectedCalendars('["home","home",3,""]')).toEqual(["home"]);
   });
 });

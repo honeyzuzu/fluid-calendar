@@ -5,6 +5,7 @@ import {
   differenceInHours,
   differenceInMinutes,
   newDate,
+  toZonedTime,
 } from "@/lib/date-utils";
 
 import { EnergyLevel, SlotScore, TimeSlot } from "@/types/scheduling";
@@ -18,7 +19,8 @@ interface ProjectTask {
 export class SlotScorer {
   constructor(
     private settings: AutoScheduleSettings,
-    private scheduledTasks: Map<string, ProjectTask[]> = new Map()
+    private scheduledTasks: Map<string, ProjectTask[]> = new Map(),
+    private timeZone = "UTC"
   ) {}
 
   // Add method to update scheduled tasks
@@ -83,10 +85,8 @@ export class SlotScorer {
   private scoreEnergyLevelMatch(slot: TimeSlot, task: Task): number {
     if (!task.energyLevel) return 0.5; // Neutral score if task has no energy level
 
-    const slotEnergy = getEnergyLevelForTime(
-      slot.start.getHours(),
-      this.settings
-    );
+    const localHour = toZonedTime(slot.start, this.timeZone).getHours();
+    const slotEnergy = getEnergyLevelForTime(localHour, this.settings);
     if (!slotEnergy) return 0.5; // Neutral score if time has no energy level
 
     // Exact match gets 1.0, adjacent levels get 0.5, opposite levels get 0
@@ -108,7 +108,7 @@ export class SlotScorer {
   private scoreTimePreference(slot: TimeSlot, task: Task): number {
     // If task has a specific time preference, use that
     if (task.preferredTime) {
-      const hour = slot.start.getHours();
+      const hour = toZonedTime(slot.start, this.timeZone).getHours();
       const preference = task.preferredTime.toLowerCase();
       const ranges = {
         morning: { start: 5, end: 12 },

@@ -225,7 +225,10 @@ export class SchedulingService {
 
       const taskWithDuration = {
         ...task,
-        duration: task.duration || DEFAULT_TASK_DURATION,
+        duration:
+          task.duration && task.duration > 0
+            ? task.duration
+            : DEFAULT_TASK_DURATION,
       };
 
       const scheduledTask = await this.scheduleTask(

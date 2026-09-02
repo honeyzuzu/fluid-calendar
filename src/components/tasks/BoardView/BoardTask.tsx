@@ -219,11 +219,6 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
                 <span className="text-primary">
                   {format(newDate(task.scheduledStart), "p")} -{" "}
                   {format(newDate(task.scheduledEnd), "p")}
-                  {task.scheduleScore && (
-                    <span className="ml-1 text-primary/70">
-                      ({Math.round(task.scheduleScore * 100)}%)
-                    </span>
-                  )}
                 </span>
               )}
           </div>
