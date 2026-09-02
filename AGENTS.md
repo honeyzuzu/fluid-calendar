@@ -232,7 +232,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
 - The color picker includes a pastel Sunnie rainbow plus a custom color input.
-- Event presets use a distinct cool, playful palette (pool blue, bubblegum, periwinkle, aqua, orchid, blueberry, and dragonfruit) so none reuse the coral, gold, mint, or lavender task-urgency colors.
+- Event presets are arranged into three balanced groups: Sky & twilight, Sea & garden, and Sunset & earth. The 12-color set adds teal, deeper sage/pine, apricot, tangerine, clay, and cocoa alongside blues and purples, while remaining distinct from task urgency and project colors.
 - Custom colors are applied only after explicit confirmation, avoiding accidental commits while dragging.
 - Recently used custom colors are saved as quick-access colors.
 - Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.
@@ -241,6 +241,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
 - Scheduled task blocks use rounded, softly filled pastel urgency colors rather than a blue block with a hard side stripe. High is coral, medium is sunny gold, low is mint, and tasks without a priority are lavender.
 - Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, uses a smaller check icon and reduced padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar. Every calendar task retains a check icon.
+- Event and task deletion confirmations use a Sunnie-styled in-app dialog instead of the browser's native confirmation box. Errors remain readable inside that dialog.
+- Synced event deletion waits only for the connected provider to confirm removal. Sunnie then removes the event locally and performs database reconciliation plus auto-scheduling in the background, so the modal no longer stays blocked on those follow-up passes.
 
 ### Focus and friend visibility
 

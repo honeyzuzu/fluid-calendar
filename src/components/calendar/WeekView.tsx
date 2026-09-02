@@ -253,21 +253,14 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     if (!quickViewItem) return;
 
     if (isTask) {
-      // It's a task
-      if (confirm("Are you sure you want to delete this task?")) {
-        await useTaskStore.getState().deleteTask(quickViewItem.id);
-        handleQuickViewClose();
-      }
+      await useTaskStore.getState().deleteTask(quickViewItem.id);
     } else {
-      // It's an event
-      if (confirm("Are you sure you want to delete this event?")) {
-        await removeEvent(
-          quickViewItem.id,
-          quickViewItem.isRecurring ? "series" : "single"
-        );
-        handleQuickViewClose();
-      }
+      await removeEvent(
+        quickViewItem.id,
+        quickViewItem.isRecurring ? "series" : "single"
+      );
     }
+    handleQuickViewClose();
   };
 
   const handleQuickViewStatusChange = async (

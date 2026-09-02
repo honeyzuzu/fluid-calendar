@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
@@ -146,6 +147,7 @@ export function EventModal({
   const { calendar } = useSettingsStore();
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [showRecurrenceDialog, setShowRecurrenceDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editMode, setEditMode] = useState<"single" | "series">();
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
@@ -221,6 +223,7 @@ export function EventModal({
       setRecurrenceByDay(byDay);
       setEditMode(undefined);
       setShowRecurrenceDialog(false);
+      setShowDeleteDialog(false);
       setFormError(null);
       setShowDetails(
         Boolean(event?.location || event?.description || event?.isRecurring)
@@ -352,7 +355,10 @@ export function EventModal({
       onClose();
     } catch (error) {
       console.error("Failed to delete event:", error);
-      alert(error instanceof Error ? error.message : "Failed to delete event");
+      setFormError(
+        error instanceof Error ? error.message : "Failed to delete event"
+      );
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -678,7 +684,7 @@ export function EventModal({
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteDialog(true)}
                   data-testid="delete-event-button"
                 >
                   Delete
@@ -698,6 +704,14 @@ export function EventModal({
           </form>
         </DialogContent>
       </Dialog>
+
+      <SunnieDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        itemType="event"
+        itemName={event?.title}
+        onConfirm={handleDelete}
+      />
 
       {/* Recurring Event Edit Mode Dialog */}
       <AlertDialog.Root

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { prepareCalendarEventDeletion } from "@/lib/calendar-event-deletion";
 import { newDate, normalizeAllDayDate } from "@/lib/date-utils";
 import { DEFAULT_TASK_COLOR } from "@/lib/task-utils";
 
@@ -573,8 +574,9 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
 
   removeEvent: async (id, mode) => {
     try {
-      const event = get().events.find((e) => e.id === id);
-      if (!event) return;
+      const deletion = prepareCalendarEventDeletion(get().events, id, mode);
+      if (!deletion) return;
+      const { event, providerEventId, remainingEvents } = deletion;
 
       const feed = get().feeds.find((f) => f.id === event.feedId);
       if (!feed) return;
@@ -584,7 +586,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         const response = await fetch(`/api/calendar/google/events`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId: id, mode }),
+          body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
         if (!response.ok) {
@@ -595,7 +597,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         const response = await fetch(`/api/calendar/outlook/events`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId: id, mode }),
+          body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
         if (!response.ok) {
@@ -606,7 +608,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         const response = await fetch(`/api/calendar/caldav/events`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId: id, mode }),
+          body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
         if (!response.ok) {
@@ -614,7 +616,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         }
       } else {
         // For other calendars, use the existing API
-        const response = await fetch(`/api/events/${id}`, {
+        const response = await fetch(`/api/events/${providerEventId}`, {
           method: "DELETE",
         });
 
@@ -623,11 +625,32 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         }
       }
 
-      // Reload from database to get the latest state
-      await get().loadFromDatabase();
-      // Trigger auto-scheduling after event is created
-      const { triggerScheduleAllTasks } = useTaskStore.getState();
-      await triggerScheduleAllTasks();
+      // The provider deletion is authoritative. Remove it locally right away so
+      // the modal does not wait on a full reload and scheduling pass.
+      set({ events: remainingEvents });
+
+      // Reconcile quietly in the background in case the provider changed a
+      // recurring series, and let auto-scheduling use the newly freed time.
+      void fetch("/api/events")
+        .then(async (response) => {
+          if (!response.ok) return;
+          set({ events: await response.json() });
+        })
+        .catch((refreshError) => {
+          console.error(
+            "Failed to refresh events after deletion:",
+            refreshError
+          );
+        });
+      void useTaskStore
+        .getState()
+        .triggerScheduleAllTasks()
+        .catch((scheduleError) => {
+          console.error(
+            "Failed to auto-schedule after event deletion:",
+            scheduleError
+          );
+        });
     } catch (error) {
       console.error("Failed to remove event:", error);
       throw error;

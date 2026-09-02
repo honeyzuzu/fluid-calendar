@@ -3,9 +3,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  Palette,
   Plus,
   Sun,
+  Trash2,
 } from "lucide-react";
+
+import { SUNNIE_EVENT_COLOR_GROUPS } from "@/lib/calendar-colors";
 
 const days = ["Mon 31", "Tue 1", "Wed 2", "Thu 3", "Fri 4"];
 const hours = [
@@ -145,7 +149,83 @@ export default function CalendarEventPreviewPage() {
           </div>
         </div>
       </section>
+
+      <div className="pointer-events-none fixed inset-0 z-20 bg-[#3f432e]/10 backdrop-blur-[1px]" />
+      <aside className="fixed left-1/2 top-1/2 z-30 w-[620px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-[#dfdac2] bg-[#fffdf5] shadow-[0_24px_70px_rgba(63,67,46,0.25)]">
+        <div className="border-b border-black/[0.06] px-6 py-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d0902f]">
+            Make it feel like yours
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Edit event</h2>
+        </div>
+        <div className="space-y-4 px-6 py-5">
+          <div className="grid grid-cols-2 gap-3">
+            <PreviewField label="Title *" value="Dinner with Maya" />
+            <PreviewField label="Calendar *" value="Personal calendar" />
+          </div>
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <Palette className="h-4 w-4 text-[#6d7755]" /> Event color
+            </div>
+            <div className="rounded-2xl border border-black/[0.06] bg-white/65 p-3">
+              <p className="mb-3 text-xs text-black/45">
+                Pick a mood for this event. Task urgency colors stay separate.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {SUNNIE_EVENT_COLOR_GROUPS.map((group) => (
+                  <div
+                    key={group.name}
+                    className="rounded-xl bg-[#f8f6ed] p-2.5"
+                  >
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-black/40">
+                      {group.name}
+                    </p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {group.colors.map((color, index) => (
+                        <span
+                          key={color.value}
+                          className={`grid aspect-square place-items-center rounded-[10px] border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] ${group.name === "Sunset & earth" && index === 0 ? "ring-2 ring-[#4f5c3d] ring-offset-2" : ""}`}
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
+                        >
+                          {group.name === "Sunset & earth" && index === 0 && (
+                            <CheckCircle2 className="h-4 w-4 text-white" />
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-black/[0.06] px-6 py-4">
+          <span className="inline-flex items-center gap-2 rounded-xl bg-[#f8ddd2] px-3 py-2 text-sm font-semibold text-[#9b513f]">
+            <Trash2 className="h-4 w-4" /> Delete
+          </span>
+          <div className="flex gap-2">
+            <span className="rounded-xl border border-[#ddd8c1] bg-white px-4 py-2 text-sm font-semibold">
+              Cancel
+            </span>
+            <span className="rounded-xl bg-[#64734a] px-4 py-2 text-sm font-semibold text-white">
+              Update event
+            </span>
+          </div>
+        </div>
+      </aside>
     </main>
+  );
+}
+
+function PreviewField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-semibold text-black/55">{label}</p>
+      <div className="rounded-xl border border-[#ded9c2] bg-white px-3 py-2.5 text-sm">
+        {value}
+      </div>
+    </div>
   );
 }
 

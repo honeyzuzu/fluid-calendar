@@ -6,7 +6,10 @@ import { Check, Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { SUNNIE_PASTEL_COLORS } from "@/lib/calendar-colors";
+import {
+  SUNNIE_EVENT_COLOR_GROUPS,
+  SUNNIE_PASTEL_COLORS,
+} from "@/lib/calendar-colors";
 import { MAX_RECENT_COLORS, addRecentColor } from "@/lib/recent-colors";
 import { cn } from "@/lib/utils";
 
@@ -97,28 +100,53 @@ export function SunnieColorPicker({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="grid grid-cols-7 gap-1" aria-label="Pastel colors">
-        {SUNNIE_PASTEL_COLORS.map((color) => {
-          const selected = color.value.toLowerCase() === value?.toLowerCase();
-
-          return (
-            <button
-              key={color.value}
-              type="button"
-              onClick={() => onChange(color.value)}
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                selected ? "border-foreground/70" : "border-background"
-              )}
-              style={{ backgroundColor: color.value }}
-              title={color.name}
-              aria-label={color.name}
-              aria-pressed={selected}
+      <div
+        className="rounded-2xl border border-black/[0.06] bg-white/65 p-3"
+        aria-label="Event color presets"
+      >
+        <p className="mb-3 text-xs leading-relaxed text-black/45">
+          Pick a mood for this event. Task urgency colors stay separate.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {SUNNIE_EVENT_COLOR_GROUPS.map((group) => (
+            <div
+              key={group.name}
+              className="rounded-xl bg-[#f8f6ed] p-2.5"
+              aria-label={group.name}
             >
-              {selected && <Check className="h-4 w-4 text-stone-700" />}
-            </button>
-          );
-        })}
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-black/40">
+                {group.name}
+              </p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {group.colors.map((color) => {
+                  const selected =
+                    color.value.toLowerCase() === value?.toLowerCase();
+
+                  return (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => onChange(color.value)}
+                      className={cn(
+                        "flex aspect-square min-h-8 items-center justify-center rounded-[10px] border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#64734a] focus:ring-offset-2 motion-reduce:transform-none",
+                        selected &&
+                          "ring-2 ring-[#4f5c3d] ring-offset-2 ring-offset-white"
+                      )}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                      aria-label={color.name}
+                      aria-pressed={selected}
+                    >
+                      {selected && (
+                        <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {recentColors.length > 0 && (
