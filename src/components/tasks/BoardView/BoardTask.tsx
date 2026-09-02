@@ -1,6 +1,7 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
+import { GripVertical } from "lucide-react";
 import {
   HiClock,
   HiFolder,
@@ -82,14 +83,20 @@ const formatContextualDate = (date: Date) => {
 };
 
 export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: task.id,
-      data: {
-        type: "task",
-        task,
-      },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: task.id,
+    data: {
+      type: "task",
+      task,
+    },
+  });
 
   const style = transform
     ? {
@@ -101,17 +108,25 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
     <div className="group relative">
       <div
         ref={setNodeRef}
-        {...attributes}
-        {...listeners}
         style={style}
         className={cn(
-          "cursor-grab animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)] motion-reduce:animate-none motion-reduce:transform-none",
+          "animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)] motion-reduce:animate-none motion-reduce:transform-none",
           isDragging && "opacity-50"
         )}
       >
         <div className="space-y-2">
           <div className="flex items-start gap-2">
-            <div className="flex items-center gap-2">
+            <button
+              ref={setActivatorNodeRef}
+              type="button"
+              {...attributes}
+              {...listeners}
+              aria-label={`Drag ${task.title}`}
+              className="-ml-1 grid h-8 w-8 shrink-0 touch-none place-items-center rounded-lg text-[#8a8d70] hover:bg-[#eef3df] active:cursor-grabbing md:cursor-grab"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+            <div className="flex min-w-0 items-center gap-2 pt-1.5">
               {task.isAutoScheduled && (
                 <div
                   className="flex items-center gap-1 text-primary"

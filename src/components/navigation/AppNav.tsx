@@ -165,7 +165,7 @@ export function AppNav({ className }: AppNavProps) {
       </nav>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(5rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
       >
         {links.map((link) => {
           const Icon = link.icon;
@@ -176,7 +176,7 @@ export function AppNav({ className }: AppNavProps) {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold",
+                "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
                 isActive
                   ? "text-[#77591d]"
                   : "text-[#74785f] hover:bg-[#eef3df]"
@@ -184,12 +184,12 @@ export function AppNav({ className }: AppNavProps) {
             >
               <span
                 className={cn(
-                  "grid h-7 w-9 place-items-center rounded-xl",
+                  "grid h-9 w-11 place-items-center rounded-xl",
                   isActive && "bg-[#f8e4a1] shadow-sm"
                 )}
               >
                 <span className="relative">
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-5 w-5" />
                   {link.href === "/friends" && hasPendingFriendRequest && (
                     <span
                       aria-label="Pending friend request"

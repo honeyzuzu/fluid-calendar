@@ -35,13 +35,13 @@ export function DndProvider({ children }: DndProviderProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 10,
+        distance: 6,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 5,
+        delay: 180,
+        tolerance: 12,
       },
     })
   );

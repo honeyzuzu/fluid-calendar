@@ -1,6 +1,7 @@
 import {
   CURRENT_ONBOARDING_VERSION,
   ONBOARDING_STEPS,
+  SLEEP_ONBOARDING_STEPS,
   clampOnboardingStep,
 } from "@/lib/onboarding";
 
@@ -34,5 +35,25 @@ describe("Sunnie onboarding", () => {
     expect(clampOnboardingStep(-10)).toBe(0);
     expect(clampOnboardingStep(Number.NaN)).toBe(0);
     expect(clampOnboardingStep(999)).toBe(ONBOARDING_STEPS.length - 1);
+  });
+
+  it("includes sleep setup and a task-to-focus practice path", () => {
+    const sleepIndex = ONBOARDING_STEPS.findIndex(
+      (step) => step.id === "sleep-hours"
+    );
+    const practiceIndex = ONBOARDING_STEPS.findIndex(
+      (step) => step.id === "practice-task"
+    );
+    const focusIndex = ONBOARDING_STEPS.findIndex(
+      (step) => step.id === "focus"
+    );
+
+    expect(sleepIndex).toBeGreaterThan(0);
+    expect(practiceIndex).toBeGreaterThan(0);
+    expect(focusIndex).toBe(practiceIndex + 1);
+    expect(SLEEP_ONBOARDING_STEPS.map((step) => step.id)).toEqual([
+      "sleep-hours",
+    ]);
+    expect(clampOnboardingStep(5, 1)).toBe(0);
   });
 });

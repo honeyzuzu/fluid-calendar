@@ -34,6 +34,7 @@ describe("needsTaskTuneUp", () => {
         duration: null,
         priority: "none",
         energyLevel: null,
+        dueDate: null,
       })
     ).toBe(true);
   });
@@ -45,8 +46,18 @@ describe("needsTaskTuneUp", () => {
         duration: 30,
         priority: "medium",
         energyLevel: "low",
+        dueDate: "2026-09-10",
       })
     ).toBe(false);
+    expect(
+      needsTaskTuneUp({
+        status: "todo",
+        duration: 30,
+        priority: "medium",
+        energyLevel: "low",
+        dueDate: null,
+      })
+    ).toBe(true);
     expect(needsTaskTuneUp({ status: "completed" })).toBe(false);
   });
 });

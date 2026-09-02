@@ -26,6 +26,7 @@ export type TaskTuneUpSummary = {
   duration?: number | null;
   priority?: string | null;
   energyLevel?: string | null;
+  dueDate?: Date | string | null;
 };
 
 export function needsTaskTuneUp(task: TaskTuneUpSummary) {
@@ -37,6 +38,7 @@ export function needsTaskTuneUp(task: TaskTuneUpSummary) {
     task.duration <= 0 ||
     !task.priority ||
     task.priority === "none" ||
-    !task.energyLevel
+    !task.energyLevel ||
+    !task.dueDate
   );
 }

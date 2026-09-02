@@ -92,7 +92,7 @@ export default function RootLayout({
               aria-hidden="true"
               className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[#b8d98b]/15 blur-3xl"
             />
-            <main className="relative z-[1] flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+            <main className="relative z-[1] flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
               <NotificationProvider>{children}</NotificationProvider>
             </main>
             <footer className="relative z-[1] hidden flex-none border-t border-[#dfe2c8] bg-[#f7f0d6]/90 px-4 py-2 lg:block">

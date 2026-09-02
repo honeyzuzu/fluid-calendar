@@ -21,7 +21,12 @@ export async function GET(request: NextRequest) {
           userId,
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-        select: { onboardingVersion: true },
+        select: {
+          onboardingVersion: true,
+          sleepHoursStart: true,
+          sleepHoursEnd: true,
+          sleepHoursConfigured: true,
+        },
       }),
       prisma.connectedAccount.count({ where: { userId } }),
       prisma.calendarFeed.findMany({
@@ -40,6 +45,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       onboardingVersion: settings.onboardingVersion,
+      sleepHoursStart: settings.sleepHoursStart,
+      sleepHoursEnd: settings.sleepHoursEnd,
+      sleepHoursConfigured: settings.sleepHoursConfigured,
       currentVersion: CURRENT_ONBOARDING_VERSION,
       connectedAccountCount,
       calendars,
@@ -62,23 +70,60 @@ export async function PATCH(request: NextRequest) {
     const auth = await authenticateRequest(request, LOG_SOURCE);
     if ("response" in auth) return auth.response;
 
-    const body = (await request.json()) as { completed?: boolean };
-    if (body.completed !== true) {
+    const body = (await request.json()) as {
+      completed?: boolean;
+      sleepHoursStart?: string;
+      sleepHoursEnd?: string;
+    };
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+    const hasSleepHours =
+      typeof body.sleepHoursStart === "string" &&
+      typeof body.sleepHoursEnd === "string";
+    if (!hasSleepHours && body.completed !== true) {
       return NextResponse.json(
-        { error: "A completed onboarding state is required" },
+        { error: "Sleep hours or a completed onboarding state are required" },
+        { status: 400 }
+      );
+    }
+    if (
+      hasSleepHours &&
+      (!timePattern.test(body.sleepHoursStart!) ||
+        !timePattern.test(body.sleepHoursEnd!) ||
+        body.sleepHoursStart === body.sleepHoursEnd)
+    ) {
+      return NextResponse.json(
+        { error: "Choose two different, valid sleep times" },
         { status: 400 }
       );
     }
 
+    const updates = {
+      ...(hasSleepHours
+        ? {
+            sleepHoursStart: body.sleepHoursStart!,
+            sleepHoursEnd: body.sleepHoursEnd!,
+            sleepHoursConfigured: true,
+          }
+        : {}),
+      ...(body.completed === true
+        ? { onboardingVersion: CURRENT_ONBOARDING_VERSION }
+        : {}),
+    };
+
     const settings = await prisma.userSettings.upsert({
       where: { userId: auth.userId },
-      update: { onboardingVersion: CURRENT_ONBOARDING_VERSION },
+      update: updates,
       create: {
         userId: auth.userId,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        onboardingVersion: CURRENT_ONBOARDING_VERSION,
+        ...updates,
       },
-      select: { onboardingVersion: true },
+      select: {
+        onboardingVersion: true,
+        sleepHoursStart: true,
+        sleepHoursEnd: true,
+        sleepHoursConfigured: true,
+      },
     });
 
     return NextResponse.json(settings);

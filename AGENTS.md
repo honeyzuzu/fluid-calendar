@@ -179,15 +179,17 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Motion is intentionally restrained: task cards gently rise on entry, calendar task blocks lift slightly on hover, focus pets respond subtly, and sun-drop badges use a one-shot pop. All custom motion respects reduced-motion preferences.
 - Task completion uses a slow 2.8-second sunny bloom and one light pastel confetti shower rather than a rapid repeated burst.
 - The former bottom-right “island” control was removed.
-- Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens.
+- Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens. The fixed mobile navigation is 5rem tall with larger 20px icons and 11px labels, plus safe-area padding for phones with home indicators.
 - Below 1024px, primary app destinations use the fixed mobile icon bar instead of squeezing or dropping the desktop navigation. Between 1024px and 1280px, the top navigation remains compact and icon-only.
 - The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
 - The upstream support banner on the calendar is intentionally compact.
 
 ### First-time onboarding
 
-- `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `1` intentionally defaults every existing and future account to incomplete until that user finishes it once.
-- The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
+- `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `2` adds sleep-hours setup. Accounts that completed version 1 but have not configured sleep hours receive only the short sleep-hours update rather than repeating the full tour.
+- `UserSettings.sleepHoursStart`, `sleepHoursEnd`, and `sleepHoursConfigured` persist the user's normal rest window in PostgreSQL. Bedtime and wake-up are editable under User Settings as well as onboarding.
+- The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, asks for sleep hours, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
+- New-user onboarding creates a small user-named practice task on the Tasks step, selects it in Focus, and immediately opens Focus next so the combined setup/focus/break Pomodoro controls are visible during the tour.
 - Tour progress survives same-tab OAuth redirects through session storage, while completion is persisted per user in PostgreSQL by `/api/onboarding`.
 - Each step contains a short curated quote with its author. The tour has Back/Next controls but no permanent skip; an interrupted user resumes until the current version is completed.
 
@@ -203,7 +205,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.
 - Filled task, event, and project surfaces choose warm white text by default and switch to Sunnie's soft near-black when WCAG contrast would otherwise be poor. The project picker is visible as a horizontal chip row on mobile Tasks screens.
 - Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
-- Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task.
+- Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task. Board cards use a dedicated touch-safe grip with a shorter hold and more movement tolerance so mobile scrolling and task actions do not fight the drag gesture.
 - The task board stacks its status columns on phones and uses three fluid columns from tablet widths upward; it does not rely on fixed 320px columns or a hidden horizontal scrollbar. The desktop Projects panel collapses to a slim arrow rail and reserves layout space whenever opened, including on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
 - Calendar, Projects, and Focus sidebar controls use attached rectangular edge tabs with one seamless flat side instead of detached circular buttons. Calendar and Projects each render one persistent toggle outside the panel transform, preventing doubled controls, clipped click targets, or missing tabs at wide breakpoints; tab and panel surfaces use the same background color. Opening the desktop Projects panel always expands its parent layout width from a slim rail to 256px, including constrained desktop windows, so Tasks list/board content shifts rather than sitting underneath it; the panel itself uses an opaque warm-cream surface.
 
@@ -212,7 +214,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - `/brain-dump` turns each non-empty line or common list item into a separate auto-schedulable task; repeated lines in the same dump are ignored.
 - Brain Dump is deterministic and does not require an AI provider. Users should put one thought on each line; optional AI paragraph interpretation is a possible later enhancement.
 - Unsaved brain-dump text is retained only in that browser's local storage. Submitted items become normal database-backed tasks.
-- Task Tune-up cycles flashcard-style through every active task that is missing a duration, priority, or energy level, including tasks created elsewhere in Sunnie.
+- Task Tune-up cycles flashcard-style through every active task that is missing a duration, due date, priority, or energy level, including tasks created elsewhere in Sunnie. Due date uses the native date picker and is required before saving a tune-up card.
 - Each tune-up card also exposes task status. Completed tasks are excluded from the tune-up queue.
 
 ### Daily and weekly planning

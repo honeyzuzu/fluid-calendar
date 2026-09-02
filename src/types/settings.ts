@@ -10,6 +10,9 @@ export interface UserSettings {
   timeZone: string;
   weekStartDay: WeekStartDay;
   timeFormat: TimeFormat;
+  sleepHoursStart: string;
+  sleepHoursEnd: string;
+  sleepHoursConfigured: boolean;
 }
 
 export interface CalendarSettings {

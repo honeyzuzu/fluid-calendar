@@ -1,6 +1,6 @@
 import type { IntentionQuote } from "@/lib/daily-intention";
 
-export const CURRENT_ONBOARDING_VERSION = 1;
+export const CURRENT_ONBOARDING_VERSION = 2;
 export const ONBOARDING_SESSION_KEY = `sunnie:onboarding-v${CURRENT_ONBOARDING_VERSION}-step`;
 
 export type OnboardingStep = {
@@ -47,6 +47,17 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     layout: "setup",
   },
   {
+    id: "sleep-hours",
+    title: "Protect your time to rest",
+    description:
+      "Add your usual bedtime and wake-up time so Sunnie knows when your day should truly be yours.",
+    quote: {
+      text: "There is a time for many words, and there is also a time for sleep.",
+      author: "Homer",
+    },
+    layout: "setup",
+  },
+  {
     id: "calendar",
     title: "Your whole schedule, together",
     description:
@@ -67,6 +78,30 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     quote: {
       text: "Nothing great was ever achieved without enthusiasm.",
       author: "Ralph Waldo Emerson",
+    },
+    layout: "tour",
+  },
+  {
+    id: "practice-task",
+    title: "Make a task to focus on",
+    description:
+      "Create one small practice task here. Sunnie will carry it into Focus so you can try the setup, focus, and break timers.",
+    href: "/tasks",
+    quote: {
+      text: "The secret of getting ahead is getting started.",
+      author: "Mark Twain",
+    },
+    layout: "tour",
+  },
+  {
+    id: "focus",
+    title: "Now, one thing at a time",
+    description:
+      "Your practice task is ready. Choose setup, focus, and break lengths together, then start when your space feels calm.",
+    href: "/focus",
+    quote: {
+      text: "The most effective way to do it is to do it.",
+      author: "Amelia Earhart",
     },
     layout: "tour",
   },
@@ -106,21 +141,26 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     },
     layout: "tour",
   },
+];
+
+export const SLEEP_ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    id: "focus",
-    title: "Now, one thing at a time",
+    id: "sleep-hours",
+    title: "A new way to protect your rest",
     description:
-      "Focus gives the task in front of you some breathing room. You can always return to the calendar when you're ready.",
-    href: "/focus",
+      "Tell Sunnie your usual sleep hours. This is a quick, one-time setup and you can change it in Settings anytime.",
     quote: {
-      text: "The most effective way to do it is to do it.",
-      author: "Amelia Earhart",
+      text: "There is a time for many words, and there is also a time for sleep.",
+      author: "Homer",
     },
-    layout: "tour",
+    layout: "setup",
   },
 ];
 
-export function clampOnboardingStep(value: number) {
+export function clampOnboardingStep(
+  value: number,
+  stepCount = ONBOARDING_STEPS.length
+) {
   if (!Number.isFinite(value)) return 0;
-  return Math.min(ONBOARDING_STEPS.length - 1, Math.max(0, Math.floor(value)));
+  return Math.min(stepCount - 1, Math.max(0, Math.floor(value)));
 }

@@ -1,0 +1,4 @@
+ALTER TABLE "UserSettings"
+ADD COLUMN "sleepHoursStart" TEXT NOT NULL DEFAULT '23:00',
+ADD COLUMN "sleepHoursEnd" TEXT NOT NULL DEFAULT '07:00',
+ADD COLUMN "sleepHoursConfigured" BOOLEAN NOT NULL DEFAULT false;

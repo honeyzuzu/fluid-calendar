@@ -1,6 +1,8 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -202,6 +204,46 @@ export function UserSettings() {
             ))}
           </SelectContent>
         </Select>
+      </SettingRow>
+
+      <SettingRow
+        label="Sleep Hours"
+        description="Sunnie keeps your usual sleep window in mind while helping you plan."
+      >
+        <div className="grid w-full grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="sleep-hours-start" className="text-xs">
+              Bedtime
+            </Label>
+            <Input
+              id="sleep-hours-start"
+              type="time"
+              value={user.sleepHoursStart}
+              onChange={(event) =>
+                updateUserSettings({
+                  sleepHoursStart: event.target.value,
+                  sleepHoursConfigured: true,
+                })
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="sleep-hours-end" className="text-xs">
+              Wake-up
+            </Label>
+            <Input
+              id="sleep-hours-end"
+              type="time"
+              value={user.sleepHoursEnd}
+              onChange={(event) =>
+                updateUserSettings({
+                  sleepHoursEnd: event.target.value,
+                  sleepHoursConfigured: true,
+                })
+              }
+            />
+          </div>
+        </div>
       </SettingRow>
     </SettingsSection>
   );

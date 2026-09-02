@@ -23,7 +23,6 @@ export default async function HomePage() {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-
   const userId = token?.sub;
 
   let feeds: CalendarFeed[] = [];
@@ -121,7 +120,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] top-0 md:bottom-0">
+    <div className="absolute inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] top-0 md:bottom-0">
       <Calendar initialFeeds={feeds} initialEvents={events} />
     </div>
   );

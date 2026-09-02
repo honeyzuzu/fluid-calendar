@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Brain,
+  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -34,6 +35,7 @@ type TunableTask = {
   duration: number | null;
   priority: Priority | null;
   energyLevel: EnergyLevel | null;
+  dueDate: string | null;
 };
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -61,6 +63,7 @@ export default function BrainDumpPage() {
   const [duration, setDuration] = useState("");
   const [priority, setPriority] = useState<Priority | "">("");
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | "">("");
+  const [dueDate, setDueDate] = useState("");
   const [savingTask, setSavingTask] = useState(false);
 
   const parsedTasks = useMemo(() => parseBrainDump(draft), [draft]);
@@ -85,6 +88,7 @@ export default function BrainDumpPage() {
       currentTask.priority === Priority.NONE ? "" : (currentTask.priority ?? "")
     );
     setEnergyLevel(currentTask.energyLevel ?? "");
+    setDueDate(currentTask.dueDate?.slice(0, 10) ?? "");
   }, [currentTask]);
 
   useEffect(() => {
@@ -143,7 +147,8 @@ export default function BrainDumpPage() {
 
   const saveTask = async (event: FormEvent) => {
     event.preventDefault();
-    if (!currentTask || !duration || !priority || !energyLevel) return;
+    if (!currentTask || !duration || !priority || !energyLevel || !dueDate)
+      return;
 
     setSavingTask(true);
     setTaskError(null);
@@ -156,6 +161,7 @@ export default function BrainDumpPage() {
           duration: Number(duration),
           priority,
           energyLevel,
+          dueDate,
         }),
       }).then((response) => readJson<TunableTask>(response));
 
@@ -338,10 +344,12 @@ export default function BrainDumpPage() {
             duration={duration}
             priority={priority}
             energyLevel={energyLevel}
+            dueDate={dueDate}
             onStatusChange={setStatus}
             onDurationChange={setDuration}
             onPriorityChange={setPriority}
             onEnergyChange={setEnergyLevel}
+            onDueDateChange={setDueDate}
             onSubmit={saveTask}
             onPrevious={() =>
               setCurrentIndex((index) =>
@@ -403,10 +411,12 @@ type TuneUpProps = {
   duration: string;
   priority: Priority | "";
   energyLevel: EnergyLevel | "";
+  dueDate: string;
   onStatusChange: (value: TaskStatus) => void;
   onDurationChange: (value: string) => void;
   onPriorityChange: (value: Priority | "") => void;
   onEnergyChange: (value: EnergyLevel | "") => void;
+  onDueDateChange: (value: string) => void;
   onSubmit: (event: FormEvent) => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -423,10 +433,12 @@ function TaskTuneUp({
   duration,
   priority,
   energyLevel,
+  dueDate,
   onStatusChange,
   onDurationChange,
   onPriorityChange,
   onEnergyChange,
+  onDueDateChange,
   onSubmit,
   onPrevious,
   onNext,
@@ -454,8 +466,8 @@ function TaskTuneUp({
             Everything is tuned up!
           </h2>
           <p className="mt-2 text-sm leading-6 text-black/48">
-            Every active task has a status, duration, priority, and energy
-            level.
+            Every active task has a status, duration, due date, priority, and
+            energy level.
           </p>
           <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <button
@@ -477,7 +489,7 @@ function TaskTuneUp({
   }
 
   const ready = Boolean(
-    duration && Number(duration) > 0 && priority && energyLevel
+    duration && Number(duration) > 0 && priority && energyLevel && dueDate
   );
 
   return (
@@ -567,6 +579,14 @@ function TaskTuneUp({
                 <option value={EnergyLevel.LOW}>Low energy</option>
               </select>
             </TuneField>
+            <TuneField label="Due date" icon={CalendarDays}>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(event) => onDueDateChange(event.target.value)}
+                className={selectClassName}
+              />
+            </TuneField>
           </div>
 
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -607,9 +627,9 @@ function TaskTuneUp({
         <section className="rounded-2xl border border-black/[0.06] bg-[#eef3df] p-5 shadow-sm">
           <h3 className="font-semibold">What counts as untuned?</h3>
           <p className="mt-2 text-sm leading-6 text-black/50">
-            Any active task missing a duration, priority, or energy level
-            appears here. Status is included on every card so you can update it
-            too.
+            Any active task missing a duration, due date, priority, or energy
+            level appears here. Status is included on every card so you can
+            update it too.
           </p>
         </section>
         <section className="rounded-2xl border border-black/[0.06] bg-white/65 p-5 shadow-sm">

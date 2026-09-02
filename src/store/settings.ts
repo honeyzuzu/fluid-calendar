@@ -46,6 +46,9 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     weekStartDay: "sunday",
     timeFormat: "12h",
+    sleepHoursStart: "23:00",
+    sleepHoursEnd: "07:00",
+    sleepHoursConfigured: false,
   },
   calendar: {
     workingHours: {
@@ -392,6 +395,9 @@ export const useSettingsStore = create<SettingsStore>()(
             timeZone: userSettings.timeZone,
             weekStartDay: userSettings.weekStartDay,
             timeFormat: userSettings.timeFormat,
+            sleepHoursStart: userSettings.sleepHoursStart,
+            sleepHoursEnd: userSettings.sleepHoursEnd,
+            sleepHoursConfigured: userSettings.sleepHoursConfigured,
           });
 
           // More updates will be added here
