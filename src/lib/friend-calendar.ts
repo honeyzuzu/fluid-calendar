@@ -27,6 +27,7 @@ export type FriendCalendarItem = {
   classNames: string[];
   startEditable: boolean;
   durationEditable: boolean;
+  display: "background";
   extendedProps: ExtendedEventProps;
 };
 
@@ -42,19 +43,29 @@ export async function getFriendCalendarItems(
     );
     if (!response.ok) return [];
     const blocks = (await response.json()) as FriendCalendarBlock[];
+    const friendLanes = new Map(
+      [...new Set(blocks.map((block) => block.ownerId))]
+        .sort()
+        .map((ownerId, index) => [ownerId, index] as const)
+    );
 
     return blocks.map((block): FriendCalendarItem => {
       const friendColor = getFriendCalendarColor(block.ownerId, friendColors);
+      const friendLane = Math.min(friendLanes.get(block.ownerId) ?? 0, 15);
       return {
         id: `friend-${block.id}`,
-        title: `${block.owner} · ${block.title}`,
+        title: "",
         start: newDate(block.start),
         end: newDate(block.end),
-        location: `Shared by ${block.owner}`,
+        location: "",
         backgroundColor: friendColor,
         borderColor: friendColor,
         allDay: block.allDay,
-        classNames: ["calendar-friend-event"],
+        display: "background",
+        classNames: [
+          "calendar-friend-event",
+          `calendar-friend-lane-${friendLane}`,
+        ],
         startEditable: false,
         durationEditable: false,
         extendedProps: {
@@ -62,6 +73,7 @@ export async function getFriendCalendarItems(
           friendId: block.ownerId,
           friendOwner: block.owner,
           friendSource: block.source,
+          friendLane,
           calendarName: `${block.owner}'s shared time`,
         },
       };

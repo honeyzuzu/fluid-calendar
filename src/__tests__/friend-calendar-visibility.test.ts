@@ -32,7 +32,9 @@ describe("friend calendar visibility", () => {
     expect(store).toContain("friendCalendarColors: state.friendCalendarColors");
     expect(manager).toContain("FRIEND_CALENDAR_COLORS");
     expect(styles).toContain(".calendar-friend-event");
-    expect(styles).toContain("opacity: 0.62");
+    expect(styles).toContain("pointer-events: none");
+    expect(styles).toContain("--friend-lane-offset");
+    expect(styles).toContain("opacity: 0.52");
   });
 
   it("does not mix friends' availability into the Plan timeline", () => {

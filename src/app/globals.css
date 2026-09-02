@@ -231,32 +231,69 @@
   @apply p-1;
 }
 
-/* Shared friend time is useful context, not the user's own plan. Keep every
-   block soft and visually behind editable events/tasks. */
+/* Friend availability is background context, never a calendar event the user
+   can select. Each friend gets a narrow parallel lane so overlapping people
+   remain distinguishable without covering the time slot. */
 .fc .calendar-friend-event {
-  z-index: 1 !important;
-  cursor: default !important;
-  border: 1px dashed rgba(78, 79, 68, 0.28) !important;
-  border-radius: 0.625rem !important;
+  right: auto !important;
+  width: 5px !important;
+  margin-left: var(--friend-lane-offset, 3px) !important;
+  pointer-events: none !important;
+  cursor: inherit !important;
+  border: 0 !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
-  filter: saturate(0.72);
-  opacity: 0.62;
-  transition:
-    opacity 160ms ease,
-    filter 160ms ease !important;
+  filter: saturate(0.8);
+  opacity: 0.52;
 }
 
-@media (hover: hover) {
-  .fc .calendar-friend-event:hover {
-    filter: saturate(0.86);
-    opacity: 0.78;
-  }
+.fc .calendar-friend-lane-0 {
+  --friend-lane-offset: 3px;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .fc .calendar-friend-event {
-    transition: none !important;
-  }
+.fc .calendar-friend-lane-1 {
+  --friend-lane-offset: 10px;
+}
+.fc .calendar-friend-lane-2 {
+  --friend-lane-offset: 17px;
+}
+.fc .calendar-friend-lane-3 {
+  --friend-lane-offset: 24px;
+}
+.fc .calendar-friend-lane-4 {
+  --friend-lane-offset: 31px;
+}
+.fc .calendar-friend-lane-5 {
+  --friend-lane-offset: 38px;
+}
+.fc .calendar-friend-lane-6 {
+  --friend-lane-offset: 45px;
+}
+.fc .calendar-friend-lane-7 {
+  --friend-lane-offset: 52px;
+}
+.fc .calendar-friend-lane-8 {
+  --friend-lane-offset: 59px;
+}
+.fc .calendar-friend-lane-9 {
+  --friend-lane-offset: 66px;
+}
+.fc .calendar-friend-lane-10 {
+  --friend-lane-offset: 73px;
+}
+.fc .calendar-friend-lane-11 {
+  --friend-lane-offset: 80px;
+}
+.fc .calendar-friend-lane-12 {
+  --friend-lane-offset: 87px;
+}
+.fc .calendar-friend-lane-13 {
+  --friend-lane-offset: 94px;
+}
+.fc .calendar-friend-lane-14 {
+  --friend-lane-offset: 101px;
+}
+.fc .calendar-friend-lane-15 {
+  --friend-lane-offset: 108px;
 }
 
 /* Scheduled tasks use soft, filled urgency tones instead of a hard side bar. */

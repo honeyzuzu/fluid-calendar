@@ -1,12 +1,7 @@
 import { memo } from "react";
 
 import type { EventContentArg } from "@fullcalendar/core";
-import {
-  IoCheckmarkCircle,
-  IoPeopleOutline,
-  IoRepeat,
-  IoTimeOutline,
-} from "react-icons/io5";
+import { IoCheckmarkCircle, IoRepeat, IoTimeOutline } from "react-icons/io5";
 
 import { getMonthEventDisplay } from "@/lib/calendar-event-display";
 import { getReadableTextColor } from "@/lib/color-contrast";
@@ -44,6 +39,8 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     eventInfo.view.type.startsWith("timeGrid") &&
     duration > 0 &&
     duration <= 30 * 60 * 1000;
+
+  if (isFriendEvent) return null;
 
   const isOverdue = isTask && isTaskOverdue({ dueDate, status });
 
@@ -89,9 +86,7 @@ export const CalendarEventContent = memo(function CalendarEventContent({
           isCompactTimedTask ? "gap-1" : "gap-1.5"
         )}
       >
-        {isFriendEvent ? (
-          <IoPeopleOutline className="h-3.5 w-3.5 flex-shrink-0 text-current opacity-80" />
-        ) : isTask ? (
+        {isTask ? (
           <IoCheckmarkCircle
             className={cn(
               "flex-shrink-0 text-current opacity-70",

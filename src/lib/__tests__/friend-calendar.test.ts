@@ -8,7 +8,7 @@ describe("friend calendar overlays", () => {
     global.fetch = fetchMock;
   });
 
-  it("turns shared busy time into a labeled, read-only calendar item", async () => {
+  it("turns shared busy time into an unlabeled, non-interactive background lane", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => [
@@ -35,9 +35,12 @@ describe("friend calendar overlays", () => {
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({
       id: "friend-event-one",
-      title: "Maya · Busy",
+      title: "",
+      location: "",
+      display: "background",
       startEditable: false,
       durationEditable: false,
+      classNames: ["calendar-friend-event", "calendar-friend-lane-0"],
       backgroundColor: "#EBCBD7",
       borderColor: "#EBCBD7",
       extendedProps: {
@@ -45,8 +48,49 @@ describe("friend calendar overlays", () => {
         friendId: "maya-id",
         friendOwner: "Maya",
         friendSource: "calendar",
+        friendLane: 0,
       },
     });
+  });
+
+  it("gives different friends separate background lanes", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: "maya",
+          title: "Busy",
+          start: "2026-09-03T14:00:00.000Z",
+          end: "2026-09-03T15:00:00.000Z",
+          allDay: false,
+          ownerId: "maya-id",
+          owner: "Maya",
+          color: "#111111",
+          source: "calendar",
+        },
+        {
+          id: "zoe",
+          title: "Busy",
+          start: "2026-09-03T14:00:00.000Z",
+          end: "2026-09-03T15:00:00.000Z",
+          allDay: false,
+          ownerId: "zoe-id",
+          owner: "Zoe",
+          color: "#222222",
+          source: "calendar",
+        },
+      ],
+    });
+
+    const items = await getFriendCalendarItems(
+      new Date("2026-09-03T00:00:00.000Z"),
+      new Date("2026-09-04T00:00:00.000Z")
+    );
+
+    expect(items.map((item) => item.classNames[1])).toEqual([
+      "calendar-friend-lane-0",
+      "calendar-friend-lane-1",
+    ]);
   });
 
   it("uses one chosen color instead of the friend's source-calendar colors", async () => {

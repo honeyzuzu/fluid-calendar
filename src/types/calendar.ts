@@ -19,6 +19,7 @@ export interface ExtendedEventProps {
   friendId?: string;
   friendOwner?: string;
   friendSource?: "calendar" | "focus";
+  friendLane?: number;
   calendarName?: string;
   taskId?: string;
   status?: string;
