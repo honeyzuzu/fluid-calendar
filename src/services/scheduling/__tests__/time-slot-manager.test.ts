@@ -30,6 +30,30 @@ const settings = {
 } as AutoScheduleSettings;
 
 describe("TimeSlotManager availability", () => {
+  it("never schedules a future-week task into the current week", async () => {
+    const calendarService = {
+      findConflicts: jest.fn().mockResolvedValue([]),
+      getEvents: jest.fn().mockResolvedValue([]),
+      findBatchConflicts: jest.fn().mockResolvedValue([]),
+    } as CalendarService;
+    const manager = new TimeSlotManagerImpl(
+      settings,
+      calendarService,
+      "America/New_York"
+    );
+    const slots = await manager.findAvailableSlots(
+      {
+        id: "future",
+        plannedWeekStart: new Date("2026-09-14T00:00:00Z"),
+        duration: 30,
+      } as Task,
+      new Date("2026-09-07T04:00:00Z"),
+      new Date("2026-09-14T04:00:00Z"),
+      "user"
+    );
+    expect(slots).toEqual([]);
+    expect(calendarService.findBatchConflicts).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date("2026-09-06T12:00:00Z"));
     jest.mocked(prisma.task.findMany).mockResolvedValue([]);

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { planningTimeZone, rollUnfinishedTasks } from "@/lib/weekly-planning";
 
 const LOG_SOURCE = "presence-heartbeat";
 
@@ -11,6 +12,7 @@ export async function POST(request: NextRequest) {
   if ("response" in auth) return auth.response;
 
   try {
+    await rollUnfinishedTasks(auth.userId, await planningTimeZone(auth.userId));
     await prisma.user.updateMany({
       where: { id: auth.userId },
       data: { lastActiveAt: new Date() },

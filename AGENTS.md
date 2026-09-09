@@ -1,6 +1,6 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-02
+Last updated: 2026-09-09
 
 ## Product Goal
 
@@ -111,6 +111,15 @@ npm.cmd run prisma:generate
 npm.cmd run dev
 ```
 
+Local PostgreSQL 16 is isolated in Docker as `sunnie_local` on
+`127.0.0.1:5433`. The ignored local `.env` uses that address, while the app
+container receives its internal `db:5432` address from Compose and Railway
+injects production `DATABASE_URL` independently. `npm.cmd run db:setup` starts
+the local database, generates Prisma Client, and applies checked-in migrations.
+That setup script forces the local URL for its Prisma commands rather than
+trusting a possibly inherited production environment variable.
+See `docs/local-postgres.md` for setup and maintenance commands.
+
 ## Environment and Secrets
 
 Never commit or print real secret values. Important configuration names include:
@@ -186,12 +195,13 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ### First-time onboarding
 
-- `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `2` adds sleep-hours setup. Accounts that completed version 1 but have not configured sleep hours receive only the short sleep-hours update rather than repeating the full tour.
+- `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `3` adds Weekly Review to the main tour. Existing accounts receive a short four-step Weekly Review tour; accounts that also missed the version 2 sleep-hours update receive both updates without repeating the full introduction.
 - `UserSettings.sleepHoursStart`, `sleepHoursEnd`, and `sleepHoursConfigured` persist the user's normal rest window in PostgreSQL. Bedtime and wake-up are editable under User Settings as well as onboarding. Auto-scheduling filters out every slot that overlaps the configured window, including overnight windows, and authenticated manual task updates reject scheduled times that overlap it.
 - The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, asks for sleep hours, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
 - New-user onboarding creates a small user-named practice task on the Tasks step, selects it in Focus, and immediately opens Focus next so the combined setup/focus/break Pomodoro controls are visible during the tour.
 - Tour progress survives same-tab OAuth redirects through session storage, while completion is persisted per user in PostgreSQL by `/api/onboarding`.
 - Each step contains a short curated quote with its author. The tour has Back/Next controls but no permanent skip; an interrupted user resumes until the current version is completed.
+- User Settings includes replay controls for the app tour and the shorter Weekly Review tour. Replays skip account setup and practice-task creation, and do not change the saved onboarding state. Tour routes are prefetched and Next advances immediately without waiting for calendar-status refreshes.
 
 ### Tasks and projects
 
@@ -234,6 +244,17 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Auto-scheduling respects selected working days and keeps the full task interval inside the user's local working hours. It also respects sleep hours, selected-calendar conflicts, task duration, priority, energy, preferred time, real buffer gaps, and locked schedules. Candidate starts use a stable 30-minute grid, and day/week requests cannot spill beyond their requested window.
 - Placement scores remain internal scheduling data. Confidence/score percentages are intentionally not shown on mobile cards, task rows, task modals, or calendar task details.
 - Empty auto-schedule actions show clear guidance and the controls have explanatory hover content.
+
+### Weekly review and completion history
+
+- Plan includes a four-step weekly review: completed tasks and past events, optional reflections, unfinished-task choices, and next-week priorities. Tasks links to history and has a collapsed Completed today section with Undo.
+- `WeeklyReview` stores private per-user, per-Monday reflections, priorities, selected calendars, excluded events, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete. Changing weeks saves pending edits first.
+- History queries actual `completedAt` in the account timezone in pages of 100. Everyday task requests load active tasks and today's completions. Legacy completions without a timestamp cannot be assigned to a historical week.
+- Past events use stored, ended occurrences from the user's calendars, excluding cancellations and known mirrored task blocks. Users select calendars and uncheck skipped events. Durations are scheduled time, not attendance; all-day events are separate. Lists reflect currently synced data rather than immutable snapshots.
+- Task creation, editing, and Tune-up offer optional Backlog / This week / Next week / Choose week. Missing week assignment never adds a task to Tune-up. Explicit weeks constrain auto-scheduling and are separate from deadlines.
+- Unfinished tasks in older weeks roll into the current pool when tasks, scheduling, review, or presence are used. Catch-up after weeks away needs no review or midnight job. Scoped compare-and-update protects concurrent tabs. Backlog and future weeks stay untouched; deadlines, start dates, and locked blocks are preserved. Changing week assignment clears unlocked placements.
+- `rolloverCount` and `rolledFromWeek` support a gentle prompt after three weeks. Keep this week, choose a week, Backlog, and Delete are explicit choices. Rollover never deletes tasks, and automatic completed-task deletion remains deferred.
+- Fake-data previews are available at `/preview/weekly-review` and within `/preview/plan`.
 
 ### Calendar and colors
 

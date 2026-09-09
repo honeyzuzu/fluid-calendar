@@ -139,6 +139,12 @@ export default function TasksPage() {
                 <h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">
                   Tasks
                 </h1>
+                <Link
+                  href="/plan#weekly-review"
+                  className="text-xs font-medium text-primary underline"
+                >
+                  Weekly review & completed history
+                </Link>
                 <p
                   id="auto-schedule-description"
                   className="mt-1 max-w-xl text-xs text-muted-foreground"
@@ -219,6 +225,55 @@ export default function TasksPage() {
           </div>
 
           <MobileProjectPicker />
+          <details className="mx-auto mt-3 w-full max-w-[1480px] rounded-xl border border-[#dce3c9] bg-[#f3f6e9] px-3 py-2 text-sm">
+            <summary className="cursor-pointer font-medium">
+              Completed today (
+              {
+                tasks.filter(
+                  (task) =>
+                    task.status === TaskStatus.COMPLETED &&
+                    (!activeProject ||
+                      (activeProject.id === "no-project"
+                        ? !task.projectId
+                        : task.projectId === activeProject.id))
+                ).length
+              }
+              )
+            </summary>
+            <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
+              {tasks
+                .filter(
+                  (task) =>
+                    task.status === TaskStatus.COMPLETED &&
+                    (!activeProject ||
+                      (activeProject.id === "no-project"
+                        ? !task.projectId
+                        : task.projectId === activeProject.id))
+                )
+                .map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <span className="min-w-0 break-words">{task.title}</span>
+                    <button
+                      className="shrink-0 text-xs underline"
+                      onClick={() =>
+                        void handleStatusChange(task.id, TaskStatus.TODO)
+                      }
+                    >
+                      Undo
+                    </button>
+                  </div>
+                ))}
+            </div>
+            <Link
+              href="/plan#weekly-review"
+              className="mt-2 inline-block text-xs underline"
+            >
+              Browse older weeks
+            </Link>
+          </details>
 
           {error && (
             <Alert variant="destructive" className="mt-4">

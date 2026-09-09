@@ -52,6 +52,48 @@ async function save(body: Record<string, unknown>) {
   return response;
 }
 
+it("validates week selection and protects completion and rollover metadata", async () => {
+  expect((await save({ plannedWeekStart: "2026-09-08" })).status).toBe(400);
+  expect(
+    (
+      await save({
+        plannedWeekStart: "2026-09-14",
+        rolloverCount: 999,
+        completedAt: "2001-01-01",
+      })
+    ).status
+  ).toBe(200);
+  expect(updateTask).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        plannedWeekStart: new Date("2026-09-14T00:00:00Z"),
+        rolloverCount: 0,
+        scheduledStart: null,
+        scheduledEnd: null,
+      }),
+    })
+  );
+  expect(updateTask.mock.calls[0][0].data.completedAt).toBeUndefined();
+});
+
+it("clears completion time when undoing and preserves locked calendar placement on reassignment", async () => {
+  (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+    id: "task-1",
+    userId: "user-1",
+    status: "completed",
+    scheduleLocked: true,
+    plannedWeekStart: new Date("2026-09-07T00:00:00Z"),
+    tags: [],
+  });
+  expect(
+    (await save({ status: "todo", plannedWeekStart: "2026-09-14" })).status
+  ).toBe(200);
+  const data = updateTask.mock.calls[0][0].data;
+  expect(data.completedAt).toBeNull();
+  expect(data.scheduledStart).toBeUndefined();
+  expect(data.scheduleLocked).toBeUndefined();
+});
+
 it("saves the Tune-up payload with a Prisma-compatible due date", async () => {
   const response = await save({
     status: "todo",

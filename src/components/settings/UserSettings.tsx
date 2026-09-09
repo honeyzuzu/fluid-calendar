@@ -1,6 +1,9 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
+import { BookOpen, RotateCcw } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { ONBOARDING_REPLAY_EVENT } from "@/lib/onboarding";
 
 import { useSettingsStore } from "@/store/settings";
 
@@ -30,6 +35,12 @@ export function UserSettings() {
     { value: "sunday", label: "Sunday" },
     { value: "monday", label: "Monday" },
   ];
+
+  const replayTour = (kind: "replay" | "weekly-review") => {
+    window.dispatchEvent(
+      new CustomEvent(ONBOARDING_REPLAY_EVENT, { detail: { kind } })
+    );
+  };
 
   // Comprehensive list of common timezones
   const timeZones = [
@@ -243,6 +254,28 @@ export function UserSettings() {
               }
             />
           </div>
+        </div>
+      </SettingRow>
+
+      <SettingRow
+        label="Guided Tours"
+        description="Replay Sunnie's app tour or take the shorter weekly review tour anytime."
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => replayTour("replay")}
+          >
+            <RotateCcw /> Replay app tour
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => replayTour("weekly-review")}
+          >
+            <BookOpen /> Weekly review tour
+          </Button>
         </div>
       </SettingRow>
     </SettingsSection>

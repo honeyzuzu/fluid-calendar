@@ -13,6 +13,9 @@ services:
     environment:
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      # Containers reach Postgres by its Compose service name. Local Next.js
+      # instead uses the 127.0.0.1:5433 URL from .env.
+      - DATABASE_URL=postgresql://sunnie_local:sunnie_local@db:5432/sunnie_local
     depends_on:
       db:
         condition: service_healthy
@@ -21,15 +24,17 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=fluid
-      - POSTGRES_PASSWORD=fluid
-      - POSTGRES_DB=fluid_calendar
+      - POSTGRES_USER=sunnie_local
+      - POSTGRES_PASSWORD=sunnie_local
+      - POSTGRES_DB=sunnie_local
     ports:
-      - "5432:5432"
+      # A non-default host port makes the development database easy to
+      # distinguish from PostgreSQL installations and production tunnels.
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fluid -d fluid_calendar"]
+      test: ["CMD-SHELL", "pg_isready -U sunnie_local -d sunnie_local"]
       interval: 5s
       timeout: 5s
       retries: 5

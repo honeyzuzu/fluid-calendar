@@ -1,13 +1,43 @@
 import {
   CURRENT_ONBOARDING_VERSION,
   ONBOARDING_STEPS,
+  REPLAY_ONBOARDING_STEPS,
   SLEEP_ONBOARDING_STEPS,
+  WEEKLY_REVIEW_ONBOARDING_STEPS,
   clampOnboardingStep,
 } from "@/lib/onboarding";
 
 describe("Sunnie onboarding", () => {
   it("uses a positive version so existing accounts start incomplete", () => {
-    expect(CURRENT_ONBOARDING_VERSION).toBeGreaterThan(0);
+    expect(CURRENT_ONBOARDING_VERSION).toBe(3);
+  });
+
+  it("includes the four-part weekly review in new and returning-user tours", () => {
+    expect(
+      WEEKLY_REVIEW_ONBOARDING_STEPS.map((step) => step.weeklyReviewStep)
+    ).toEqual([0, 1, 2, 3]);
+    expect(
+      WEEKLY_REVIEW_ONBOARDING_STEPS.every(
+        (step) => step.href === "/plan" && step.targetId === "weekly-review"
+      )
+    ).toBe(true);
+    expect(
+      ONBOARDING_STEPS.some((step) => step.id === "weekly-review-look-back")
+    ).toBe(true);
+  });
+
+  it("keeps replay safe by excluding setup and practice-task creation", () => {
+    expect(
+      REPLAY_ONBOARDING_STEPS.every((step) => step.layout === "tour")
+    ).toBe(true);
+    expect(
+      REPLAY_ONBOARDING_STEPS.some((step) => step.id === "practice-task")
+    ).toBe(false);
+    expect(
+      REPLAY_ONBOARDING_STEPS.some(
+        (step) => step.id === "weekly-review-reflect"
+      )
+    ).toBe(true);
   });
 
   it("keeps setup before the page tour and gives every step a quote", () => {

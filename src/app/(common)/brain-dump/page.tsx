@@ -18,6 +18,8 @@ import {
   WandSparkles,
 } from "lucide-react";
 
+import { WeekPicker } from "@/components/planning/WeekPicker";
+
 import { needsTaskTuneUp, parseBrainDump } from "@/lib/brain-dump";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,7 @@ type TunableTask = {
   priority: Priority | null;
   energyLevel: EnergyLevel | null;
   dueDate: string | null;
+  plannedWeekStart: string | null;
 };
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -64,6 +67,7 @@ export default function BrainDumpPage() {
   const [priority, setPriority] = useState<Priority | "">("");
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | "">("");
   const [dueDate, setDueDate] = useState("");
+  const [plannedWeek, setPlannedWeek] = useState("");
   const [savingTask, setSavingTask] = useState(false);
 
   const parsedTasks = useMemo(() => parseBrainDump(draft), [draft]);
@@ -83,6 +87,7 @@ export default function BrainDumpPage() {
   useEffect(() => {
     if (!currentTask) return;
     setStatus(currentTask.status);
+    setPlannedWeek(currentTask.plannedWeekStart?.slice(0, 10) ?? "");
     setDuration(currentTask.duration?.toString() ?? "");
     setPriority(
       currentTask.priority === Priority.NONE ? "" : (currentTask.priority ?? "")
@@ -162,6 +167,7 @@ export default function BrainDumpPage() {
           priority,
           energyLevel,
           dueDate,
+          plannedWeekStart: plannedWeek || null,
         }),
       }).then((response) => readJson<TunableTask>(response));
 
@@ -345,6 +351,8 @@ export default function BrainDumpPage() {
             priority={priority}
             energyLevel={energyLevel}
             dueDate={dueDate}
+            plannedWeek={plannedWeek}
+            onWeekChange={setPlannedWeek}
             onStatusChange={setStatus}
             onDurationChange={setDuration}
             onPriorityChange={setPriority}
@@ -412,6 +420,8 @@ type TuneUpProps = {
   priority: Priority | "";
   energyLevel: EnergyLevel | "";
   dueDate: string;
+  plannedWeek: string;
+  onWeekChange: (value: string) => void;
   onStatusChange: (value: TaskStatus) => void;
   onDurationChange: (value: string) => void;
   onPriorityChange: (value: Priority | "") => void;
@@ -439,6 +449,8 @@ function TaskTuneUp({
   onPriorityChange,
   onEnergyChange,
   onDueDateChange,
+  plannedWeek,
+  onWeekChange,
   onSubmit,
   onPrevious,
   onNext,
@@ -514,6 +526,13 @@ function TaskTuneUp({
         </div>
 
         <div className="p-5 sm:p-7">
+          <div className="mb-5">
+            <WeekPicker
+              value={plannedWeek}
+              onChange={onWeekChange}
+              disabled={saving}
+            />
+          </div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#84a75e]">
             Tell Sunnie about this task
           </p>

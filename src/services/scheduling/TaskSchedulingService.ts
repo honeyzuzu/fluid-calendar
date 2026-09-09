@@ -1,5 +1,6 @@
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { planningTimeZone, rollUnfinishedTasks } from "@/lib/weekly-planning";
 
 import { ProjectStatus } from "@/types/project";
 import {
@@ -120,6 +121,7 @@ export async function scheduleAllTasksForUser(
     }
 
     // Get all tasks marked for auto-scheduling that are not locked
+    await rollUnfinishedTasks(userId, await planningTimeZone(userId));
     const tasksToSchedule = await prisma.task.findMany({
       where: {
         isAutoScheduled: true,

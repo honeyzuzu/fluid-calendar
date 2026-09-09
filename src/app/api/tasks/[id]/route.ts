@@ -6,6 +6,7 @@ import { RRule } from "rrule";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { newDate, toZonedTime } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
+import { parseWeek } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { overlapsSleepHours } from "@/lib/sleep-hours";
 import {
@@ -95,10 +96,45 @@ export async function PUT(
     }
 
     const json = await request.json();
-    logger.info(`Update payload for task ${id}`, { payload: json }, LOG_SOURCE);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tagIds, project, projectId, userId: _, ...updates } = json;
+
+    delete updates.completedAt;
+    delete updates.rolloverCount;
+    delete updates.rolledFromWeek;
+    const acknowledgeRollover = updates.acknowledgeRollover === true;
+    delete updates.acknowledgeRollover;
+    if (updates.plannedWeekStart !== undefined) {
+      const week =
+        updates.plannedWeekStart === null
+          ? null
+          : parseWeek(updates.plannedWeekStart);
+      if (updates.plannedWeekStart !== null && !week)
+        return NextResponse.json(
+          { error: "Choose a valid week" },
+          { status: 400 }
+        );
+      updates.plannedWeekStart = week;
+      if (
+        acknowledgeRollover ||
+        week?.getTime() !== task.plannedWeekStart?.getTime()
+      ) {
+        updates.rolloverCount = 0;
+        updates.rolledFromWeek = null;
+      }
+      if (
+        week?.getTime() !== task.plannedWeekStart?.getTime() &&
+        !task.scheduleLocked &&
+        updates.scheduledStart === undefined &&
+        updates.scheduledEnd === undefined
+      ) {
+        updates.scheduledStart = null;
+        updates.scheduledEnd = null;
+      }
+    }
+    if (updates.status && updates.status !== TaskStatus.COMPLETED)
+      updates.completedAt = null;
 
     // Native date inputs send YYYY-MM-DD, which Prisma DateTime rejects as
     // a string. Preserve date-only values as UTC midnight, and allow clearing.
@@ -167,6 +203,7 @@ export async function PUT(
     // Handle recurring task completion
     if (
       task.isRecurring &&
+      task.status !== TaskStatus.COMPLETED &&
       updates.status === TaskStatus.COMPLETED &&
       task.recurrenceRule
     ) {
@@ -250,6 +287,13 @@ export async function PUT(
           updates.startDate = nextStartDate; // Update the start date if calculated
           updates.status = TaskStatus.TODO;
           updates.lastCompletedDate = newDate();
+          updates.completedAt = null;
+          updates.plannedWeekStart = null;
+          updates.rolloverCount = 0;
+          updates.rolledFromWeek = null;
+          updates.scheduledStart = null;
+          updates.scheduledEnd = null;
+          updates.scheduleLocked = false;
         }
       } catch (error) {
         logger.error(

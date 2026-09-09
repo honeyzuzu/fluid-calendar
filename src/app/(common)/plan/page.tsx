@@ -20,6 +20,8 @@ import {
   X,
 } from "lucide-react";
 
+import { WeeklyReview } from "@/components/planning/WeeklyReview";
+
 import {
   DAILY_INTENTION_UPDATED_EVENT,
   localDateKey,
@@ -168,19 +170,22 @@ export default function PlanPage() {
     () =>
       tasks.filter(
         (task) =>
-          isSameLocalDay(task.startDate, selectedDate) ||
+          ((!task.plannedWeekStart ||
+            hasDateKey(task.plannedWeekStart, weekStartKey)) &&
+            isSameLocalDay(task.startDate, selectedDate)) ||
           isSameLocalDay(task.scheduledStart, selectedDate)
       ),
-    [selectedDate, tasks]
+    [selectedDate, tasks, weekStartKey]
   );
   const weekTasks = useMemo(
     () =>
       tasks.filter(
         (task) =>
           task.status !== "completed" &&
-          (hasDateKey(task.plannedWeekStart, weekStartKey) ||
-            isInLocalRange(task.startDate, weekStart, weekEnd) ||
-            isInLocalRange(task.scheduledStart, weekStart, weekEnd))
+          (task.plannedWeekStart
+            ? hasDateKey(task.plannedWeekStart, weekStartKey)
+            : isInLocalRange(task.startDate, weekStart, weekEnd) ||
+              isInLocalRange(task.scheduledStart, weekStart, weekEnd))
       ),
     [tasks, weekEnd, weekStart, weekStartKey]
   );
@@ -190,6 +195,7 @@ export default function PlanPage() {
         .filter(
           (task) =>
             task.status !== "completed" &&
+            !task.plannedWeekStart &&
             !weekTasks.some((weekTask) => weekTask.id === task.id)
         )
         .slice(0, 10),
@@ -396,6 +402,12 @@ export default function PlanPage() {
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
+        <a
+          href="#weekly-review"
+          className="mb-5 inline-flex rounded-xl border border-[#dce3c9] bg-white/80 px-4 py-2 text-sm font-medium text-[#64734a]"
+        >
+          Weekly review & history
+        </a>
         <div className="mb-7 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
           <div className="min-w-0">
             <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#c65f40]">
@@ -995,6 +1007,20 @@ export default function PlanPage() {
             </div>
           </div>
         )}
+        <WeeklyReview
+          onTasksChanged={() => {
+            void fetch("/api/tasks")
+              .then(expectJson<TaskRecord[]>)
+              .then(setTasks)
+              .catch((caught) =>
+                setError(
+                  caught instanceof Error
+                    ? caught.message
+                    : "Unable to refresh tasks"
+                )
+              );
+          }}
+        />
       </div>
     </div>
   );

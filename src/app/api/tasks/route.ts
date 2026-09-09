@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { RRule } from "rrule";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
+import { parseWeek } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { schedulePushTaskBlock } from "@/lib/task-block-push";
 import {
@@ -12,6 +14,7 @@ import {
   TaskChangeTracker,
 } from "@/lib/task-sync/task-change-tracker";
 import { normalizeRecurrenceRule } from "@/lib/utils/normalize-recurrence-rules";
+import { planningTimeZone, rollUnfinishedTasks } from "@/lib/weekly-planning";
 
 import { EnergyLevel, TaskStatus, TimePreference } from "@/types/task";
 
@@ -40,10 +43,24 @@ export async function GET(request: NextRequest) {
     const hideUpcomingTasks = searchParams.get("hideUpcomingTasks") === "true";
 
     const now = newDate();
+    const timeZone = await planningTimeZone(userId);
+    await rollUnfinishedTasks(userId, timeZone, now);
+    const today = fromZonedTime(
+      `${formatInTimeZone(now, timeZone, "yyyy-MM-dd")}T00:00:00`,
+      timeZone
+    );
     const tasks = await prisma.task.findMany({
       where: {
         // Filter by the current user's ID
         userId,
+        AND: [
+          {
+            OR: [
+              { status: { not: "completed" } },
+              { completedAt: { gte: today } },
+            ],
+          },
+        ],
         ...(status.length > 0 && { status: { in: status } }),
         ...(energyLevel.length > 0 && { energyLevel: { in: energyLevel } }),
         ...(timePreference.length > 0 && {
@@ -105,6 +122,21 @@ export async function POST(request: NextRequest) {
 
     const json = await request.json();
     const { tagIds, recurrenceRule, ...taskData } = json;
+    delete taskData.rolloverCount;
+    delete taskData.rolledFromWeek;
+    taskData.completedAt = taskData.status === "completed" ? newDate() : null;
+    if (
+      taskData.plannedWeekStart !== undefined &&
+      taskData.plannedWeekStart !== null
+    ) {
+      const week = parseWeek(taskData.plannedWeekStart);
+      if (!week)
+        return NextResponse.json(
+          { error: "Choose a valid week" },
+          { status: 400 }
+        );
+      taskData.plannedWeekStart = week;
+    }
 
     // Normalize and validate recurrence rule if provided
     const standardizedRecurrenceRule = recurrenceRule

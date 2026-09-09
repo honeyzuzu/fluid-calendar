@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,10 +22,14 @@ import { AccountManager } from "@/components/settings/AccountManager";
 import { formatIntentionQuote } from "@/lib/daily-intention";
 import {
   CURRENT_ONBOARDING_VERSION,
+  ONBOARDING_REPLAY_EVENT,
   ONBOARDING_SESSION_KEY,
   ONBOARDING_STEPS,
   type OnboardingStep,
+  REPLAY_ONBOARDING_STEPS,
   SLEEP_ONBOARDING_STEPS,
+  WEEKLY_REVIEW_ONBOARDING_STEPS,
+  WEEKLY_REVIEW_TOUR_STEP_EVENT,
   clampOnboardingStep,
 } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
@@ -51,6 +55,8 @@ type OnboardingStatus = {
   sleepHoursEnd: string;
   sleepHoursConfigured: boolean;
 };
+
+type TourKind = "full" | "update" | "replay" | "weekly-review";
 
 function StepQuote({
   stepIndex,
@@ -101,8 +107,10 @@ export function OnboardingTour() {
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const requestedHrefRef = useRef<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
-  const [tourKind, setTourKind] = useState<"full" | "sleep">("full");
+  const [tourKind, setTourKind] = useState<TourKind>("full");
+  const [needsSleepUpdate, setNeedsSleepUpdate] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -116,8 +124,19 @@ export function OnboardingTour() {
     "Try a 25-minute focus session"
   );
   const [practiceTaskId, setPracticeTaskId] = useState<string | null>(null);
-  const steps =
-    tourKind === "sleep" ? SLEEP_ONBOARDING_STEPS : ONBOARDING_STEPS;
+  const steps = useMemo(
+    () =>
+      tourKind === "full"
+        ? ONBOARDING_STEPS
+        : tourKind === "replay"
+          ? REPLAY_ONBOARDING_STEPS
+          : tourKind === "weekly-review"
+            ? WEEKLY_REVIEW_ONBOARDING_STEPS
+            : needsSleepUpdate
+              ? [...SLEEP_ONBOARDING_STEPS, ...WEEKLY_REVIEW_ONBOARDING_STEPS]
+              : WEEKLY_REVIEW_ONBOARDING_STEPS,
+    [needsSleepUpdate, tourKind]
+  );
 
   const loadStatus = useCallback(async () => {
     const response = await fetch("/api/onboarding", { cache: "no-store" });
@@ -140,19 +159,10 @@ export function OnboardingTour() {
         if (nextStatus.onboardingVersion < CURRENT_ONBOARDING_VERSION) {
           setSleepHoursStart(nextStatus.sleepHoursStart || "23:00");
           setSleepHoursEnd(nextStatus.sleepHoursEnd || "07:00");
-          if (
-            nextStatus.onboardingVersion > 0 &&
-            nextStatus.sleepHoursConfigured
-          ) {
-            void fetch("/api/onboarding", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ completed: true }),
-            });
-            return;
-          }
-          const isSleepUpdate = nextStatus.onboardingVersion > 0;
-          setTourKind(isSleepUpdate ? "sleep" : "full");
+          const isUpdate = nextStatus.onboardingVersion > 0;
+          const needsSleep = isUpdate && !nextStatus.sleepHoursConfigured;
+          setNeedsSleepUpdate(needsSleep);
+          setTourKind(isUpdate ? "update" : "full");
           const storedStep = Number(
             window.sessionStorage.getItem(ONBOARDING_SESSION_KEY) || 0
           );
@@ -164,9 +174,15 @@ export function OnboardingTour() {
             useFocusModeStore.getState().switchToTask(storedPracticeTaskId);
           }
           setStepIndex(
-            isSleepUpdate
-              ? 0
-              : clampOnboardingStep(storedStep, ONBOARDING_STEPS.length)
+            clampOnboardingStep(
+              storedStep,
+              isUpdate
+                ? needsSleep
+                  ? SLEEP_ONBOARDING_STEPS.length +
+                    WEEKLY_REVIEW_ONBOARDING_STEPS.length
+                  : WEEKLY_REVIEW_ONBOARDING_STEPS.length
+                : ONBOARDING_STEPS.length
+            )
           );
           setIsOpen(true);
         }
@@ -190,24 +206,73 @@ export function OnboardingTour() {
   }, [loadStatus, sessionStatus]);
 
   useEffect(() => {
+    const startReplay = (event: Event) => {
+      const detail = (event as CustomEvent<{ kind?: TourKind }>).detail;
+      const nextKind =
+        detail?.kind === "weekly-review" ? "weekly-review" : "replay";
+      setTourKind(nextKind);
+      setNeedsSleepUpdate(false);
+      setStepIndex(0);
+      setError(null);
+      setIsOpen(true);
+    };
+    window.addEventListener(ONBOARDING_REPLAY_EVENT, startReplay);
+    return () =>
+      window.removeEventListener(ONBOARDING_REPLAY_EVENT, startReplay);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const nextStep = steps[stepIndex + 1];
+    if (nextStep?.href) router.prefetch(nextStep.href);
+  }, [isOpen, router, stepIndex, steps]);
+
+  useEffect(() => {
     if (!isOpen) return;
     window.sessionStorage.setItem(ONBOARDING_SESSION_KEY, String(stepIndex));
     const step = steps[stepIndex];
     if (step.layout === "tour" && step.href && pathname !== step.href) {
-      router.push(step.href);
+      if (requestedHrefRef.current !== step.href) {
+        requestedHrefRef.current = step.href;
+        router.push(step.href);
+      }
+      return;
+    }
+    requestedHrefRef.current = null;
+    if (step.weeklyReviewStep !== undefined) {
+      window.dispatchEvent(
+        new CustomEvent(WEEKLY_REVIEW_TOUR_STEP_EVENT, {
+          detail: { step: step.weeklyReviewStep },
+        })
+      );
+    }
+    if (step.targetId) {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(step.targetId!)
+          ?.scrollIntoView({ block: "start", behavior: "auto" });
+      });
     }
   }, [isOpen, pathname, router, stepIndex, steps]);
 
-  const moveTo = async (nextIndex: number) => {
+  const moveTo = (nextIndex: number) => {
     setError(null);
     if (steps[stepIndex].id === "connect") {
-      try {
-        await loadStatus();
-      } catch {
+      void loadStatus().catch(() => {
         // Calendar status can be refreshed again on the next screen.
-      }
+      });
     }
-    setStepIndex(clampOnboardingStep(nextIndex, steps.length));
+    const clampedIndex = clampOnboardingStep(nextIndex, steps.length);
+    const nextStep = steps[clampedIndex];
+    setStepIndex(clampedIndex);
+    if (
+      nextStep.layout === "tour" &&
+      nextStep.href &&
+      pathname !== nextStep.href
+    ) {
+      requestedHrefRef.current = nextStep.href;
+      router.push(nextStep.href);
+    }
   };
 
   const saveSleepHours = async (completed = false) => {
@@ -226,8 +291,9 @@ export function OnboardingTour() {
     setIsSaving(true);
     setError(null);
     try {
-      if (tourKind === "sleep") await saveSleepHours(true);
-      else {
+      if (tourKind === "replay" || tourKind === "weekly-review") {
+        // Replays do not change the saved onboarding state.
+      } else {
         const response = await fetch("/api/onboarding", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -344,7 +410,9 @@ export function OnboardingTour() {
         <div className="flex items-center justify-between gap-3">
           <StepProgress stepIndex={stepIndex} steps={steps} />
           <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a1742e]">
-            Tiny tour
+            {tourKind === "weekly-review" || tourKind === "update"
+              ? "Weekly review tour"
+              : "Tiny tour"}
           </span>
         </div>
         <div className="mt-4 flex gap-3">
@@ -403,7 +471,7 @@ export function OnboardingTour() {
           <button
             type="button"
             onClick={() =>
-              isLastStep ? void completeTour() : void moveTo(stepIndex + 1)
+              isLastStep ? void completeTour() : moveTo(stepIndex + 1)
             }
             disabled={
               isSaving || (step.id === "practice-task" && !practiceTaskId)
@@ -611,8 +679,8 @@ export function OnboardingTour() {
         <footer className="flex flex-none items-center justify-between gap-3 border-t border-[#e9e1c2] bg-[#fffdf7] px-4 py-3 sm:px-6">
           <button
             type="button"
-            onClick={() => void moveTo(stepIndex - 1)}
-            disabled={stepIndex === 0 || tourKind === "sleep"}
+            onClick={() => moveTo(stepIndex - 1)}
+            disabled={stepIndex === 0}
             className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#716b50] hover:bg-[#f2ecd7] disabled:invisible"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
@@ -645,7 +713,7 @@ export function OnboardingTour() {
                   )
                   .finally(() => setIsSaving(false));
               } else {
-                void moveTo(stepIndex + 1);
+                moveTo(stepIndex + 1);
               }
             }}
             disabled={isSaving}

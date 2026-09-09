@@ -16,6 +16,9 @@ import {
   X,
 } from "lucide-react";
 
+import { WeeklyReview } from "@/components/planning/WeeklyReview";
+import { weeklyReviewPreview } from "@/components/planning/weekly-review-preview";
+
 type PreviewTask = {
   id: number;
   title: string;
@@ -379,6 +382,7 @@ export default function PlanningPreviewPage() {
             </div>
           </aside>
         </div>
+        <WeeklyReview preview={weeklyReviewPreview} />
       </section>
     </main>
   );

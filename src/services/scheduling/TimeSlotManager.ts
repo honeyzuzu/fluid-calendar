@@ -7,6 +7,7 @@ import {
   areIntervalsOverlapping,
   toZonedTime,
 } from "@/lib/date-utils";
+import { weekBounds } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import {
   generateCandidateIntervals,
@@ -105,6 +106,17 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     // For subsequent calls, we'll use the in-memory scheduled tasks
     // that have been updated by addScheduledTaskConflict
     await this.ensureScheduledTasksLoaded(userId);
+
+    // A chosen pool is a scheduling window, including when using Schedule all.
+    if (task.plannedWeekStart) {
+      const bounds = weekBounds(
+        new Date(task.plannedWeekStart).toISOString().slice(0, 10),
+        this.timeZone
+      );
+      if (bounds.start > startDate) startDate = bounds.start;
+      if (bounds.end < endDate) endDate = bounds.end;
+      if (startDate >= endDate) return [];
+    }
 
     // If task has a startDate that is beyond our endDate window, return empty slots
     // These tasks will get picked up in a future scheduling run

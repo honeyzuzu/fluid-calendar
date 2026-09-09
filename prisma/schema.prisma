@@ -98,6 +98,7 @@ model User {
   TaskChange             TaskChange[]
   PasswordReset          PasswordReset[]
   dailyPlans             DailyPlan[]
+  weeklyReviews          WeeklyReview[]
   friendRequestsSent     FriendConnection[]    @relation("FriendRequester")
   friendRequestsReceived FriendConnection[]    @relation("FriendAddressee")
 
@@ -135,6 +136,23 @@ model DailyPlan {
   @@unique([userId, date])
   @@index([date])
   @@index([userId])
+}
+
+model WeeklyReview {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart        DateTime  @db.Date
+  goodThings       String    @default("")
+  makeEasier       String    @default("")
+  nextPriorities   String    @default("")
+  calendarIds      String[]  @default([])
+  excludedEventIds String[]  @default([])
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([userId, weekStart])
 }
 
 model VerificationToken {
@@ -246,6 +264,8 @@ model Task {
   dueDate          DateTime?
   startDate        DateTime? // When the task becomes active
   plannedWeekStart DateTime? @db.Date // Monday of the week this task belongs to
+  rolloverCount    Int       @default(0)
+  rolledFromWeek   DateTime? @db.Date
   duration         Int? // estimated duration in minutes
   priority         String? // enum: 'high', 'medium', 'low', 'none'
   energyLevel      String? // enum: 'high', 'medium', 'low'
@@ -306,6 +326,7 @@ model Task {
   @@index([dueDate])
   @@index([startDate])
   @@index([plannedWeekStart, userId])
+  @@index([userId, status, completedAt])
   @@index([priority])
   @@index([projectId])
   @@index([isRecurring])

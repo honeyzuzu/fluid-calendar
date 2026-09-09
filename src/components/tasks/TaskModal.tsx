@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RRule } from "rrule";
 
+import { WeekPicker } from "@/components/planning/WeekPicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -94,6 +95,7 @@ export function TaskModal({
   const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
   const [dueDate, setDueDate] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
+  const [plannedWeek, setPlannedWeek] = useState("");
   const [duration, setDuration] = useState<string>("");
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | "">("");
   const [preferredTime, setPreferredTime] = useState<TimePreference | "">("");
@@ -123,6 +125,7 @@ export function TaskModal({
     setStatus(TaskStatus.TODO);
     setDueDate("");
     setStartDate("");
+    setPlannedWeek("");
     setDuration("");
     setEnergyLevel("");
     setPreferredTime("");
@@ -148,6 +151,11 @@ export function TaskModal({
   useEffect(() => {
     if (task && isOpen) {
       setTitle(task.title);
+      setPlannedWeek(
+        task.plannedWeekStart
+          ? new Date(task.plannedWeekStart).toISOString().slice(0, 10)
+          : ""
+      );
       setDescription(task.description || "");
       setStatus(task.status);
       // Handle date string from API
@@ -197,6 +205,9 @@ export function TaskModal({
         status,
         dueDate: dueDate ? newDate(dueDate) : null,
         startDate: startDate ? newDate(startDate) : null,
+        plannedWeekStart: plannedWeek
+          ? new Date(`${plannedWeek}T00:00:00.000Z`)
+          : null,
         duration: duration ? parseInt(duration, 10) : undefined,
         energyLevel: energyLevel || undefined,
         preferredTime: preferredTime || undefined,
@@ -251,6 +262,11 @@ export function TaskModal({
           </div>
 
           <div>
+            <WeekPicker
+              value={plannedWeek}
+              onChange={setPlannedWeek}
+              disabled={isSubmitting}
+            />
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
