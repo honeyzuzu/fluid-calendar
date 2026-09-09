@@ -17,12 +17,12 @@ export async function rollUnfinishedTasks(
   timeZone: string,
   now = new Date()
 ) {
-  const monday = parseWeek(currentWeek(timeZone, now))!;
+  const sunday = parseWeek(currentWeek(timeZone, now))!;
   const stale = await prisma.task.findMany({
     where: {
       userId,
       status: { not: "completed" },
-      plannedWeekStart: { lt: monday },
+      plannedWeekStart: { lt: sunday },
     },
     select: { id: true, plannedWeekStart: true },
   });
@@ -37,10 +37,10 @@ export async function rollUnfinishedTasks(
           plannedWeekStart: task.plannedWeekStart,
         },
         data: {
-          plannedWeekStart: monday,
+          plannedWeekStart: sunday,
           rolledFromWeek: task.plannedWeekStart,
           rolloverCount: {
-            increment: elapsedWeeks(task.plannedWeekStart!, monday),
+            increment: elapsedWeeks(task.plannedWeekStart!, sunday),
           },
         },
       })

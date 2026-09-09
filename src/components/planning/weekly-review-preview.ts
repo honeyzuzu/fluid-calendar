@@ -1,8 +1,8 @@
 import type { WeeklyReviewData } from "./WeeklyReview";
 
 export const weeklyReviewPreview: WeeklyReviewData = {
-  week: "2026-08-31",
-  currentWeek: "2026-09-07",
+  week: "2026-08-30",
+  currentWeek: "2026-09-06",
   timeZone: "America/New_York",
   review: {
     goodThings:
@@ -10,7 +10,6 @@ export const weeklyReviewPreview: WeeklyReviewData = {
     makeEasier: "Leave a little more breathing room between appointments.",
     nextPriorities: "Finish the photo album. Make time for friends.",
     calendarIds: ["personal"],
-    excludedEventIds: [],
     completedAt: null,
   },
   completed: [
@@ -19,7 +18,7 @@ export const weeklyReviewPreview: WeeklyReviewData = {
       title: "Send Maya the trip dates",
       completedAt: "2026-09-02T18:00:00Z",
       duration: 15,
-      plannedWeekStart: "2026-08-31",
+      plannedWeekStart: "2026-08-30",
       rolloverCount: 0,
       scheduleLocked: false,
     },
@@ -28,7 +27,7 @@ export const weeklyReviewPreview: WeeklyReviewData = {
       title: "Finish homepage illustrations",
       completedAt: "2026-09-04T16:00:00Z",
       duration: 60,
-      plannedWeekStart: "2026-08-31",
+      plannedWeekStart: "2026-08-30",
       rolloverCount: 0,
       scheduleLocked: false,
     },
@@ -40,7 +39,7 @@ export const weeklyReviewPreview: WeeklyReviewData = {
       title: "Organize the photo album",
       completedAt: null,
       duration: 30,
-      plannedWeekStart: "2026-09-07",
+      plannedWeekStart: "2026-09-06",
       rolloverCount: 3,
       scheduleLocked: false,
     },

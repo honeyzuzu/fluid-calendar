@@ -87,6 +87,8 @@ export async function GET(request: NextRequest) {
           OR: [
             { plannedWeekStart: week },
             { rolledFromWeek: { lte: week }, plannedWeekStart: { gt: week } },
+            { scheduledStart: { gte: start, lt: end } },
+            { startDate: { gte: start, lt: end } },
           ],
         },
         select: taskSelect,
@@ -117,7 +119,6 @@ const reviewInput = z.object({
   makeEasier: z.string().max(5000),
   nextPriorities: z.string().max(5000),
   calendarIds: z.array(z.string().max(200)).max(500),
-  excludedEventIds: z.array(z.string().max(200)).max(5000),
   completed: z.boolean(),
 });
 

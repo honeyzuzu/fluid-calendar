@@ -75,8 +75,7 @@ function hasDateKey(value: string | null, key: string) {
 
 function startOfLocalWeek(date: Date) {
   const start = new Date(date);
-  const day = start.getDay();
-  start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+  start.setDate(start.getDate() - start.getDay());
   start.setHours(0, 0, 0, 0);
   return start;
 }

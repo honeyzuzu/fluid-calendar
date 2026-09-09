@@ -19,12 +19,11 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 const input = {
-  week: "2026-09-07",
+  week: "2026-09-06",
   goodThings: "A peaceful walk",
   makeEasier: "More breaks",
   nextPriorities: "Make room for friends",
   calendarIds: ["mine"],
-  excludedEventIds: [],
   completed: true,
 };
 function request(body: unknown) {
@@ -49,7 +48,7 @@ it("requires authentication before reading or writing private reflections", asyn
   expect(
     (
       await GET(
-        new NextRequest("http://localhost/api/weekly-review?week=2026-09-07")
+        new NextRequest("http://localhost/api/weekly-review?week=2026-09-06")
       )
     )?.status
   ).toBe(401);
@@ -65,7 +64,7 @@ it("saves reflections only for the authenticated owner and chosen week", async (
       where: {
         userId_weekStart: {
           userId: "owner",
-          weekStart: new Date("2026-09-07T00:00:00Z"),
+          weekStart: new Date("2026-09-06T00:00:00Z"),
         },
       },
       create: expect.objectContaining({
@@ -84,7 +83,7 @@ it("rejects calendars outside the user's account and invalid review inputs", asy
   expect(
     (await PUT(request({ ...input, goodThings: "x".repeat(5001) })))?.status
   ).toBe(400);
-  expect((await PUT(request({ ...input, week: "2026-09-08" })))?.status).toBe(
+  expect((await PUT(request({ ...input, week: "2026-09-07" })))?.status).toBe(
     400
   );
   expect(prisma.weeklyReview.upsert).not.toHaveBeenCalled();
@@ -102,7 +101,7 @@ it("bounds history to local completion dates and removes mirrored task blocks", 
     { id: "meeting", feedId: "mine", externalEventId: "meeting" },
   ]);
   const response = await GET(
-    new NextRequest("http://localhost/api/weekly-review?week=2026-09-07")
+    new NextRequest("http://localhost/api/weekly-review?week=2026-09-06")
   );
   const body = await response!.json();
   expect(body.events).toEqual([
@@ -115,8 +114,8 @@ it("bounds history to local completion dates and removes mirrored task blocks", 
         userId: "owner",
         status: "completed",
         completedAt: {
-          gte: new Date("2026-09-07T04:00:00Z"),
-          lt: new Date("2026-09-14T04:00:00Z"),
+          gte: new Date("2026-09-06T04:00:00Z"),
+          lt: new Date("2026-09-13T04:00:00Z"),
         },
       },
       take: 101,
@@ -127,6 +126,29 @@ it("bounds history to local completion dates and removes mirrored task blocks", 
       where: expect.objectContaining({
         feed: { userId: "owner" },
         isMaster: false,
+      }),
+    })
+  );
+  expect(prisma.task.findMany).toHaveBeenNthCalledWith(
+    3,
+    expect.objectContaining({
+      where: expect.objectContaining({
+        userId: "owner",
+        status: { not: "completed" },
+        OR: expect.arrayContaining([
+          {
+            scheduledStart: {
+              gte: new Date("2026-09-06T04:00:00Z"),
+              lt: new Date("2026-09-13T04:00:00Z"),
+            },
+          },
+          {
+            startDate: {
+              gte: new Date("2026-09-06T04:00:00Z"),
+              lt: new Date("2026-09-13T04:00:00Z"),
+            },
+          },
+        ]),
       }),
     })
   );

@@ -1,78 +1,34 @@
-# Background Jobs Implementation with BullMQ
+# Sunnie work queue
 
-## Infrastructure Setup
+Last reviewed: 2026-09-09 against local commit `8e17fc8`.
 
-- [x] Add Redis StatefulSet to Kubernetes configuration in `src/saas/k8s/deployment.yaml`
-- [x] Add Redis Service to Kubernetes configuration
-- [x] Create worker deployment configuration in Kubernetes
-- [x] Update GitHub Actions workflow to deploy Redis and worker
-- [x] Create staging environment configuration in `src/saas/k8s/deployment.staging.saas.yaml`
-- [x] Create GitHub Actions workflow for staging deployment in `.github/workflows/deploy.staging.saas.yml`
+Use this file for concrete work we have chosen to do. Put rough feature thoughts in [FEATURE_IDEAS.md](FEATURE_IDEAS.md), and consult [AGENTS.md](AGENTS.md) for what already exists.
 
-## BullMQ Setup
+## Current work
 
-- [x] Install required packages: `bullmq`, `ioredis`, `cron`
-- [x] Create Redis connection configuration in `src/saas/jobs/config/redis.ts`
-- [x] Set up queue definitions in `src/saas/jobs/queues/index.ts`
-- [x] Create worker entry point in `src/saas/jobs/worker.ts`
+No implementation task selected yet. Choose an idea to flesh out when ready.
 
-## Job Processors Implementation
+## Maintenance candidates
 
-- [x] Create base job processor class in `src/saas/jobs/processors/base-processor.ts`
-- [x] Implement calendar sync processor in `src/saas/jobs/processors/calendar-sync.ts`
-- [x] Implement email processor in `src/saas/jobs/processors/email.ts`
-- [x] Implement task reminder processor in `src/saas/jobs/processors/task-reminder.ts`
+These are existing follow-ups, not a prioritized implementation plan or confirmed bugs.
 
-## Daily Summary Email Implementation
+- [ ] Audit and upgrade production dependencies reported by `npm audit --omit=dev`; prioritize Auth.js, Next.js, Axios, and direct dependencies, and do not apply `npm audit fix --force` without testing the breaking upgrades.
+- [ ] Audit inherited technical docs and package scripts for upstream SaaS, Infisical, and Docker publishing assumptions before using them for Sunnie.
+- [ ] Decide whether to retain Outlook. If removing it, scope a complete pass across authentication, calendars, task providers, settings, schema relations, tests, and docs.
+- [ ] Review provider credential encryption and backup handling before expanding beyond the trusted friend/family group.
+- [ ] Consider dedicated fake-data previews when making substantial Friends or Settings changes; their release screenshots currently use Plan.
 
-- [x] Create email template for daily summary in `src/saas/jobs/templates/daily-summary.ts`
-- [x] Implement function to fetch user's daily meetings in `src/saas/jobs/utils/meeting-utils.ts`
-- [x] Implement function to fetch user's top tasks in `src/saas/jobs/utils/task-utils.ts`
-- [x] Create daily summary job processor in `src/saas/jobs/processors/daily-summary.ts`
-- [x] Set up scheduled job to trigger daily summary emails
+Google OAuth configuration and mobile/constrained-desktop QA remain ongoing setup and verification responsibilities documented in [AGENTS.md](AGENTS.md).
 
-## Admin Interface
+## Adding a selected task
 
-- [x] Create job status database schema in Prisma
-- [x] Implement job tracking and logging in `src/saas/jobs/utils/job-tracker.ts`
-- [x] Create admin dashboard UI in `src/app/(saas)/admin/jobs/page.tsx`
-- [x] Implement job status viewing and filtering
-- [x] Add manual job triggering functionality
+For each task, capture the intended outcome, link its idea if applicable, define the first version and completion criteria, and note relevant verification. Keep the queue small; unfinished ideas can stay in the brain dump.
 
-## Testing
+## Historical lists
 
-- [x] Create test environment with Redis
-- [ ] Write unit tests for job processors
-- [ ] Write integration tests for job queue
-- [ ] Test email delivery
+The previous lists were inherited from FluidCalendar and mixed completed functionality, old bug reports, and SaaS plans. They are preserved for reference, without treating their checkbox states as current:
 
-## Staging Environment
+- [Original @TODO.md: background jobs](docs/_old/upstream-background-jobs.md)
+- [Original TODO.md: upstream backlog](docs/_old/upstream-todo.md)
 
-- [x] Create staging Kubernetes configuration in `src/saas/k8s/deployment.staging.saas.yaml`
-- [x] Set up separate Redis instance for staging
-- [x] Configure GitHub Actions workflow for staging deployment in `.github/workflows/deploy.staging.saas.yml`
-- [x] Set up staging domain (staging.fluidcalendar.com)
-- [x] Configure Infisical for staging environment
-- [x] Test background jobs in staging environment
-
-## Documentation
-
-- [ ] Document job system architecture
-- [ ] Create developer guide for adding new job types
-- [ ] Document admin interface usage
-- [ ] Update deployment documentation
-- [x] Document staging environment setup and usage in `src/saas/k8s/README.staging.saas.md`
-
-## Monitoring and Logging
-
-- [x] Implement job performance metrics
-- [x] Set up error alerting for failed jobs
-- [x] Configure log aggregation for job system
-- [ ] Create dashboard for job system health
-
-## Security
-
-- [ ] Secure Redis with password authentication
-- [ ] Implement rate limiting for job creation
-- [x] Add validation for job input data
-- [x] Ensure secure handling of user data in jobs
+Reproduce an old bug or check the current code before promoting an archived item into this queue.

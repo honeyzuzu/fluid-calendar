@@ -1,439 +1,82 @@
-# FluidCalendar
+# Sunnie Planner
 
-An open-source alternative to Motion, designed for intelligent task scheduling and calendar management. FluidCalendar helps you stay on top of your tasks with smart scheduling capabilities, calendar integration, and customizable workflows.
+A private planner for the owner, friends, and family, built from the open-source [FluidCalendar](https://github.com/dotnetfactory/fluid-calendar) project and inspired by Sunsama. Sunnie combines a warm, pastel interface with daily planning, calendar sync, and automatic time blocking.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## What Sunnie does
 
-⚠️ **WARNING: ACTIVE DEVELOPMENT VERY BUGGY - REPORT BUGS AND BE PATIENT ✌️** ⚠️
+- Manage tasks and projects, or turn a Brain Dump into tasks and refine them with Task Tune-up.
+- Plan from Backlog to This week to a selected day, with a saved daily intention.
+- Schedule tasks around calendar conflicts, working hours, sleep hours, and locked blocks.
+- Review completed tasks and past events, save private weekly reflections, and choose next-week priorities.
+- Connect Google Calendar, Apple Calendar, and compatible CalDAV providers.
+- Run focus rounds with setup time, breaks, chimes, pets, and sun drops.
+- Share optional calendar availability with accepted friends, with individual privacy controls.
 
-This project is in active development and currently contains many bugs and incomplete features. It is not yet recommended for production use. If you encounter issues:
+The application supports desktop and mobile. Public signup defaults to off; the initial admin can temporarily enable it to onboard friends. Outlook code remains partially exposed from upstream; see [AGENTS.md](AGENTS.md) for the current integration caveats and detailed feature inventory.
 
-1. Please check the [existing issues](https://github.com/dotnetfactory/fluid-calendar/issues) to see if it's already reported
-2. If not found, [create a new issue](https://github.com/dotnetfactory/fluid-calendar/issues/new) with:
-   - Steps to reproduce
-   - Expected behavior
-   - Actual behavior
-   - Any relevant error messages or screenshots
+## Local development on Windows
 
-Your bug reports help make FluidCalendar better! We appreciate your patience and contributions as we work to stabilize the platform.
+Prerequisites: Node.js 22, npm, and Docker Desktop running Linux containers. On Windows, install the same Node major version used by Railway, then restart VS Code and any open terminals so the updated `PATH` is loaded:
 
-## About
-
-FluidCalendar is built for people who want full control over their scheduling workflow. It combines the power of automatic task scheduling with the flexibility of open-source software. Read more about the journey and motivation in [Part 1 of my blog series](https://medium.com/front-end-weekly/fluid-calendar-an-open-source-alternative-to-motion-part-1-7a5b52bf219d).
-
-![Snagit 2024 2025-02-16 12 33 23](https://github.com/user-attachments/assets/515381e9-b961-475d-a272-d454ecca59cb)
-
-## Support the Project ❤️
-
-If you find FluidCalendar useful, please consider supporting its development. Your sponsorship helps ensure continued maintenance and new features.
-
-[![GitHub Sponsor](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/eibrahim)
-
-By becoming a sponsor, you:
-
-- Help keep the project actively maintained
-- Get early access to new features
-- Support open-source software development
-
-## Sponsored By
-
-<a href="https://www.nitroclaw.com?ref=fluid-calendar">
-
-   <img width="600" alt="NitroClaw - Your Own OpenClaw Assistant, Zero Server Hassle" src="https://github.com/user-attachments/assets/c258d98c-b06b-4580-82b0-e54281613e54" />
-
-</a>
-
-**[NitroClaw](https://www.nitroclaw.com?ref=fluid-calendar)** - Your Own OpenClaw Assistant, Zero
-Server Hassle
-
-Deploy a dedicated OpenClaw AI assistant in under 2 minutes. Pick your LLM, connect Telegram, and
-start chatting - we handle all the infrastructure. $100/month with $50 in AI credits included.
-
-[Get Started](https://www.nitroclaw.com?ref=fluid-calendar)
-
-## Try the SaaS Version
-
-Don't want to self-host? We're currently beta testing our hosted version at [FluidCalendar.com](https://fluidcalendar.com). Sign up for the waitlist to be among the first to experience the future of intelligent calendar management, with all the features of the open-source version plus:
-
-- Managed infrastructure
-- Automatic updates
-- Premium support
-- Advanced AI features
-
-## Paid Self-Hosting Review
-
-Trying to run FluidCalendar yourself and stuck on the database, OAuth callback URLs, Google/Outlook scopes, Docker, or production env values?
-
-Use the [self-hosting setup checklist](docs/self-hosting-setup-checklist.md) first. If you want a second set of eyes, you can buy a focused setup review for **$12**:
-
-[Get a FluidCalendar setup review](https://buy.stripe.com/3cI9AS2799EYgx577zaMU04)
-
-The checkout asks for your repo, deploy URL, or setup notes plus the main blocker. The review is a short, manual pass over your public setup details with the next concrete fixes to try. Do not send secrets or private OAuth credentials.
-
-## Features
-
-- 🤖 **Intelligent Task Scheduling** - Automatically schedule tasks based on your preferences and availability
-- 📅 **Calendar Integration** - Seamless sync with Google Calendar (more providers coming soon)
-- ⚡ **Smart Time Slot Management** - Finds optimal time slots based on your work hours and buffer preferences
-- 🎨 **Modern UI** - Clean, responsive interface with smooth transitions
-- 🔧 **Customizable** - Adjust scheduling algorithms and preferences to your needs
-- 🔒 **Privacy-Focused** - Self-host your own instance
-
-## Tech Stack
-
-- Next.js 15 with App Router
-- TypeScript
-- Prisma for database management
-- FullCalendar for calendar UI
-- NextAuth.js for authentication
-- Tailwind CSS for styling
-
-## Prerequisites
-
-- Node.js (version specified in `.nvmrc`)
-- PostgreSQL 15 or newer (the bundled `docker-compose.yml` uses PostgreSQL 16; if you point `DATABASE_URL` at your own database, it must be PostgreSQL 15+)
-- A Google Cloud Project (for Google Calendar integration)
-
-## Google Cloud Setup
-
-To enable Google Calendar integration:
-
-1. Create a Project:
-
-   - Go to [Google Cloud Console](https://console.cloud.google.com)
-   - Click "New Project" and follow the prompts
-   - Note your Project ID
-
-2. Enable Required APIs:
-
-   - In your project, go to "APIs & Services" > "Library"
-   - Search for and enable:
-     - Google Calendar API
-     - Google People API (for user profile information)
-
-3. Configure OAuth Consent Screen:
-
-   - Go to "APIs & Services" > "OAuth consent screen"
-   - Choose "External" user type
-   - Fill in the required information:
-     - App name: "FluidCalendar" (or your preferred name)
-     - User support email
-     - Developer contact information
-   - Add scopes (these match what FluidCalendar actually requests):
-     - `openid`
-     - `email`
-     - `https://www.googleapis.com/auth/calendar`
-     - `https://www.googleapis.com/auth/calendar.events`
-     - `https://www.googleapis.com/auth/userinfo.email`
-     - `https://www.googleapis.com/auth/tasks` _(used for Google Tasks sync)_
-   - Add test users if in testing mode
-
-4. Create OAuth 2.0 Credentials:
-
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "OAuth client ID"
-   - Choose "Web application"
-   - Set Authorized JavaScript origins:
-     - `http://localhost:3000` (for development)
-     - Your production URL (if deployed)
-   - Set Authorized redirect URIs (add **both** paths - one is used for Google sign-in, the other for connecting a calendar):
-     - `http://localhost:3000/api/auth/callback/google` (for development)
-     - `http://localhost:3000/api/calendar/google` (for development)
-     - `https://your-domain.com/api/auth/callback/google` (for production)
-     - `https://your-domain.com/api/calendar/google` (for production)
-   - Click "Create"
-   - Save the generated Client ID and Client Secret
-
-   > These are the same two redirect URIs the in-app **Settings > System** panel shows for your deployment, so the app and these instructions match. Replace the host with the exact URL you open FluidCalendar at.
-
-5. Configure Credentials:
-   - Go to FluidCalendar Settings > System
-   - Enter your Google Client ID and Client Secret in the Google Calendar Integration section
-   - Or set environment variables as fallback:
-     ```bash
-     GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
-     GOOGLE_CLIENT_SECRET="your-client-secret"
-     ```
-
-### Troubleshooting the Google connection
-
-If Google returns `Error 400: redirect_uri_mismatch` or "Invalid Redirect" when you connect:
-
-- **`NEXTAUTH_URL` must match the public URL you open in the browser.** The OAuth redirect host is derived from `NEXTAUTH_URL` (not `NEXT_PUBLIC_APP_URL`). If `NEXTAUTH_URL` is still `http://localhost:3000` but you reach the app at a different URL, Google is sent back to `localhost` and the connection fails. Set `NEXTAUTH_URL` to the exact public URL and restart the app.
-- **Register both redirect URIs.** Google rejects the request if the exact callback URL is not in the authorized list. Make sure both `…/api/auth/callback/google` and `…/api/calendar/google` are listed for your host (see step 4 above).
-- **Google does not accept bare private IP addresses (e.g. `http://192.168.1.150:3000`) or `.local` hostnames** as redirect URIs ("must end with a public top-level domain"). For local development use `localhost`; otherwise expose the app on a public domain (a reverse proxy or tunnel) and use that domain in both `NEXTAUTH_URL` and the Google redirect URIs.
-
-Note: For production deployment, you'll need to:
-
-- Verify your domain ownership
-- Submit your application for verification if you plan to have more than 100 users
-- Add your production domain to the authorized origins and redirect URIs
-
-## Microsoft Outlook Setup
-
-To enable Outlook Calendar integration:
-
-1. Create an Azure AD Application:
-
-   - Go to [Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
-   - Click "New registration"
-   - Name your application (e.g., "FluidCalendar")
-   - Under "Supported account types", select "Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)"
-   - Click "Register"
-
-2. Configure Platform Settings:
-
-   - In your registered app, go to "Authentication"
-   - Click "Add a platform"
-   - Choose "Web"
-   - Add Redirect URIs (this is the exact callback path FluidCalendar uses for Outlook - it must match with no trailing slash):
-     - `http://localhost:3000/api/calendar/outlook` (for development)
-     - `https://your-domain.com/api/calendar/outlook` (for production)
-   - Under "Implicit grant", check "Access tokens" and "ID tokens"
-   - Click "Configure"
-
-3. Add API Permissions:
-
-   - Go to "API permissions"
-   - Click "Add a permission"
-   - Choose "Microsoft Graph"
-   - Select "Delegated permissions"
-   - Add the following permissions:
-     - `Calendars.ReadWrite`
-     - `Tasks.ReadWrite`
-     - `User.Read`
-     - `offline_access`
-   - Click "Add permissions"
-   - Click "Grant admin consent" (if you're an admin)
-
-4. Create Client Secret:
-
-   - Go to "Certificates & secrets"
-   - Click "New client secret"
-   - Add a description and choose expiry
-   - Click "Add"
-   - Copy the generated secret value immediately (you won't be able to see it again)
-
-5. Configure Credentials:
-   - Go to FluidCalendar Settings > System
-   - Enter your Outlook credentials in the Outlook Calendar Integration section:
-     - Client ID (Application ID)
-     - Client Secret
-     - Tenant ID (Optional - leave empty to allow any Microsoft account)
-   - Or set environment variables as fallback:
-     ```bash
-     AZURE_AD_CLIENT_ID="your-client-id"
-     AZURE_AD_CLIENT_SECRET="your-client-secret"
-     AZURE_AD_TENANT_ID="your-tenant-id-or-common"
-     ```
-
-Note: For production deployment:
-
-- Update the redirect URIs to include your production domain
-- Ensure all required permissions are granted
-- Consider implementing additional security measures based on your needs
-
-## Installation
-
-### Quick Start with Docker (Recommended)
-
-1. Install Docker on your machine
-2. Clone the repository (or just download the docker-compose.yml file):
-
-   ```bash
-   git clone https://github.com/dotnetfactory/fluid-calendar.git
-   cd fluid-calendar
-   ```
-
-3. Copy the example environment file and configure it:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Edit the `.env` file and set at minimum these values:
-
-   ```
-   DATABASE_URL=postgresql://fluid:fluid@db:5432/fluid_calendar
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-random-secret-key
-   ```
-
-4. Run the application:
-
-   ```bash
-   docker compose up -d
-   ```
-
-5. Visit http://localhost:3000
-
-That's it! The application will be running with a PostgreSQL database automatically configured. The docker-compose.yml file is already configured to use the pre-built Docker image.
-
-> **Note on the port:** the container listens on `0.0.0.0:3000`, which `docker-compose.yml` pins via `environment: PORT=3000` and `HOSTNAME=0.0.0.0`. Setting `PORT` or `HOSTNAME` in your `.env` will **not** change where the app binds (compose overrides them) - this avoids the app binding to a different port or to a loopback address than the one published. To serve on a different host port, change the host side of the `ports` mapping in `docker-compose.yml` (for example `"8080:3000"` to use `http://localhost:8080`) **and** update `NEXTAUTH_URL` (and the other browser-facing URLs - `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`) in your `.env` to the same host/port, since the app derives its OAuth redirect URLs from `NEXTAUTH_URL`; leaving it on `:3000` while browsing on `:8080` breaks sign-in and calendar auth.
-
-### For Developers
-
-If you want to develop FluidCalendar:
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/dotnetfactory/fluid-calendar.git
-   cd fluid-calendar
-   ```
-
-2. Start the development environment:
-
-   ```bash
-   docker compose -f docker-compose.yml up -d
-   ```
-
-3. Visit http://localhost:3000
-
-The development environment includes:
-
-- Hot reloading
-- PostgreSQL database
-- Development tools
-- Exposed database port (5432) for direct access
-
-### Useful Docker Commands
-
-```bash
-# View logs
-docker compose logs -f
-
-# Stop the application
-docker compose down
-
-# Update to the latest version
-docker pull eibrahim/fluid-calendar:latest
-docker compose up -d
-
-# Reset database (caution: deletes all data)
-docker compose down -v
-docker compose up -d
-
-# Access database CLI
-docker compose exec db psql -U fluid -d fluid_calendar
+```powershell
+winget install --id OpenJS.NodeJS.22 --exact --source winget
+node --version
+npm.cmd --version
 ```
 
-## Environment Setup
+Do not use winget's generic Node.js LTS package for this project without checking the version first; it may install a newer major than Sunnie's Node 22 runtime. The exact tested patch release is recorded in `.nvmrc`.
 
-1. Copy `.env.example` to `.env`:
+From this checkout:
 
-```bash
-cp .env.example .env
+1. Install dependencies with `npm.cmd ci --legacy-peer-deps`.
+2. Copy `.env.example` to `.env` only if `.env` does not already exist. Configure a private local `NEXTAUTH_SECRET` of at least 32 characters and keep the local application URLs.
+3. Start and initialize the isolated local database, then run the app:
+
+   ```powershell
+   npm.cmd run db:setup
+   npm.cmd run dev
+   ```
+
+4. Open `http://localhost:3000/setup` to create the first local admin account.
+
+Local PostgreSQL 16 uses `127.0.0.1:5433` and database `sunnie_local`. See [local PostgreSQL setup](docs/local-postgres.md) for daily commands and persistence details. Keep production database credentials out of local configuration.
+
+The Compose `app` service still uses the upstream published FluidCalendar image. For Sunnie source development, run only the local database through the commands above and run Next.js locally.
+
+## Production and integrations
+
+Sunnie is one Next.js 15 / React 19 application with TypeScript, Tailwind, FullCalendar, Zustand, NextAuth, and Prisma 6 backed by PostgreSQL.
+
+Production is hosted on Railway at [Sunnie Planner](https://sunnie-planner-prod.up.railway.app). Pushing `main` in this repository triggers a deployment using the root `Dockerfile`. Startup waits for PostgreSQL, generates Prisma Client, applies checked-in migrations with `prisma migrate deploy`, and starts the standalone Next.js server on port 3000. Production does not depend on a developer's computer staying on.
+
+Schema changes require checked-in migrations. Do not substitute `prisma db push`; the account uniqueness migration includes PostgreSQL behavior that Prisma's schema DSL cannot fully express.
+
+Google integration requires OAuth configuration for the deployed origin and both sign-in and calendar callbacks. Apple Calendar uses an Apple app-specific password through CalDAV. See [integration and environment configuration in AGENTS.md](AGENTS.md#calendar-integrations) for the project-specific setup. Keep tokens, passwords, and webhook URLs out of source control.
+
+Sunnie's private deployment keeps SaaS features disabled. Redis workers, Kubernetes, Infisical, and upstream Docker publishing scripts remain inherited code and are not the normal Sunnie deployment workflow.
+
+## Working on the project
+
+- [AGENTS.md](AGENTS.md): implemented behavior, architecture, safety rules, and verification requirements.
+- [FEATURE_IDEAS.md](FEATURE_IDEAS.md): your informal feature brain dump and ideas to discuss.
+- [@TODO.md](@TODO.md): selected implementation work and maintenance candidates.
+- [Local PostgreSQL guide](docs/local-postgres.md): development database setup.
+- `src/app` and `src/components`: routes and interface components.
+- `src/services/scheduling`: automatic scheduling.
+- `prisma/schema.prisma` and `prisma/migrations`: data model and migrations.
+- `src/app/preview`: public preview pages containing fake data only.
+
+Older upstream plans are retained in `docs/_old/`. Other inherited technical documentation may still describe upstream workflows; check it against the current code and Sunnie setup before using it.
+
+For ordinary UI or API changes, format touched files, run `git diff --check`, lint, and type checking; add focused tests and a production build when required by [AGENTS.md](AGENTS.md#development-and-verification).
+
+```powershell
+npm.cmd run lint
+npm.cmd run type-check
+npm.cmd run test:unit -- --runInBand
+npm.cmd run build
 ```
 
-2. Configure the following environment variables:
+## License and attribution
 
-- `DATABASE_URL`: Your database connection string
-- `NEXTAUTH_URL`: Your application URL
-- `NEXTAUTH_SECRET`: Random string for session encryption
-
-Note: Google credentials and logging settings can be managed through the UI in Settings > System. Environment variables will be used as fallback if system settings are not configured.
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Need Professional Help?
-
-Don't want to handle the migration yourself? We offer a complete done-for-you service that includes:
-
-- Managed OpenProject hosting
-- Complete Jira migration
-- 24/7 technical support
-- Secure and reliable infrastructure
-
-Visit [portfolio.elitecoders.co/openproject](https://portfolio.elitecoders.co/openproject) to learn more about our managed OpenProject migration service.
-
-## About
-
-This project was built by [EliteCoders](https://www.elitecoders.co), a software development company specializing in custom software solutions. If you need help with:
-
-- Custom software development
-- System integration
-- Migration tools and services
-- Technical consulting
-
-Please reach out to us at hello@elitecoders.co or visit our website at [www.elitecoders.co](https://www.elitecoders.co).
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## SAAS Development
-
-FluidCalendar is available as both an open source self-hosted solution and a managed SAAS service. The open source version contains all the core functionality, while the SAAS version includes additional premium features.
-
-### Open Source vs SAAS Features
-
-| Feature                           | Open Source | SAAS |
-| --------------------------------- | ----------- | ---- |
-| Calendar Management               | ✅          | ✅   |
-| Task Management                   | ✅          | ✅   |
-| Google Calendar Integration       | ✅          | ✅   |
-| Outlook Calendar Integration      | ✅          | ✅   |
-| CalDAV Integration                | ✅          | ✅   |
-| Billing & Subscription Management | ❌          | ✅   |
-
-### SAAS Development Setup
-
-If you're a contributor to the SAAS version, follow these steps to set up your development environment:
-
-1. Clone the private SAAS repository:
-
-   ```
-   git clone https://github.com/dotnetfactory/fluid-calendar-saas.git
-   ```
-
-2. Enable SAAS features in your environment:
-
-   ```
-   # .env.local
-   ENABLE_SAAS_FEATURES=true
-   ```
-
-3. Run the development server:
-   ```
-   npm run dev
-   ```
-
-### Syncing Changes Between Repositories
-
-To sync changes from the private SAAS repository to the public open source repository:
-
-1. Use the provided sync script:
-
-   ```
-   ./scripts/sync-repos.sh /path/to/private/repo /path/to/public/repo
-   ```
-
-2. Review the changes in the public repository
-3. Commit and push the changes to the public repository
-
-### Contributing to SAAS Features
-
-When developing SAAS features:
-
-1. Place all SAAS-specific code in the `src/saas` directory
-2. Use the feature flag system to conditionally enable SAAS features
-3. Provide fallbacks for SAAS features in the open source version
-
-For more information about contributing to the SAAS version, please contact the maintainers.
+Sunnie Planner is derived from [dotnetfactory/FluidCalendar](https://github.com/dotnetfactory/fluid-calendar). The project retains the [MIT license](LICENSE) and upstream copyright notice.

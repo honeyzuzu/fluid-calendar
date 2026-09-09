@@ -2,8 +2,10 @@
 
 import { useId, useState } from "react";
 
+import { WeekRangeSelect } from "@/components/planning/WeekRangeSelect";
+
 import { localDateKey } from "@/lib/daily-intention";
-import { shiftWeek, weekKey } from "@/lib/planning-week";
+import { shiftWeek, weekKey, weekRangeLabel } from "@/lib/planning-week";
 
 export function WeekPicker({
   value,
@@ -36,8 +38,12 @@ export function WeekPicker({
         disabled={disabled}
         className="h-11 w-full min-w-0 rounded-xl border border-[#dce3c9] bg-[#fffdf5] px-3 text-sm text-[#3f432e]"
         onChange={(event) => {
-          setCustom(event.target.value === "custom");
-          if (event.target.value !== "custom") onChange(event.target.value);
+          const choosingCustom = event.target.value === "custom";
+          setCustom(choosingCustom);
+          if (choosingCustom) {
+            if (!value || value === thisWeek || value === nextWeek)
+              onChange(shiftWeek(nextWeek, 1));
+          } else onChange(event.target.value);
         }}
       >
         <option value="">Backlog — decide later</option>
@@ -45,22 +51,18 @@ export function WeekPicker({
         <option value={nextWeek}>Next week</option>
         <option value="custom">Choose week</option>
       </select>
-      {selected === "custom" && (
-        <input
-          aria-label="Choose any day in your planned week"
-          type="date"
+      {selected === "custom" && value && (
+        <WeekRangeSelect
+          ariaLabel="Choose a planned week"
           disabled={disabled}
           value={value}
-          onChange={(event) => {
-            if (event.target.value) onChange(weekKey(event.target.value));
-            else onChange("");
-          }}
-          className="h-11 w-full min-w-0 rounded-xl border border-[#dce3c9] bg-[#fffdf5] px-3 text-sm"
+          onChange={onChange}
+          className="w-full min-w-0"
         />
       )}
       <p className="text-xs text-muted-foreground">
         {value
-          ? `Week of ${value}. Your deadline stays separate.`
+          ? `${weekRangeLabel(value)}. Your deadline stays separate.`
           : "No week needed. Choose one whenever you’re ready."}
       </p>
     </div>

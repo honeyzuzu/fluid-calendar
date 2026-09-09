@@ -3,6 +3,7 @@ import {
   elapsedWeeks,
   parseWeek,
   weekBounds,
+  weekRangeLabel,
 } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { rollUnfinishedTasks } from "@/lib/weekly-planning";
@@ -15,33 +16,34 @@ jest.mock("@/lib/prisma", () => ({
 }));
 
 describe("planning weeks", () => {
-  it("rejects impossible dates and non-Mondays", () => {
-    expect(parseWeek("2026-09-07")?.toISOString()).toBe(
-      "2026-09-07T00:00:00.000Z"
+  it("rejects impossible dates and non-Sundays", () => {
+    expect(parseWeek("2026-09-06")?.toISOString()).toBe(
+      "2026-09-06T00:00:00.000Z"
     );
-    expect(parseWeek("2026-09-07T00:00:00.000Z")).not.toBeNull();
+    expect(parseWeek("2026-09-06T00:00:00.000Z")).not.toBeNull();
     for (const invalid of [
-      "2026-09-08",
+      "2026-09-07",
       "2026-02-30",
       "not a date",
-      "2026-09-07T04:00:00.000Z",
+      "2026-09-06T04:00:00.000Z",
       null,
     ])
       expect(parseWeek(invalid)).toBeNull();
   });
-  it("uses the account's local Monday and handles DST without a fixed 168-hour assumption", () => {
+  it("uses the account's local Sunday and handles DST without a fixed 168-hour assumption", () => {
     expect(
       currentWeek("America/New_York", new Date("2026-09-07T02:00:00Z"))
-    ).toBe("2026-08-31");
-    const spring = weekBounds("2026-03-02", "America/New_York");
-    expect(spring.start.toISOString()).toBe("2026-03-02T05:00:00.000Z");
-    expect(spring.end.toISOString()).toBe("2026-03-09T04:00:00.000Z");
+    ).toBe("2026-09-06");
+    const spring = weekBounds("2026-03-08", "America/New_York");
+    expect(spring.start.toISOString()).toBe("2026-03-08T05:00:00.000Z");
+    expect(spring.end.toISOString()).toBe("2026-03-15T04:00:00.000Z");
     expect(
-      elapsedWeeks(parseWeek("2026-08-17")!, parseWeek("2026-09-07")!)
+      elapsedWeeks(parseWeek("2026-08-16")!, parseWeek("2026-09-06")!)
     ).toBe(3);
+    expect(weekRangeLabel("2026-08-30", "en-US")).toBe("Aug 30 – Sep 5, 2026");
   });
   it("catches up once with a scoped compare-and-update, without moving calendar blocks or deadlines", async () => {
-    const from = parseWeek("2026-08-17");
+    const from = parseWeek("2026-08-16");
     (prisma.task.findMany as jest.Mock).mockResolvedValue([
       { id: "task", plannedWeekStart: from },
     ]);
@@ -55,7 +57,7 @@ describe("planning weeks", () => {
         where: {
           userId: "owner",
           status: { not: "completed" },
-          plannedWeekStart: { lt: parseWeek("2026-09-07") },
+          plannedWeekStart: { lt: parseWeek("2026-09-06") },
         },
       })
     );
@@ -67,7 +69,7 @@ describe("planning weeks", () => {
         plannedWeekStart: from,
       },
       data: {
-        plannedWeekStart: parseWeek("2026-09-07"),
+        plannedWeekStart: parseWeek("2026-09-06"),
         rolledFromWeek: from,
         rolloverCount: { increment: 3 },
       },

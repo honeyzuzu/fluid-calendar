@@ -5,14 +5,23 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { BookOpen, Check, ChevronLeft, ChevronRight, Leaf } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Leaf,
+  Sparkles,
+} from "lucide-react";
 
 import { WeekPicker } from "@/components/planning/WeekPicker";
+import { WeekRangeSelect } from "@/components/planning/WeekRangeSelect";
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
 import { localDateKey } from "@/lib/daily-intention";
 import { WEEKLY_REVIEW_TOUR_STEP_EVENT } from "@/lib/onboarding";
-import { shiftWeek, weekKey } from "@/lib/planning-week";
+import { shiftWeek, weekKey, weekRangeLabel } from "@/lib/planning-week";
 import { cn } from "@/lib/utils";
 
 type ReviewTask = {
@@ -29,7 +38,6 @@ type Review = {
   makeEasier: string;
   nextPriorities: string;
   calendarIds: string[];
-  excludedEventIds: string[];
   completedAt: string | null;
 };
 export type WeeklyReviewData = {
@@ -116,7 +124,6 @@ export function WeeklyReview({
                 calendarIds: result.calendars
                   .filter((c) => c.enabled)
                   .map((c) => c.id),
-                excludedEventIds: [],
                 completedAt: null,
               }
         );
@@ -244,13 +251,18 @@ export function WeeklyReview({
   const visibleEvents =
     data?.events.filter((event) => draft?.calendarIds.includes(event.feedId)) ??
     [];
+  const calendarsById = new Map(
+    data?.calendars.map((calendar) => [calendar.id, calendar]) ?? []
+  );
   return (
     <section
       id="weekly-review"
-      className="mt-8 min-w-0 scroll-mt-6 rounded-3xl border border-[#dce3c9] bg-white/80 p-4 text-[#3f432e] shadow-sm sm:p-6"
+      className="relative mt-8 min-w-0 scroll-mt-6 overflow-hidden rounded-[2rem] border border-[#dce3c9] bg-gradient-to-br from-[#fffdf7] via-white/90 to-[#eef4df] p-4 text-[#3f432e] shadow-[0_18px_50px_rgba(101,118,77,0.09)] sm:p-6"
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#f8d77c]/25 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[#b9d4ad]/20 blur-2xl" />
+      <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-xl">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#718e50]">
             <BookOpen className="h-4 w-4" /> History & reflection
           </p>
@@ -259,7 +271,7 @@ export function WeeklyReview({
             Look back kindly, then make room for what’s next.
           </p>
         </div>
-        <div className="flex max-w-full flex-wrap items-center gap-2">
+        <div className="flex w-full max-w-full items-center gap-1 rounded-2xl border border-white/80 bg-white/65 p-1.5 shadow-sm backdrop-blur-sm sm:w-[400px] sm:gap-2">
           <button
             className={button}
             aria-label="Previous review week"
@@ -268,15 +280,12 @@ export function WeeklyReview({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <input
-            className={`${button} min-w-0 max-w-[160px]`}
-            type="date"
-            aria-label="Choose review week"
+          <WeekRangeSelect
+            className="min-w-0 flex-1 border-0 bg-transparent"
+            ariaLabel="Choose review week"
             value={week}
             disabled={busy || !!preview}
-            onChange={(e) => {
-              if (e.target.value) void changeWeek(weekKey(e.target.value));
-            }}
+            onChange={(value) => void changeWeek(value)}
           />
           <button
             className={button}
@@ -288,11 +297,11 @@ export function WeeklyReview({
           </button>
         </div>
       </div>
-      <p className="mt-3 text-xs text-black/50">
-        Week of {week} · Saved weeks remain available here. Reflections are
-        private to your account.
+      <p className="relative mt-3 text-xs text-black/50">
+        Sunday–Saturday · {weekRangeLabel(week)} · Reflections stay private to
+        your account.
       </p>
-      <div className="my-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="relative my-5 grid grid-cols-2 gap-2 rounded-2xl bg-[#f4f5e9]/80 p-1.5 lg:grid-cols-4">
         {steps.map((label, index) => (
           <button
             key={label}
@@ -301,11 +310,19 @@ export function WeeklyReview({
             aria-current={step === index ? "step" : undefined}
             className={cn(
               button,
-              "text-left",
-              step === index && "border-[#b5c58c] bg-[#eaf0d9]"
+              "flex items-center gap-2 border-transparent bg-transparent text-left shadow-none transition-colors",
+              step === index && "border-white bg-white text-[#52683d] shadow-sm"
             )}
           >
-            {index + 1}. {label}
+            <span
+              className={cn(
+                "grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/80 text-xs",
+                step === index && "bg-[#f4c85b] text-[#4b452b]"
+              )}
+            >
+              {index + 1}
+            </span>
+            {label}
           </button>
         ))}
       </div>
@@ -425,10 +442,13 @@ export function WeeklyReview({
                   )}
                 </div>
                 <div className="min-w-0 rounded-2xl bg-[#fff4db] p-4">
-                  <h3 className="font-semibold">Past events</h3>
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <CalendarDays className="h-4 w-4 text-[#b57a45]" /> Calendar
+                    moments
+                  </h3>
                   <p className="mt-1 text-xs text-black/55">
-                    Scheduled time, not confirmed attendance. Uncheck anything
-                    you skipped.
+                    A read-only glance at where your time was planned. Use it as
+                    a memory cue while you reflect—it is not an attendance log.
                   </p>
                   <details className="my-3">
                     <summary className="cursor-pointer text-sm font-medium">
@@ -461,25 +481,21 @@ export function WeeklyReview({
                     </div>
                   </details>
                   <ul className="max-h-96 space-y-2 overflow-y-auto">
-                    {visibleEvents.map((event) => (
-                      <li key={event.id}>
-                        <label className="flex items-start gap-2 rounded-xl bg-white/80 p-3 text-sm">
-                          <input
-                            className="mt-1 accent-[#718e50]"
-                            type="checkbox"
-                            disabled={busy}
-                            checked={!draft.excludedEventIds.includes(event.id)}
-                            onChange={(e) =>
-                              edit({
-                                excludedEventIds: e.target.checked
-                                  ? draft.excludedEventIds.filter(
-                                      (id) => id !== event.id
-                                    )
-                                  : [...draft.excludedEventIds, event.id],
-                              })
-                            }
+                    {visibleEvents.map((event) => {
+                      const calendar = calendarsById.get(event.feedId);
+                      return (
+                        <li
+                          key={event.id}
+                          className="flex items-start gap-3 rounded-xl border border-white/80 bg-white/75 p-3 text-sm shadow-[0_4px_14px_rgba(126,105,65,0.05)]"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ring-white"
+                            style={{
+                              backgroundColor: calendar?.color ?? "#d9a66f",
+                            }}
                           />
-                          <span className="min-w-0">
+                          <span className="min-w-0 flex-1">
                             <span className="block break-words">
                               {event.title}
                             </span>
@@ -489,10 +505,15 @@ export function WeeklyReview({
                                 ? "All day"
                                 : `${Math.round((new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000)} min scheduled`}
                             </span>
+                            {calendar && (
+                              <span className="mt-1 block text-[11px] text-black/40">
+                                {calendar.name}
+                              </span>
+                            )}
                           </span>
-                        </label>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {!visibleEvents.length && (
                     <p className="py-4 text-sm text-black/55">
@@ -530,9 +551,10 @@ export function WeeklyReview({
             {step === 2 && (
               <div>
                 <p className="mb-4 text-sm text-black/55">
-                  Unfinished tasks carry into the current weekly pool
-                  automatically. Deadlines and locked times stay as they are.
-                  These are the tasks still open from this week.
+                  These tasks were planned, dated, or scheduled in this week and
+                  are still open. Sunnie carries older weekly tasks forward
+                  automatically; choose what should happen next. Deadlines and
+                  locked times stay as they are.
                 </p>
                 <div className="grid gap-3 lg:grid-cols-2">
                   {data.unfinished.map((task) => (
@@ -547,10 +569,10 @@ export function WeeklyReview({
                   ))}
                 </div>
                 {!data.unfinished.length && (
-                  <p className="py-4 text-sm">
-                    Nothing left to sort here. You can move on whenever you’re
-                    ready.
-                  </p>
+                  <div className="rounded-2xl bg-[#eef3e3] px-4 py-6 text-center text-sm">
+                    <Sparkles className="mx-auto mb-2 h-5 w-5 text-[#718e50]" />
+                    Nothing from this week is waiting for a decision.
+                  </div>
                 )}
               </div>
             )}

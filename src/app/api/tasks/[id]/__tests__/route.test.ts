@@ -57,7 +57,7 @@ it("validates week selection and protects completion and rollover metadata", asy
   expect(
     (
       await save({
-        plannedWeekStart: "2026-09-14",
+        plannedWeekStart: "2026-09-13",
         rolloverCount: 999,
         completedAt: "2001-01-01",
       })
@@ -66,7 +66,7 @@ it("validates week selection and protects completion and rollover metadata", asy
   expect(updateTask).toHaveBeenCalledWith(
     expect.objectContaining({
       data: expect.objectContaining({
-        plannedWeekStart: new Date("2026-09-14T00:00:00Z"),
+        plannedWeekStart: new Date("2026-09-13T00:00:00Z"),
         rolloverCount: 0,
         scheduledStart: null,
         scheduledEnd: null,
@@ -82,11 +82,11 @@ it("clears completion time when undoing and preserves locked calendar placement 
     userId: "user-1",
     status: "completed",
     scheduleLocked: true,
-    plannedWeekStart: new Date("2026-09-07T00:00:00Z"),
+    plannedWeekStart: new Date("2026-09-06T00:00:00Z"),
     tags: [],
   });
   expect(
-    (await save({ status: "todo", plannedWeekStart: "2026-09-14" })).status
+    (await save({ status: "todo", plannedWeekStart: "2026-09-13" })).status
   ).toBe(200);
   const data = updateTask.mock.calls[0][0].data;
   expect(data.completedAt).toBeNull();

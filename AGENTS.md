@@ -19,7 +19,7 @@ Keep the product approachable. Prefer plain language such as “Schedule day” 
 
 ## Repository and Deployment
 
-- Local repository: `C:\Users\queen\friend-planner`
+- Current local checkout: `C:\Users\xiaop\Downloads\fluid-calendar` (paths may differ on other machines; use the active workspace).
 - GitHub repository: `https://github.com/honeyzuzu/fluid-calendar`
 - Primary branch: `main`
 - Upstream source: `https://github.com/dotnetfactory/fluid-calendar`
@@ -28,7 +28,7 @@ Keep the product approachable. Prefer plain language such as “Schedule day” 
 - Database: Railway-managed PostgreSQL
 - Application port: `3000`
 
-Git remotes normally are:
+This checkout currently has only `origin`. The optional `upstream` remote refers to the original project:
 
 ```text
 origin    https://github.com/honeyzuzu/fluid-calendar.git
@@ -38,6 +38,16 @@ upstream  https://github.com/dotnetfactory/fluid-calendar.git
 Pushing `main` triggers Railway deployment. The owner’s computer and local Docker do not need to remain running for friends to use production. Production data persists in PostgreSQL and is not stored only inside the disposable application container.
 
 After pushing a verified change, do not poll, watch, or wait for Railway deployments or Discord workflow runs. Hand the push off and let those services finish asynchronously unless the user explicitly asks for a specific deployment check.
+
+## Project Notes and Planning
+
+- `README.md` is the entry point for Sunnie setup and the repository map.
+- `AGENTS.md` records implemented behavior, architecture, and working rules. Keep it aligned with code when features ship.
+- `FEATURE_IDEAS.md` is the owner's informal feature brain dump. Preserve the owner's wording; ideas may be incomplete, unprioritized, or contradictory. An idea is not an instruction to implement it.
+- `@TODO.md` is the single current work queue: scoped implementation work and clearly labeled maintenance candidates. `TODO.md` points to it rather than maintaining another list.
+- When the owner chooses an idea, discuss the intended experience and open questions, define a small first version and completion criteria, then link a concrete task in `@TODO.md`. Do not invent owner ideas or silently turn the whole brain dump into committed work.
+- When work ships, remove it from the active queue or mark it complete with a commit reference, update the linked idea, and record lasting behavior here. Git history holds older completed work.
+- `docs/_old/` contains historical upstream notes, including the original TODO lists. Their checked and unchecked items are not verified Sunnie status or an active roadmap. Other inherited technical docs should be checked against code before use.
 
 ## Architecture
 
@@ -233,13 +243,13 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Today’s intention appears in a compact shared reminder beneath the main navigation on every authenticated app page; the empty state links back to Plan with “Set your daily intention!”
 - Saving an intention turns the Plan tile into a completed-style card and plays a small celebratory animation. Users can reopen it to make changes.
 - “Inspire me” selects from 36 curated built-in quotes with named authors and places one in the intention editor; it does not require AI or an external API. The browser remembers the 10 most recently served quotes and avoids them until fresher choices are used.
-- `Task.plannedWeekStart` stores the Monday for the task’s selected weekly pool.
+- `Task.plannedWeekStart` stores the Sunday for the task’s selected weekly pool.
 - The flow is Backlog -> This week -> selected day.
 - The Plan page begins with an interactive three-step daily landing pad: set an intention, choose today’s tasks, and give those tasks time. On mobile, the intention card appears before the task list and timeline; weekly planning remains available below the daily workspace.
 - Primary Plan tiles and the Tasks, Brain Dump, Friends, Focus, and Settings roots explicitly contain horizontal overflow and allow grid/flex children to shrink. Plan uses narrower gutters below 380px, removes phone-width minimums from its progress tile, and stacks dense manual-time controls at the narrowest width.
 - Users can add and remove tasks from a week or day.
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
-- `Schedule week` schedules the weekly pool inside the selected Monday-Sunday window.
+- `Schedule week` schedules the weekly pool inside the selected Sunday-Saturday window.
 - The older shared Tasks/Calendar auto-schedule control still schedules all eligible tasks across a rolling seven-day window.
 - Auto-scheduling respects selected working days and keeps the full task interval inside the user's local working hours. It also respects sleep hours, selected-calendar conflicts, task duration, priority, energy, preferred time, real buffer gaps, and locked schedules. Candidate starts use a stable 30-minute grid, and day/week requests cannot spill beyond their requested window.
 - Placement scores remain internal scheduling data. Confidence/score percentages are intentionally not shown on mobile cards, task rows, task modals, or calendar task details.
@@ -248,9 +258,10 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Weekly review and completion history
 
 - Plan includes a four-step weekly review: completed tasks and past events, optional reflections, unfinished-task choices, and next-week priorities. Tasks links to history and has a collapsed Completed today section with Undo.
-- `WeeklyReview` stores private per-user, per-Monday reflections, priorities, selected calendars, excluded events, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete. Changing weeks saves pending edits first.
+- `WeeklyReview` stores private per-user, per-Sunday reflections, priorities, selected calendars, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete. Changing weeks saves pending edits first.
 - History queries actual `completedAt` in the account timezone in pages of 100. Everyday task requests load active tasks and today's completions. Legacy completions without a timestamp cannot be assigned to a historical week.
-- Past events use stored, ended occurrences from the user's calendars, excluding cancellations and known mirrored task blocks. Users select calendars and uncheck skipped events. Durations are scheduled time, not attendance; all-day events are separate. Lists reflect currently synced data rather than immutable snapshots.
+- Past events use stored, ended occurrences from the user's calendars, excluding cancellations and known mirrored task blocks. They are read-only memory cues rather than attendance records; users choose which calendars provide that context. Durations are scheduled time, not attendance; all-day events are separate. Lists reflect currently synced data rather than immutable snapshots.
+- The unfinished-review step includes open tasks that were assigned to, dated in, scheduled in, or rolled forward from the reviewed week, so older and pre-weekly-planning tasks are not silently omitted.
 - Task creation, editing, and Tune-up offer optional Backlog / This week / Next week / Choose week. Missing week assignment never adds a task to Tune-up. Explicit weeks constrain auto-scheduling and are separate from deadlines.
 - Unfinished tasks in older weeks roll into the current pool when tasks, scheduling, review, or presence are used. Catch-up after weeks away needs no review or midnight job. Scoped compare-and-update protects concurrent tabs. Backlog and future weeks stay untouched; deadlines, start dates, and locked blocks are preserved. Changing week assignment clears unlocked placements.
 - `rolloverCount` and `rolledFromWeek` support a gentle prompt after three weeks. Keep this week, choose a week, Backlog, and Delete are explicit choices. Rollover never deletes tasks, and automatic completed-task deletion remains deferred.
@@ -323,7 +334,15 @@ The inherited `.github/workflows/docker-publish.yml` targets the upstream mainta
 
 ## Development and Verification
 
-On this Windows machine, PowerShell may block `npm.ps1`. Prefer `npm.cmd` and `npx.cmd`:
+Sunnie's local and Railway runtimes use Node 22. The tested Windows patch release is pinned in `.nvmrc`, and `package.json` restricts the project to Node 22.x. If `node`, `npm.cmd`, or `npx.cmd` is missing on Windows, install the matching major version with:
+
+```powershell
+winget install --id OpenJS.NodeJS.22 --exact --source winget
+```
+
+Close and reopen VS Code and all terminals after installation so they inherit `C:\Program Files\nodejs` from the machine `PATH`. Do not install winget's generic `OpenJS.NodeJS.LTS` package without checking its major version; it may be newer than the Node 22 production runtime. Verify recovery with `node --version`, `npm.cmd --version`, and `npm.cmd run db:setup`.
+
+PowerShell may block `npm.ps1`. Prefer `npm.cmd` and `npx.cmd`:
 
 ```powershell
 npm.cmd run prisma:generate
@@ -361,7 +380,7 @@ Pre-commit hooks run lint and TypeScript checks. Preserve unrelated user changes
 
 ## Current Known Follow-Ups
 
-- The upstream README still contains FluidCalendar branding and Outlook/SaaS material that does not fully describe Sunnie.
+- Some inherited technical docs and package scripts still describe upstream SaaS, Infisical, or registry workflows. The root README and `docs/local-postgres.md` describe Sunnie's supported setup; audit legacy instructions before using them.
 - Outlook implementation remains partially exposed and needs a deliberate removal pass if it is no longer wanted.
 - Google OAuth availability depends on correct production URLs, scopes, consent mode, verification state, and approved test users.
 - Calendar/provider credentials deserve an encryption-at-rest review before use outside the trusted friend/family group.
