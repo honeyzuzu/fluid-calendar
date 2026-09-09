@@ -100,6 +100,21 @@ export async function PUT(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tagIds, project, projectId, userId: _, ...updates } = json;
 
+    // Native date inputs send YYYY-MM-DD, which Prisma DateTime rejects as
+    // a string. Preserve date-only values as UTC midnight, and allow clearing.
+    for (const field of ["dueDate", "startDate"] as const) {
+      const value = updates[field];
+      if (value === undefined || value === null) continue;
+      const date = typeof value === "string" ? newDate(value) : null;
+      if (!date || Number.isNaN(date.getTime())) {
+        return NextResponse.json(
+          { error: `Invalid ${field}` },
+          { status: 400 }
+        );
+      }
+      updates[field] = date;
+    }
+
     const scheduledStart =
       updates.scheduledStart === undefined
         ? task.scheduledStart
