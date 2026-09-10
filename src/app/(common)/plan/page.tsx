@@ -399,82 +399,92 @@ export default function PlanPage() {
   };
 
   return (
-    <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
+    <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[radial-gradient(circle_at_top_left,_#fff0c8_0,_#fff9e8_32rem,_#f6f7e9_75rem)] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
-        <a
-          href="#weekly-review"
-          className="mb-5 inline-flex rounded-xl border border-[#dce3c9] bg-white/80 px-4 py-2 text-sm font-medium text-[#64734a]"
-        >
-          Weekly review & history
-        </a>
-        <div className="mb-7 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
-          <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#c65f40]">
-              <Sparkles className="h-3.5 w-3.5" /> Daily planning
+        <header className="relative mb-6 overflow-hidden rounded-[2rem] border border-[#ead7a5] bg-gradient-to-br from-[#fff7d6] via-[#ffe7b5] to-[#f4c783] p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border-[28px] border-white/20" />
+          <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[#f39b72]/15 blur-2xl" />
+          <div className="relative flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
+            <div className="min-w-0 max-w-2xl">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> Daily planning
+                </span>
+                <a
+                  href="#weekly-review"
+                  className="rounded-full px-3 py-1.5 normal-case tracking-normal text-[#65764d] transition hover:bg-white/45"
+                >
+                  Weekly review & history ↓
+                </a>
+              </div>
+              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-[#42381f] sm:text-5xl">
+                Shape a day that feels like yours.
+              </h1>
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#6f6040]">
+                <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
+                  {selectedDate.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+                <span className="rounded-full bg-white/35 px-3 py-1.5">
+                  {plannedMinutes} minutes planned
+                </span>
+              </div>
             </div>
-            <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-              Make space for what matters.
-            </h1>
-            <p className="mt-2 text-sm text-black/48">
-              {selectedDate.toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-              {` · ${plannedMinutes} minutes planned`}
-            </p>
+            <div className="flex min-w-0 flex-col gap-3 sm:items-end">
+              <div className="flex items-center gap-2 rounded-2xl bg-white/55 p-1.5 shadow-sm">
+                <button
+                  onClick={() => moveDate(-1)}
+                  aria-label="Previous day"
+                  className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setSelectedDate(new Date())}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-[#5c5135] transition hover:bg-white/70"
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => moveDate(1)}
+                  aria-label="Next day"
+                  className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+                <button
+                  onClick={() => void autoSchedule("day")}
+                  disabled={scheduling !== null}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm transition hover:bg-[#eeb03a] disabled:opacity-50"
+                >
+                  {scheduling === "day" ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  Schedule day
+                </button>
+                <button
+                  onClick={() => void autoSchedule("week")}
+                  disabled={scheduling !== null}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#586e40] disabled:opacity-50"
+                >
+                  {scheduling === "week" ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CalendarDays className="h-3.5 w-3.5" />
+                  )}
+                  Schedule week
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex min-w-0 flex-col gap-2 sm:items-end">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => moveDate(-1)}
-                aria-label="Previous day"
-                className="grid h-9 w-9 place-items-center rounded-lg border border-black/[0.07] bg-white/70"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setSelectedDate(new Date())}
-                className="rounded-lg border border-black/[0.07] bg-white/70 px-4 py-2 text-sm font-medium"
-              >
-                Today
-              </button>
-              <button
-                onClick={() => moveDate(1)}
-                aria-label="Next day"
-                className="grid h-9 w-9 place-items-center rounded-lg border border-black/[0.07] bg-white/70"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => void autoSchedule("day")}
-                disabled={scheduling !== null}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#f4c85b] px-3 py-2 text-xs font-semibold text-[#4b3b18] disabled:opacity-50"
-              >
-                {scheduling === "day" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5" />
-                )}
-                Schedule day
-              </button>
-              <button
-                onClick={() => void autoSchedule("week")}
-                disabled={scheduling !== null}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#708354] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-              >
-                {scheduling === "week" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <CalendarDays className="h-3.5 w-3.5" />
-                )}
-                Schedule week
-              </button>
-            </div>
-          </div>
-        </div>
+        </header>
 
         {error && (
           <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -488,19 +498,15 @@ export default function PlanPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            <section className="order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-gradient-to-br from-[#fffdf5] via-[#f8f3d8] to-[#edf3df] shadow-[0_12px_35px_rgba(80,86,55,0.08)]">
-              <div className="flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+            <section className="order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm">
+              <div className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 max-w-xl">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
                     <Leaf className="h-4 w-4" /> Your daily landing pad
                   </div>
-                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">
-                    Plan your day in three gentle steps.
+                  <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">
+                    A gentle rhythm for the day.
                   </h2>
-                  <p className="mt-1 text-sm text-black/45">
-                    Decide what matters, choose a realistic amount, and let
-                    Sunnie find the breathing room.
-                  </p>
                 </div>
                 <div className="w-full min-w-0 lg:w-48 lg:min-w-48">
                   <div className="flex items-center justify-between text-xs font-semibold text-[#5f7048]">
@@ -570,10 +576,13 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <section className="order-3 min-w-0 max-w-full rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-4 shadow-sm sm:p-5">
+            <section className="order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-4 shadow-[0_14px_35px_rgba(113,91,50,0.08)] sm:p-6">
               <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                  <h2 className="font-semibold">Plan this week</h2>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b16b43]">
+                    Zoom out
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold">Shape the week</h2>
                   <p className="mt-1 text-xs text-black/42">
                     {weekStart.toLocaleDateString(undefined, {
                       month: "short",
@@ -584,7 +593,7 @@ export default function PlanPage() {
                       undefined,
                       { month: "short", day: "numeric" }
                     )}
-                    . Pick weekly tasks, then add the ones you want to a day.
+                    . Move tasks from Backlog → This week → a day.
                   </p>
                 </div>
                 <span className="text-xs font-medium text-[#65764d]">
@@ -593,7 +602,7 @@ export default function PlanPage() {
                 </span>
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-xl bg-[#eef3e3] p-3">
+                <div className="order-2 rounded-2xl border border-[#d9e3c7] bg-[#eef3e3] p-4">
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
                     This week
                   </p>
@@ -652,7 +661,7 @@ export default function PlanPage() {
                     ))}
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#fff4d5] p-3">
+                <div className="order-1 rounded-2xl border border-[#f0ddaa] bg-[#fff4d5] p-4">
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
                     Backlog
                   </p>
@@ -686,13 +695,18 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <div className="order-2 grid min-w-0 max-w-full gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(280px,0.7fr)]">
+            <div className="order-2 grid min-w-0 max-w-full gap-5 xl:grid-cols-2">
               <section
                 data-plan-section="today-list"
-                className="order-2 min-w-0 max-w-full overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm xl:order-none"
+                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e0d8c3] bg-white/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]"
               >
                 <div className="border-b border-black/[0.055] p-5">
-                  <h2 className="font-semibold">Today&apos;s list</h2>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c26343]">
+                    Choose
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold">
+                    Today&apos;s tasks
+                  </h2>
                   <p className="mt-1 text-xs text-black/42">
                     Real tasks saved to your account.
                   </p>
@@ -825,11 +839,13 @@ export default function PlanPage() {
 
               <section
                 data-plan-section="today-timeline"
-                className="order-3 min-w-0 max-w-full rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-4 shadow-sm sm:p-5 xl:order-none"
+                className="order-3 min-w-0 max-w-full rounded-3xl border border-[#d8dfc8] bg-gradient-to-b from-[#f8faef] to-white/85 p-4 shadow-[0_12px_30px_rgba(81,90,56,0.07)] sm:p-5"
               >
-                <div className="mb-4 flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-black/45" />
-                  <h2 className="text-sm font-semibold">
+                <div className="mb-4">
+                  <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#718e50]">
+                    <CalendarDays className="h-4 w-4" /> Give it time
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold">
                     Today&apos;s timeline
                   </h2>
                 </div>
@@ -895,7 +911,7 @@ export default function PlanPage() {
                 </div>
               </section>
 
-              <aside className="order-1 min-w-0 max-w-full space-y-5 xl:order-none">
+              <aside className="order-1 min-w-0 max-w-full space-y-5 xl:col-span-2 xl:grid xl:grid-cols-[minmax(0,1fr)_280px] xl:gap-5 xl:space-y-0">
                 <motion.section
                   data-plan-section="intention-card"
                   animate={
@@ -905,10 +921,10 @@ export default function PlanPage() {
                   }
                   transition={{ duration: 0.55, ease: "easeOut" }}
                   className={cn(
-                    "relative overflow-hidden rounded-3xl p-5 transition-colors",
+                    "relative overflow-hidden rounded-3xl p-5 transition-colors sm:p-6",
                     !editingIntention && plan?.intention?.trim()
                       ? "border border-[#cddcaf] bg-gradient-to-br from-[#f3f7e8] via-[#eaf2dc] to-[#dce9c8] text-[#4f6039] shadow-[0_8px_0_#c8d8aa]"
-                      : "bg-gradient-to-br from-[#718456] via-[#5f7048] to-[#4d5f3a] text-[#fffbea] shadow-[0_8px_0_#465535]"
+                      : "bg-gradient-to-br from-[#667b4d] via-[#78915a] to-[#9bad72] text-[#fffbea] shadow-[0_8px_0_#52653d]"
                   )}
                 >
                   <Leaf className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rotate-12 opacity-[0.08]" />
@@ -927,7 +943,7 @@ export default function PlanPage() {
                   </AnimatePresence>
 
                   {!editingIntention && plan?.intention?.trim() ? (
-                    <div>
+                    <div className="relative max-w-3xl">
                       <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
                         <Leaf className="h-4 w-4" /> Today&apos;s intention is
                         set
@@ -943,7 +959,7 @@ export default function PlanPage() {
                       </button>
                     </div>
                   ) : (
-                    <div>
+                    <div className="relative max-w-3xl">
                       <div className="flex items-center gap-2 text-xs font-medium text-white/65">
                         <Leaf className="h-3.5 w-3.5 text-[#f4c85b]" />
                         Set your daily intention!
@@ -984,7 +1000,7 @@ export default function PlanPage() {
                 <button
                   onClick={() => savePlan(!plan?.completedAt)}
                   disabled={saving}
-                  className={`flex w-full items-center justify-between rounded-2xl px-5 py-4 text-left transition ${plan?.completedAt ? "bg-[#84a75e] text-white" : "bg-[#f4c85b] text-[#4b3b18] hover:bg-[#edbb45]"}`}
+                  className={`flex w-full items-center justify-between rounded-3xl px-5 py-5 text-left shadow-sm transition xl:h-full ${plan?.completedAt ? "bg-[#84a75e] text-white" : "bg-gradient-to-br from-[#ffd86f] to-[#f2b847] text-[#4b3b18] hover:from-[#fbd063] hover:to-[#ebad3d]"}`}
                 >
                   <span>
                     <span className="block text-sm font-semibold">

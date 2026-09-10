@@ -9,6 +9,7 @@ import {
   BookOpen,
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Leaf,
@@ -94,6 +95,7 @@ export function WeeklyReview({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [justFinished, setJustFinished] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [deleting, setDeleting] = useState<ReviewTask | null>(null);
   const [loading, setLoading] = useState(!preview);
@@ -169,6 +171,7 @@ export function WeeklyReview({
       current ? { ...current, ...updates, completedAt: null } : current
     );
     setDirty(true);
+    setJustFinished(false);
     setMessage("");
   }
   async function save(completed: boolean) {
@@ -190,6 +193,7 @@ export function WeeklyReview({
           ? "Your weekly review is saved. A little space for a fresh start."
           : "Reflection saved privately to your account."
       );
+      setJustFinished(completed);
       return true;
     } catch (caught) {
       setError((caught as Error).message);
@@ -206,6 +210,7 @@ export function WeeklyReview({
     setWeek(next);
     setStep(0);
     setMessage("");
+    setJustFinished(false);
   }
   async function updateTask(task: ReviewTask, plannedWeekStart: string | null) {
     setBusy(true);
@@ -301,6 +306,24 @@ export function WeeklyReview({
         Sunday–Saturday · {weekRangeLabel(week)} · Reflections stay private to
         your account.
       </p>
+      {draft?.completedAt && (
+        <div
+          role="status"
+          className="relative mt-4 flex items-center gap-3 rounded-2xl border border-[#c8d8aa] bg-[#edf4df] px-4 py-3 text-sm text-[#52683d] shadow-sm"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#7f9b5d] text-white">
+            <CheckCircle2 className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-semibold">
+              {justFinished ? "Week wrapped up!" : "Review finished"}
+            </span>
+            <span className="text-xs text-black/50">
+              Your reflection is saved. Editing anything will reopen it.
+            </span>
+          </span>
+        </div>
+      )}
       <div className="relative my-5 grid grid-cols-2 gap-2 rounded-2xl bg-[#f4f5e9]/80 p-1.5 lg:grid-cols-4">
         {steps.map((label, index) => (
           <button
@@ -621,6 +644,7 @@ export function WeeklyReview({
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
+                  type="button"
                   className={button}
                   disabled={busy}
                   onClick={() => void save(false)}
@@ -637,11 +661,12 @@ export function WeeklyReview({
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className={cn(button, "bg-[#eaf0d9]")}
-                    disabled={busy}
+                    disabled={busy || !!draft.completedAt}
                     onClick={() => void save(true)}
                   >
-                    Finish review
+                    {draft.completedAt ? "Review finished ✓" : "Finish review"}
                   </button>
                 )}
               </div>

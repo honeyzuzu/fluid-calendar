@@ -7,7 +7,10 @@ import { CalendarRange } from "lucide-react";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,7 +25,7 @@ export function WeekRangeSelect({
   disabled = false,
   className,
   ariaLabel = "Choose a week",
-  pastWeeks = 52,
+  pastWeeks = 104,
   futureWeeks = 8,
 }: {
   value: string;
@@ -34,14 +37,36 @@ export function WeekRangeSelect({
   futureWeeks?: number;
 }) {
   const thisWeek = weekKey(localDateKey(new Date()));
-  const options = useMemo(() => {
-    const keys = new Set<string>();
-    if (value) keys.add(value);
-    for (let offset = futureWeeks; offset >= -pastWeeks; offset -= 1) {
-      keys.add(shiftWeek(thisWeek, offset));
+  const { currentAndPast, upcoming } = useMemo(() => {
+    const past = Array.from({ length: pastWeeks + 1 }, (_, index) =>
+      shiftWeek(thisWeek, -index)
+    );
+    const future = Array.from({ length: futureWeeks }, (_, index) =>
+      shiftWeek(thisWeek, index + 1)
+    );
+    if (value && !past.includes(value) && !future.includes(value)) {
+      if (value < thisWeek) past.push(value);
+      else future.push(value);
     }
-    return [...keys].sort((a, b) => b.localeCompare(a));
+    return { currentAndPast: past, upcoming: future };
   }, [futureWeeks, pastWeeks, thisWeek, value]);
+
+  const item = (key: string) => {
+    const relationship =
+      key === thisWeek
+        ? "This week · "
+        : key === shiftWeek(thisWeek, -1)
+          ? "Last week · "
+          : key === shiftWeek(thisWeek, 1)
+            ? "Next week · "
+            : "";
+    return (
+      <SelectItem key={key} value={key} className="py-2.5">
+        {relationship}
+        {weekRangeLabel(key)}
+      </SelectItem>
+    );
+  };
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
@@ -56,22 +81,17 @@ export function WeekRangeSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="border-[#dce3c9] bg-[#fffdf5]">
-        {options.map((key) => {
-          const relationship =
-            key === thisWeek
-              ? "This week · "
-              : key === shiftWeek(thisWeek, -1)
-                ? "Last week · "
-                : key === shiftWeek(thisWeek, 1)
-                  ? "Next week · "
-                  : "";
-          return (
-            <SelectItem key={key} value={key} className="py-2.5">
-              {relationship}
-              {weekRangeLabel(key)}
-            </SelectItem>
-          );
-        })}
+        <SelectGroup>
+          <SelectLabel className="text-[#718e50]">
+            Current and past weeks
+          </SelectLabel>
+          {currentAndPast.map(item)}
+        </SelectGroup>
+        <SelectSeparator className="bg-[#dce3c9]" />
+        <SelectGroup>
+          <SelectLabel className="text-[#b5784b]">Upcoming weeks</SelectLabel>
+          {upcoming.map(item)}
+        </SelectGroup>
       </SelectContent>
     </Select>
   );

@@ -12,4 +12,11 @@ if command -v nvm >/dev/null 2>&1; then
 fi
 
 # Add common Node.js installation paths to PATH
-export PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$HOME/.nvm/versions/node/v$NODE_VERSION/bin:$HOME/.nodenv/versions/$NODE_VERSION/bin:$HOME/.volta/tools/image/node/$NODE_VERSION/bin:$PATH" 
+export PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$HOME/.nvm/versions/node/v$NODE_VERSION/bin:$HOME/.nodenv/versions/$NODE_VERSION/bin:$HOME/.volta/tools/image/node/$NODE_VERSION/bin:$PATH"
+
+# Git Bash does not always inherit newly installed machine PATH entries from an
+# already-running editor. Fall back to the standard Windows Node installation.
+WINDOWS_NODE_DIR="/c/Program Files/nodejs"
+if [ -x "$WINDOWS_NODE_DIR/node.exe" ]; then
+  export PATH="$WINDOWS_NODE_DIR:$PATH"
+fi

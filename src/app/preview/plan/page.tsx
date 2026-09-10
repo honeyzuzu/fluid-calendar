@@ -74,7 +74,7 @@ export default function PlanningPreviewPage() {
   return (
     <main
       data-discord-preview-ready
-      className="min-h-screen bg-[#fff9e8] text-[#3f432e]"
+      className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fff0c8_0,_#fff9e8_32rem,_#f6f7e9_75rem)] text-[#3f432e]"
     >
       <header className="border-b border-[#dce5c8] bg-[#fffdf4]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1480px] items-center justify-between px-5 lg:px-8">
@@ -124,25 +124,32 @@ export default function PlanningPreviewPage() {
         </div>
       </aside>
 
-      <section className="mx-auto max-w-[1480px] px-5 py-7 lg:px-8">
-        <div className="mb-6 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
+      <section className="mx-auto flex max-w-[1480px] flex-col px-5 py-7 lg:px-8">
+        <div className="relative order-1 mb-6 flex flex-col justify-between gap-6 overflow-hidden rounded-[2rem] border border-[#ead7a5] bg-gradient-to-br from-[#fff7d6] via-[#ffe7b5] to-[#f4c783] p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7 xl:flex-row xl:items-end">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#c65f40]">
-              <Sparkles className="h-3.5 w-3.5" /> Daily planning
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5">
+                <Sparkles className="h-3.5 w-3.5" /> Daily planning
+              </span>
             </div>
-            <h1 className="text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-              Make space for what matters.
+            <h1 className="max-w-2xl text-3xl font-semibold tracking-[-0.045em] text-[#42381f] sm:text-5xl">
+              Shape a day that feels like yours.
             </h1>
-            <p className="mt-2 text-sm text-black/45">
-              Monday, September 1 · 2 hours 15 minutes planned
-            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#6f6040]">
+              <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
+                Sunday, September 6
+              </span>
+              <span className="rounded-full bg-white/35 px-3 py-1.5">
+                2 hours 15 minutes planned
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
-            <div className="flex items-center gap-2">
+          <div className="relative flex flex-col gap-3 sm:items-end">
+            <div className="flex items-center gap-2 rounded-2xl bg-white/55 p-1.5 shadow-sm">
               <PreviewIconButton label="Previous day">
                 <ChevronLeft className="h-4 w-4" />
               </PreviewIconButton>
-              <span className="rounded-lg border border-black/[0.07] bg-white/70 px-4 py-2 text-sm font-medium">
+              <span className="rounded-xl px-4 py-2 text-sm font-semibold">
                 Today
               </span>
               <PreviewIconButton label="Next day">
@@ -150,24 +157,24 @@ export default function PlanningPreviewPage() {
               </PreviewIconButton>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <span className="flex items-center justify-center gap-2 rounded-xl bg-[#f4c85b] px-4 py-2 text-xs font-semibold text-[#4b3b18] shadow-[0_2px_0_#d8a43c]">
+              <span className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm">
                 <Sparkles className="h-3.5 w-3.5" /> Schedule day
               </span>
-              <span className="flex items-center justify-center gap-2 rounded-xl bg-[#708354] px-4 py-2 text-xs font-semibold text-white shadow-[0_2px_0_#53643e]">
+              <span className="flex items-center justify-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-xs font-semibold text-white shadow-sm">
                 <CalendarDays className="h-3.5 w-3.5" /> Schedule week
               </span>
             </div>
           </div>
         </div>
 
-        <section className="mb-5 overflow-hidden rounded-3xl border border-[#e7d89f] bg-[linear-gradient(120deg,#fff3bf_0%,#f4f4db_54%,#e8f0d9_100%)] p-5 shadow-[0_7px_0_#e8ddae]">
+        <section className="order-2 mb-5 overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 p-5 shadow-[0_12px_35px_rgba(80,86,55,0.07)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#8b6d27]">
                 <Leaf className="h-4 w-4" /> Your daily landing pad
               </div>
-              <h2 className="mt-1 text-xl font-semibold">
-                Shape a calm, realistic day in three little steps.
+              <h2 className="mt-1 text-lg font-semibold">
+                A gentle rhythm for the day.
               </h2>
             </div>
             <div className="flex min-w-[240px] items-center gap-2">
@@ -214,13 +221,15 @@ export default function PlanningPreviewPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
-          <div className="mb-4 flex items-end justify-between gap-3">
+        <section className="order-4 mt-5 rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-5 shadow-[0_14px_35px_rgba(113,91,50,0.08)]">
+          <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
-              <h2 className="font-semibold">Plan this week</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b16b43]">
+                Zoom out
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">Shape the week</h2>
               <p className="mt-1 text-xs text-black/42">
-                Sep 1 – Sep 7. Pick weekly tasks, then add the ones you want to
-                a day.
+                Sep 6 – Sep 12. Move tasks from Backlog → This week → a day.
               </p>
             </div>
             <span className="text-xs font-medium text-[#65764d]">
@@ -228,7 +237,7 @@ export default function PlanningPreviewPage() {
             </span>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-xl bg-[#eef3e3] p-3">
+            <div className="order-2 rounded-2xl border border-[#d9e3c7] bg-[#eef3e3] p-4">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
                 This week
               </p>
@@ -250,7 +259,7 @@ export default function PlanningPreviewPage() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl bg-[#fff4d5] p-3">
+            <div className="order-1 rounded-2xl border border-[#f0ddaa] bg-[#fff4d5] p-4">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
                 Backlog
               </p>
@@ -272,12 +281,15 @@ export default function PlanningPreviewPage() {
           </div>
         </section>
 
-        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.25fr)_minmax(270px,0.7fr)]">
-          <section className="overflow-hidden rounded-2xl border border-black/[0.065] bg-[#fbfaf7] shadow-sm">
+        <div className="order-3 grid gap-5 xl:grid-cols-2">
+          <section className="order-2 overflow-hidden rounded-3xl border border-[#e0d8c3] bg-white/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]">
             <div className="border-b border-black/[0.055] p-5">
-              <h2 className="font-semibold">Today&apos;s list</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c26343]">
+                Choose
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">Today&apos;s tasks</h2>
               <p className="mt-1 text-xs text-black/42">
-                Tasks selected for Monday.
+                Tasks selected for Sunday.
               </p>
               <div className="mt-4 flex gap-2">
                 <span className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-black/30">
@@ -321,10 +333,14 @@ export default function PlanningPreviewPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-black/[0.065] bg-[#fbfaf7] p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-black/45" />
-              <h2 className="text-sm font-semibold">Today&apos;s timeline</h2>
+          <section className="order-3 rounded-3xl border border-[#d8dfc8] bg-gradient-to-b from-[#f8faef] to-white/85 p-5 shadow-[0_12px_30px_rgba(81,90,56,0.07)]">
+            <div className="mb-4">
+              <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#718e50]">
+                <CalendarDays className="h-4 w-4" /> Give it time
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">
+                Today&apos;s timeline
+              </h2>
             </div>
             <div className="space-y-2">
               <TimelineItem
@@ -357,8 +373,8 @@ export default function PlanningPreviewPage() {
             </div>
           </section>
 
-          <aside className="space-y-5">
-            <section className="rounded-2xl border border-[#cddcaf] bg-[#eef3df] p-5 text-[#4f6039] shadow-[0_8px_0_#c8d8aa]">
+          <aside className="order-1 space-y-5 xl:col-span-2 xl:grid xl:grid-cols-[minmax(0,1fr)_280px] xl:gap-5 xl:space-y-0">
+            <section className="rounded-3xl border border-[#cddcaf] bg-gradient-to-br from-[#f3f7e8] via-[#eaf2dc] to-[#dce9c8] p-6 text-[#4f6039] shadow-[0_8px_0_#c8d8aa]">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
                 <Leaf className="h-4 w-4" /> Today&apos;s intention is set
               </div>
@@ -369,7 +385,7 @@ export default function PlanningPreviewPage() {
                 Change intention
               </span>
             </section>
-            <div className="flex w-full items-center justify-between rounded-2xl bg-[#f4c85b] px-5 py-4 text-[#4b3b18]">
+            <div className="flex w-full items-center justify-between rounded-3xl bg-gradient-to-br from-[#ffd86f] to-[#f2b847] px-5 py-5 text-[#4b3b18] shadow-sm xl:h-full">
               <span>
                 <span className="block text-sm font-semibold">
                   Finish planning
@@ -382,7 +398,9 @@ export default function PlanningPreviewPage() {
             </div>
           </aside>
         </div>
-        <WeeklyReview preview={weeklyReviewPreview} />
+        <div className="order-5">
+          <WeeklyReview preview={weeklyReviewPreview} />
+        </div>
       </section>
     </main>
   );

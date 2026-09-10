@@ -245,7 +245,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - “Inspire me” selects from 36 curated built-in quotes with named authors and places one in the intention editor; it does not require AI or an external API. The browser remembers the 10 most recently served quotes and avoids them until fresher choices are used.
 - `Task.plannedWeekStart` stores the Sunday for the task’s selected weekly pool.
 - The flow is Backlog -> This week -> selected day.
-- The Plan page begins with an interactive three-step daily landing pad: set an intention, choose today’s tasks, and give those tasks time. On mobile, the intention card appears before the task list and timeline; weekly planning remains available below the daily workspace.
+- The Plan page uses a bright daily-planning hero and an interactive three-step landing pad: set an intention, choose today's tasks, and give those tasks time. The daily workspace presents the intention first, followed by the task list and timeline; weekly planning remains below it and visually teaches the Backlog -> This week -> a day flow. This hierarchy is preserved on mobile as a single readable column.
 - Primary Plan tiles and the Tasks, Brain Dump, Friends, Focus, and Settings roots explicitly contain horizontal overflow and allow grid/flex children to shrink. Plan uses narrower gutters below 380px, removes phone-width minimums from its progress tile, and stacks dense manual-time controls at the narrowest width.
 - Users can add and remove tasks from a week or day.
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
@@ -258,7 +258,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Weekly review and completion history
 
 - Plan includes a four-step weekly review: completed tasks and past events, optional reflections, unfinished-task choices, and next-week priorities. Tasks links to history and has a collapsed Completed today section with Undo.
-- `WeeklyReview` stores private per-user, per-Sunday reflections, priorities, selected calendars, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete. Changing weeks saves pending edits first.
+- `WeeklyReview` stores private per-user, per-Sunday reflections, priorities, selected calendars, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete and immediately shows a persistent completion confirmation. Editing a completed review reopens it. Changing weeks saves pending edits first.
+- The weekly-review selector opens with This week first, followed by past weeks from newest to oldest. Upcoming weeks remain available in a separate group after the historical list, keeping review history as the primary path.
 - History queries actual `completedAt` in the account timezone in pages of 100. Everyday task requests load active tasks and today's completions. Legacy completions without a timestamp cannot be assigned to a historical week.
 - Past events use stored, ended occurrences from the user's calendars, excluding cancellations and known mirrored task blocks. They are read-only memory cues rather than attendance records; users choose which calendars provide that context. Durations are scheduled time, not attendance; all-day events are separate. Lists reflect currently synced data rather than immutable snapshots.
 - The unfinished-review step includes open tasks that were assigned to, dated in, scheduled in, or rolled forward from the reviewed week, so older and pre-weekly-planning tasks are not silently omitted.
@@ -340,7 +341,7 @@ Sunnie's local and Railway runtimes use Node 22. The tested Windows patch releas
 winget install --id OpenJS.NodeJS.22 --exact --source winget
 ```
 
-Close and reopen VS Code and all terminals after installation so they inherit `C:\Program Files\nodejs` from the machine `PATH`. Do not install winget's generic `OpenJS.NodeJS.LTS` package without checking its major version; it may be newer than the Node 22 production runtime. Verify recovery with `node --version`, `npm.cmd --version`, and `npm.cmd run db:setup`.
+Close and reopen VS Code and all terminals after installation so they inherit `C:\Program Files\nodejs` from the machine `PATH`. The checked-in `.huskyrc` also falls back to that standard Windows location so Git hooks continue to work from an editor that was already open during installation. Do not install winget's generic `OpenJS.NodeJS.LTS` package without checking its major version; it may be newer than the Node 22 production runtime. Verify recovery with `node --version`, `npm.cmd --version`, and `npm.cmd run db:setup`.
 
 PowerShell may block `npm.ps1`. Prefer `npm.cmd` and `npx.cmd`:
 
