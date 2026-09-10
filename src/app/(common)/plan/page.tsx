@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Clock3,
   Dices,
+  Gauge,
   Leaf,
   Loader2,
   Pencil,
@@ -22,6 +23,11 @@ import {
 
 import { WeeklyReview } from "@/components/planning/WeeklyReview";
 
+import {
+  type DailyCapacitySettings,
+  calculateDailyCapacity,
+  formatCapacityTime,
+} from "@/lib/daily-capacity";
 import {
   DAILY_INTENTION_UPDATED_EVENT,
   localDateKey,
@@ -41,6 +47,8 @@ type TaskRecord = {
   plannedWeekStart: string | null;
   isAutoScheduled?: boolean;
   scheduleLocked?: boolean;
+  blockEventId?: string | null;
+  blockFeedId?: string | null;
   project?: { name: string; color: string | null } | null;
 };
 
@@ -50,7 +58,17 @@ type EventRecord = {
   start: string;
   end: string;
   allDay: boolean;
-  feed?: { name: string; color: string | null };
+  status?: string | null;
+  externalEventId?: string | null;
+  feedId?: string | null;
+  feed?: { name: string; color: string | null; enabled?: boolean };
+};
+
+type CalendarSettingsRecord = {
+  workingHoursEnabled: boolean;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  workingHoursDays: string;
 };
 
 type DailyPlanRecord = {
@@ -111,6 +129,8 @@ export default function PlanPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
+  const [workingHours, setWorkingHours] =
+    useState<DailyCapacitySettings | null>(null);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
   const [intention, setIntention] = useState("");
   const [editingIntention, setEditingIntention] = useState(true);
@@ -136,7 +156,7 @@ export default function PlanPage() {
     setLoading(true);
     setError(null);
     try {
-      const [taskData, eventData, planData] = await Promise.all([
+      const [taskData, eventData, planData, settingsData] = await Promise.all([
         fetch("/api/tasks").then((response) =>
           expectJson<TaskRecord[]>(response)
         ),
@@ -146,10 +166,21 @@ export default function PlanPage() {
         fetch(`/api/daily-plan?date=${selectedKey}`).then((response) =>
           expectJson<DailyPlanRecord | null>(response)
         ),
+        fetch("/api/calendar-settings")
+          .then((response) => expectJson<CalendarSettingsRecord>(response))
+          .catch(() => null),
       ]);
       setTasks(taskData);
       setEvents(eventData);
       setPlan(planData);
+      if (settingsData) {
+        setWorkingHours({
+          enabled: settingsData.workingHoursEnabled,
+          start: settingsData.workingHoursStart,
+          end: settingsData.workingHoursEnd,
+          days: JSON.parse(settingsData.workingHoursDays) as number[],
+        });
+      }
       setIntention(planData?.intention ?? "");
       setEditingIntention(!planData?.intention?.trim());
     } catch (caught) {
@@ -208,6 +239,30 @@ export default function PlanPage() {
     (total, task) => total + (task.duration ?? 30),
     0
   );
+  const capacity = useMemo(
+    () =>
+      calculateDailyCapacity(
+        selectedDate,
+        todayTasks,
+        events.filter((event) => event.feed?.enabled !== false),
+        workingHours
+      ),
+    [events, selectedDate, todayTasks, workingHours]
+  );
+  const capacityColor =
+    capacity.state === "over"
+      ? "bg-[#d96f55]"
+      : capacity.state === "near"
+        ? "bg-[#e4a63f]"
+        : "bg-[#7f9b5d]";
+  const capacityMessage =
+    capacity.state === "unavailable"
+      ? "This day is outside your configured work hours, so Sunnie is leaving it open-ended."
+      : capacity.state === "over"
+        ? `You’re planning ${formatCapacityTime(Math.abs(capacity.remainingMinutes ?? 0))} more than fits. Move a task or shorten the plan.`
+        : capacity.state === "near"
+          ? "This day is almost full. Leave a little breathing room if you can."
+          : `${formatCapacityTime(capacity.remainingMinutes ?? 0)} still open for breaks and surprises.`;
   const scheduledTaskCount = todayTasks.filter(
     (task) => task.scheduledStart && task.scheduledEnd
   ).length;
@@ -573,6 +628,52 @@ export default function PlanPage() {
                     </button>
                   );
                 })}
+              </div>
+              <div
+                className={cn(
+                  "border-t border-black/[0.055] px-5 py-4",
+                  capacity.state === "over"
+                    ? "bg-[#fff0e9]"
+                    : capacity.state === "near"
+                      ? "bg-[#fff7df]"
+                      : "bg-[#f4f7ea]"
+                )}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-white/80 text-[#66764e]">
+                      <Gauge className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">Daily capacity</p>
+                      <p className="mt-0.5 text-xs text-black/55">
+                        {capacityMessage}
+                      </p>
+                    </div>
+                  </div>
+                  {capacity.capacityMinutes !== null && (
+                    <div className="w-full shrink-0 sm:w-64">
+                      <div className="flex items-center justify-between text-[11px] font-medium text-black/50">
+                        <span>
+                          {formatCapacityTime(capacity.taskMinutes)} tasks +{" "}
+                          {formatCapacityTime(capacity.meetingMinutes)} meetings
+                        </span>
+                        <span>
+                          {formatCapacityTime(capacity.capacityMinutes)} day
+                        </span>
+                      </div>
+                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/80">
+                        <motion.div
+                          initial={false}
+                          animate={{
+                            width: `${Math.min(100, (capacity.ratio ?? 0) * 100)}%`,
+                          }}
+                          className={cn("h-full rounded-full", capacityColor)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 

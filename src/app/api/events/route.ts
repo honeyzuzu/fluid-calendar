@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
           select: {
             name: true,
             color: true,
+            enabled: true,
           },
         },
       },

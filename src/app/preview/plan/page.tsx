@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  Gauge,
   Leaf,
   ListChecks,
   Plus,
@@ -218,6 +219,28 @@ export default function PlanningPreviewPage() {
                 </span>
               </div>
             ))}
+          </div>
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#d9e3c7] bg-[#f4f7ea] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-white/80 text-[#66764e]">
+                <Gauge className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">Daily capacity</p>
+                <p className="mt-0.5 text-xs text-black/55">
+                  4h 15m still open for breaks and surprises.
+                </p>
+              </div>
+            </div>
+            <div className="w-full shrink-0 sm:w-64">
+              <div className="flex justify-between text-[11px] font-medium text-black/50">
+                <span>2h 15m tasks + 1h 30m meetings</span>
+                <span>8h day</span>
+              </div>
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/80">
+                <div className="h-full w-[47%] rounded-full bg-[#7f9b5d]" />
+              </div>
+            </div>
           </div>
         </section>
 
