@@ -9,6 +9,7 @@ import { AppNav } from "@/components/navigation/AppNav";
 import { VersionBadge } from "@/components/navigation/VersionBadge";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { DailyIntentionBanner } from "@/components/planning/DailyIntentionBanner";
+import { DailyRhythmPrompt } from "@/components/planning/DailyRhythmPrompt";
 import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -83,6 +84,7 @@ export default function RootLayout({
             />
             <AppNav />
             <DailyIntentionBanner />
+            <DailyRhythmPrompt />
             <OnboardingTour />
             <div
               aria-hidden="true"

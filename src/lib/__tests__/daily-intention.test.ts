@@ -1,5 +1,6 @@
 import {
   INTENTION_QUOTES,
+  dateKeyInTimeZone,
   formatIntentionQuote,
   localDateKey,
   randomIntentionQuote,
@@ -25,5 +26,11 @@ describe("daily intention quotes", () => {
 
   it("formats a browser-local date key", () => {
     expect(localDateKey(new Date(2026, 8, 3, 23, 30))).toBe("2026-09-03");
+  });
+
+  it("formats today in the configured account timezone", () => {
+    const instant = new Date("2026-09-04T02:30:00.000Z");
+    expect(dateKeyInTimeZone(instant, "America/New_York")).toBe("2026-09-03");
+    expect(dateKeyInTimeZone(instant, "Asia/Tokyo")).toBe("2026-09-04");
   });
 });

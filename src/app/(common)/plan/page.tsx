@@ -1,7 +1,15 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDays,
@@ -14,13 +22,21 @@ import {
   Gauge,
   Leaf,
   Loader2,
+  MoonStar,
   Pencil,
   Plus,
   Save,
   Sparkles,
+  Sunrise,
   X,
 } from "lucide-react";
 
+import {
+  DailyRise,
+  DailyUnwind,
+  type RhythmTask,
+  type UnwindTaskAction,
+} from "@/components/planning/DailyRhythm";
 import { WeeklyReview } from "@/components/planning/WeeklyReview";
 
 import {
@@ -30,6 +46,7 @@ import {
 } from "@/lib/daily-capacity";
 import {
   DAILY_INTENTION_UPDATED_EVENT,
+  dateKeyInTimeZone,
   localDateKey,
   randomIntentionQuote,
 } from "@/lib/daily-intention";
@@ -50,6 +67,7 @@ type TaskRecord = {
   blockEventId?: string | null;
   blockFeedId?: string | null;
   project?: { name: string; color: string | null } | null;
+  completedAt?: string | null;
 };
 
 type EventRecord = {
@@ -71,21 +89,18 @@ type CalendarSettingsRecord = {
   workingHoursDays: string;
 };
 
+type UserSettingsRecord = {
+  timeZone: string;
+};
+
 type DailyPlanRecord = {
   id: string;
   intention: string | null;
   completedAt: string | null;
+  dayVibe: string | null;
+  unwindReflection: string;
+  unwindCompletedAt: string | null;
 };
-
-function isSameLocalDay(value: string | null, selectedDate: Date) {
-  if (!value) return false;
-  const date = new Date(value);
-  return (
-    date.getFullYear() === selectedDate.getFullYear() &&
-    date.getMonth() === selectedDate.getMonth() &&
-    date.getDate() === selectedDate.getDate()
-  );
-}
 
 function hasDateKey(value: string | null, key: string) {
   return value ? new Date(value).toISOString().slice(0, 10) === key : false;
@@ -104,11 +119,36 @@ function isInLocalRange(value: string | null, start: Date, end: Date) {
   return time >= start.getTime() && time < end.getTime();
 }
 
-function formatTime(value: string) {
+function formatTime(value: string, timeZone: string | null) {
   return new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
     minute: "2-digit",
+    ...(timeZone && { timeZone }),
   }).format(new Date(value));
+}
+
+function isSameDayInTimeZone(
+  value: string | null,
+  dateKey: string,
+  timeZone: string | null
+) {
+  if (!value) return false;
+  return timeZone
+    ? dateKeyInTimeZone(new Date(value), timeZone) === dateKey
+    : localDateKey(new Date(value)) === dateKey;
+}
+
+function planDateTime(dateKey: string, time: string, timeZone: string | null) {
+  const value = `${dateKey}T${time}`;
+  return timeZone ? fromZonedTime(value, timeZone) : new Date(value);
+}
+
+function timeInputValue(value: string, timeZone: string | null) {
+  return timeZone
+    ? formatInTimeZone(new Date(value), timeZone, "HH:mm")
+    : `${String(new Date(value).getHours()).padStart(2, "0")}:${String(
+        new Date(value).getMinutes()
+      ).padStart(2, "0")}`;
 }
 
 async function expectJson<T>(response: Response): Promise<T> {
@@ -126,12 +166,24 @@ async function expectJson<T>(response: Response): Promise<T> {
 }
 
 export default function PlanPage() {
+  const [view, setView] = useState<"today" | "week" | "review">("today");
+  const [ritual, setRitual] = useState<"rise" | "unwind" | null>(null);
+  const [requestedRitual, setRequestedRitual] = useState<
+    "rise" | "unwind" | null
+  >(null);
+  const [urlReady, setUrlReady] = useState(false);
+  const hasExplicitDate = useRef(false);
+  const alignedInitialDate = useRef(false);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [workingHours, setWorkingHours] =
     useState<DailyCapacitySettings | null>(null);
+  const [userTimeZone, setUserTimeZone] = useState<string | null>(null);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
+  const [previousPlan, setPreviousPlan] = useState<DailyPlanRecord | null>(
+    null
+  );
   const [intention, setIntention] = useState("");
   const [editingIntention, setEditingIntention] = useState(true);
   const [intentionJustSaved, setIntentionJustSaved] = useState(false);
@@ -156,7 +208,17 @@ export default function PlanPage() {
     setLoading(true);
     setError(null);
     try {
-      const [taskData, eventData, planData, settingsData] = await Promise.all([
+      const previousDate = new Date(selectedDate);
+      previousDate.setDate(previousDate.getDate() - 1);
+      const previousKey = localDateKey(previousDate);
+      const [
+        taskData,
+        eventData,
+        planData,
+        previousPlanData,
+        settingsData,
+        userSettingsData,
+      ] = await Promise.all([
         fetch("/api/tasks").then((response) =>
           expectJson<TaskRecord[]>(response)
         ),
@@ -166,13 +228,21 @@ export default function PlanPage() {
         fetch(`/api/daily-plan?date=${selectedKey}`).then((response) =>
           expectJson<DailyPlanRecord | null>(response)
         ),
+        fetch(`/api/daily-plan?date=${previousKey}`).then((response) =>
+          expectJson<DailyPlanRecord | null>(response)
+        ),
         fetch("/api/calendar-settings")
           .then((response) => expectJson<CalendarSettingsRecord>(response))
           .catch(() => null),
+        fetch("/api/user-settings").then((response) =>
+          expectJson<UserSettingsRecord>(response)
+        ),
       ]);
       setTasks(taskData);
       setEvents(eventData);
       setPlan(planData);
+      setPreviousPlan(previousPlanData);
+      setUserTimeZone(userSettingsData.timeZone);
       if (settingsData) {
         setWorkingHours({
           enabled: settingsData.workingHoursEnabled,
@@ -190,11 +260,67 @@ export default function PlanPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedKey]);
+  }, [selectedDate, selectedKey]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (urlReady) void load();
+  }, [load, urlReady]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedView = params.get("view");
+    const requestedRitual = params.get("ritual");
+    const requestedDate = params.get("date");
+    if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
+      hasExplicitDate.current = true;
+      const date = new Date(`${requestedDate}T12:00:00`);
+      if (!Number.isNaN(date.getTime())) setSelectedDate(date);
+    }
+    if (requestedView === "week" || requestedView === "review") {
+      setView(requestedView);
+    }
+    if (requestedRitual === "rise" || requestedRitual === "unwind") {
+      setView("today");
+      setRequestedRitual(requestedRitual);
+      window.history.replaceState({}, "", "/plan");
+    }
+    setUrlReady(true);
+  }, []);
+
+  const userTodayKey = userTimeZone
+    ? dateKeyInTimeZone(new Date(), userTimeZone)
+    : null;
+  const isRitualDate = userTodayKey === selectedKey;
+
+  useEffect(() => {
+    if (!userTodayKey || hasExplicitDate.current || alignedInitialDate.current)
+      return;
+    alignedInitialDate.current = true;
+    if (selectedKey !== userTodayKey) {
+      setSelectedDate(new Date(`${userTodayKey}T12:00:00`));
+    }
+  }, [selectedKey, userTodayKey]);
+
+  const openRitual = (nextRitual: "rise" | "unwind") => {
+    if (
+      !userTimeZone ||
+      selectedKey !== dateKeyInTimeZone(new Date(), userTimeZone)
+    ) {
+      setError("Daily Rise and Daily Unwind are available for today.");
+      return;
+    }
+    setRitual(nextRitual);
+  };
+
+  useEffect(() => {
+    if (!requestedRitual || !userTodayKey || loading) return;
+    if (selectedKey === userTodayKey) {
+      setRitual(requestedRitual);
+    } else {
+      setError("Daily Rise and Daily Unwind are available for today.");
+    }
+    setRequestedRitual(null);
+  }, [loading, requestedRitual, selectedKey, userTodayKey]);
 
   const todayTasks = useMemo(
     () =>
@@ -202,10 +328,10 @@ export default function PlanPage() {
         (task) =>
           ((!task.plannedWeekStart ||
             hasDateKey(task.plannedWeekStart, weekStartKey)) &&
-            isSameLocalDay(task.startDate, selectedDate)) ||
-          isSameLocalDay(task.scheduledStart, selectedDate)
+            isSameDayInTimeZone(task.startDate, selectedKey, userTimeZone)) ||
+          isSameDayInTimeZone(task.scheduledStart, selectedKey, userTimeZone)
       ),
-    [selectedDate, tasks, weekStartKey]
+    [selectedKey, tasks, userTimeZone, weekStartKey]
   );
   const weekTasks = useMemo(
     () =>
@@ -232,13 +358,58 @@ export default function PlanPage() {
     [tasks, weekTasks]
   );
   const dayEvents = useMemo(
-    () => events.filter((event) => isSameLocalDay(event.start, selectedDate)),
-    [events, selectedDate]
+    () =>
+      events.filter((event) =>
+        isSameDayInTimeZone(event.start, selectedKey, userTimeZone)
+      ),
+    [events, selectedKey, userTimeZone]
   );
   const plannedMinutes = todayTasks.reduce(
     (total, task) => total + (task.duration ?? 30),
     0
   );
+  const completedTodayTasks = useMemo(
+    () =>
+      tasks.filter(
+        (task) =>
+          task.status === "completed" &&
+          isSameDayInTimeZone(
+            task.completedAt ?? null,
+            selectedKey,
+            userTimeZone
+          )
+      ),
+    [selectedKey, tasks, userTimeZone]
+  );
+  const unfinishedTodayTasks = todayTasks.filter(
+    (task) => task.status !== "completed"
+  );
+  const carryoverTasks = useMemo(() => {
+    if (previousPlan?.unwindCompletedAt) return [];
+    const previousDate = new Date(selectedDate);
+    previousDate.setDate(previousDate.getDate() - 1);
+    const previousKey = localDateKey(previousDate);
+    return tasks.filter(
+      (task) =>
+        task.status !== "completed" &&
+        (isSameDayInTimeZone(task.startDate, previousKey, userTimeZone) ||
+          isSameDayInTimeZone(task.scheduledStart, previousKey, userTimeZone))
+    );
+  }, [previousPlan?.unwindCompletedAt, selectedDate, tasks, userTimeZone]);
+  const mirroredEventKeys = useMemo(
+    () =>
+      new Set(
+        tasks
+          .filter((task) => task.blockEventId && task.blockFeedId)
+          .map((task) => `${task.blockFeedId}:${task.blockEventId}`)
+      ),
+    [tasks]
+  );
+  const earliestUnwindTaskDate = useMemo(() => {
+    const next = new Date(selectedDate);
+    next.setDate(next.getDate() + 1);
+    return localDateKey(next);
+  }, [selectedDate]);
   const capacity = useMemo(
     () =>
       calculateDailyCapacity(
@@ -302,7 +473,11 @@ export default function PlanPage() {
     (step) => step.complete
   ).length;
 
-  const savePlan = async (completed?: boolean, celebrateIntention = false) => {
+  const savePlan = async (
+    completed?: boolean,
+    celebrateIntention = false,
+    intentionValue = intention
+  ) => {
     setSaving(true);
     setError(null);
     try {
@@ -311,12 +486,12 @@ export default function PlanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: selectedKey,
-          intention,
+          intention: intentionValue,
           ...(completed !== undefined && { completed }),
         }),
       }).then((response) => expectJson<DailyPlanRecord>(response));
       setPlan(saved);
-      if (selectedKey === localDateKey()) {
+      if (selectedKey === userTodayKey) {
         window.dispatchEvent(
           new CustomEvent(DAILY_INTENTION_UPDATED_EVENT, {
             detail: { date: selectedKey, intention: saved.intention },
@@ -328,13 +503,131 @@ export default function PlanPage() {
         setIntentionJustSaved(true);
         window.setTimeout(() => setIntentionJustSaved(false), 1600);
       }
+      return true;
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to save your plan"
       );
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const finishRise = async (value: string) => {
+    const tasksMissingEstimates = unfinishedTodayTasks.filter(
+      (task) => task.duration == null
+    );
+    if (tasksMissingEstimates.length > 0) {
+      setSaving(true);
+      setError(null);
+      try {
+        await Promise.all(
+          tasksMissingEstimates.map((task) =>
+            fetch(`/api/tasks/${task.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ duration: 30 }),
+            }).then((response) => expectJson<TaskRecord>(response))
+          )
+        );
+        const missingIds = new Set(
+          tasksMissingEstimates.map((task) => task.id)
+        );
+        setTasks((current) =>
+          current.map((task) =>
+            missingIds.has(task.id) ? { ...task, duration: 30 } : task
+          )
+        );
+      } catch (caught) {
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Unable to save task estimates"
+        );
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    }
+    setIntention(value);
+    if (await savePlan(true, true, value)) {
+      setRitual(null);
+    }
+  };
+
+  const finishUnwind = async (dayVibe: string | null, reflection: string) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const saved = await fetch("/api/daily-plan", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: selectedKey,
+          dayVibe,
+          unwindReflection: reflection,
+          unwindCompleted: true,
+        }),
+      }).then((response) => expectJson<DailyPlanRecord>(response));
+      setPlan(saved);
+      setRitual(null);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Unable to save your Unwind"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const placeUnfinishedTask = async (
+    task: RhythmTask,
+    action: UnwindTaskAction
+  ) => {
+    const clearSchedule = {
+      scheduledStart: null,
+      scheduledEnd: null,
+      scheduleLocked: false,
+    };
+    if (action.kind === "done") {
+      await updateTask(task.id, { status: "completed" });
+      return;
+    }
+    if (action.kind === "backlog") {
+      await updateTask(task.id, {
+        ...clearSchedule,
+        startDate: null,
+        plannedWeekStart: null,
+      });
+      return;
+    }
+    if (action.kind === "week") {
+      await updateTask(task.id, {
+        ...clearSchedule,
+        startDate: null,
+        plannedWeekStart: `${weekStartKey}T00:00:00.000Z`,
+      });
+      return;
+    }
+    const target =
+      action.kind === "tomorrow"
+        ? (() => {
+            const tomorrow = new Date(selectedDate);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return tomorrow;
+          })()
+        : new Date(`${action.date}T00:00:00`);
+    const targetKey = localDateKey(target);
+    await updateTask(task.id, {
+      ...clearSchedule,
+      startDate: planDateTime(
+        targetKey,
+        "00:00:00",
+        userTimeZone
+      ).toISOString(),
+      plannedWeekStart: `${localDateKey(startOfLocalWeek(target))}T00:00:00.000Z`,
+    });
   };
 
   const createTask = async (event: FormEvent) => {
@@ -349,7 +642,11 @@ export default function PlanPage() {
         body: JSON.stringify({
           title,
           status: "todo",
-          startDate: new Date(`${selectedKey}T00:00:00`).toISOString(),
+          startDate: planDateTime(
+            selectedKey,
+            "00:00:00",
+            userTimeZone
+          ).toISOString(),
           plannedWeekStart: `${weekStartKey}T00:00:00.000Z`,
           duration: 30,
           priority: "medium",
@@ -392,7 +689,7 @@ export default function PlanPage() {
       await updateTask(task.id, { scheduledStart: null, scheduledEnd: null });
       return;
     }
-    const start = new Date(`${selectedKey}T${time}:00`);
+    const start = planDateTime(selectedKey, `${time}:00`, userTimeZone);
     const end = new Date(start.getTime() + (task.duration ?? 30) * 60_000);
     await updateTask(task.id, {
       scheduledStart: start.toISOString(),
@@ -416,7 +713,7 @@ export default function PlanPage() {
 
     const rangeStart =
       scope === "day"
-        ? new Date(`${selectedKey}T00:00:00`)
+        ? planDateTime(selectedKey, "00:00:00", userTimeZone)
         : new Date(weekStart);
     const rangeEnd = scope === "day" ? new Date(rangeStart) : new Date(weekEnd);
     if (scope === "day") rangeEnd.setDate(rangeEnd.getDate() + 1);
@@ -453,6 +750,15 @@ export default function PlanPage() {
     });
   };
 
+  const changeView = (next: "today" | "week" | "review") => {
+    setView(next);
+    window.history.replaceState(
+      {},
+      "",
+      next === "today" ? "/plan" : `/plan?view=${next}`
+    );
+  };
+
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[radial-gradient(circle_at_top_left,_#fff0c8_0,_#fff9e8_32rem,_#f6f7e9_75rem)] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
@@ -463,67 +769,73 @@ export default function PlanPage() {
             <div className="min-w-0 max-w-2xl">
               <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> Daily planning
+                  <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
                 </span>
-                <a
-                  href="#weekly-review"
-                  className="rounded-full px-3 py-1.5 normal-case tracking-normal text-[#65764d] transition hover:bg-white/45"
-                >
-                  Weekly review & history ↓
-                </a>
               </div>
               <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-[#42381f] sm:text-5xl">
-                Shape a day that feels like yours.
+                {view === "today"
+                  ? "Shape a day that feels like yours."
+                  : view === "week"
+                    ? "Give the week a gentle shape."
+                    : "Look back kindly, then begin again."}
               </h1>
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#6f6040]">
-                <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
-                  {selectedDate.toLocaleDateString(undefined, {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-                <span className="rounded-full bg-white/35 px-3 py-1.5">
-                  {plannedMinutes} minutes planned
-                </span>
-              </div>
+              {view !== "review" && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#6f6040]">
+                  <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
+                    {selectedDate.toLocaleDateString(undefined, {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <span className="rounded-full bg-white/35 px-3 py-1.5">
+                    {plannedMinutes} minutes planned
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex min-w-0 flex-col gap-3 sm:items-end">
-              <div className="flex items-center gap-2 rounded-2xl bg-white/55 p-1.5 shadow-sm">
-                <button
-                  onClick={() => moveDate(-1)}
-                  aria-label="Previous day"
-                  className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setSelectedDate(new Date())}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-[#5c5135] transition hover:bg-white/70"
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => moveDate(1)}
-                  aria-label="Next day"
-                  className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
-                <button
-                  onClick={() => void autoSchedule("day")}
-                  disabled={scheduling !== null}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm transition hover:bg-[#eeb03a] disabled:opacity-50"
-                >
-                  {scheduling === "day" ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
-                  Schedule day
-                </button>
+              {view !== "review" && (
+                <div className="flex items-center gap-2 rounded-2xl bg-white/55 p-1.5 shadow-sm">
+                  <button
+                    onClick={() => moveDate(-1)}
+                    aria-label="Previous day"
+                    className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedDate(new Date())}
+                    className="rounded-xl px-4 py-2 text-sm font-semibold text-[#5c5135] transition hover:bg-white/70"
+                  >
+                    Today
+                  </button>
+                  <button
+                    onClick={() => moveDate(1)}
+                    aria-label="Next day"
+                    className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              {view === "today" && isRitualDate && (
+                <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+                  <button
+                    onClick={() => openRitual("rise")}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm transition hover:bg-[#eeb03a] disabled:opacity-50"
+                  >
+                    <Sunrise className="h-3.5 w-3.5" /> Daily Rise
+                  </button>
+                  <button
+                    onClick={() => openRitual("unwind")}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#69658e] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5c587e]"
+                  >
+                    <MoonStar className="h-3.5 w-3.5" /> Daily Unwind
+                  </button>
+                </div>
+              )}
+              {view === "week" && (
                 <button
                   onClick={() => void autoSchedule("week")}
                   disabled={scheduling !== null}
@@ -536,10 +848,37 @@ export default function PlanPage() {
                   )}
                   Schedule week
                 </button>
-              </div>
+              )}
             </div>
           </div>
         </header>
+
+        <nav
+          aria-label="Planning views"
+          className="mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-[#dfe3c7] bg-white/65 p-1.5 shadow-sm sm:mx-auto sm:max-w-lg"
+        >
+          {(
+            [
+              ["today", "Today"],
+              ["week", "Week"],
+              ["review", "Review"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              aria-current={view === id ? "page" : undefined}
+              onClick={() => changeView(id)}
+              className={cn(
+                "rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+                view === id
+                  ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                  : "text-black/45 hover:bg-white"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
         {error && (
           <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -553,7 +892,12 @@ export default function PlanPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            <section className="order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm">
+            <section
+              className={cn(
+                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm",
+                view !== "today" && "hidden"
+              )}
+            >
               <div className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 max-w-xl">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
@@ -677,7 +1021,12 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <section className="order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-4 shadow-[0_14px_35px_rgba(113,91,50,0.08)] sm:p-6">
+            <section
+              className={cn(
+                "order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-4 shadow-[0_14px_35px_rgba(113,91,50,0.08)] sm:p-6",
+                view !== "week" && "hidden"
+              )}
+            >
               <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b16b43]">
@@ -719,14 +1068,17 @@ export default function PlanPage() {
                         className="flex min-w-0 rounded-lg bg-white/75 hover:bg-white"
                       >
                         <button
-                          disabled={isSameLocalDay(
+                          disabled={isSameDayInTimeZone(
                             task.startDate,
-                            selectedDate
+                            selectedKey,
+                            userTimeZone
                           )}
                           onClick={() =>
                             updateTask(task.id, {
-                              startDate: new Date(
-                                `${selectedKey}T00:00:00`
+                              startDate: planDateTime(
+                                selectedKey,
+                                "00:00:00",
+                                userTimeZone
                               ).toISOString(),
                               plannedWeekStart: `${weekStartKey}T00:00:00.000Z`,
                             })
@@ -738,7 +1090,11 @@ export default function PlanPage() {
                             {task.title}
                           </span>
                           <span className="shrink-0 text-black/35">
-                            {isSameLocalDay(task.startDate, selectedDate)
+                            {isSameDayInTimeZone(
+                              task.startDate,
+                              selectedKey,
+                              userTimeZone
+                            )
                               ? "In day"
                               : "Add to day"}
                           </span>
@@ -796,7 +1152,12 @@ export default function PlanPage() {
               </div>
             </section>
 
-            <div className="order-2 grid min-w-0 max-w-full gap-5 xl:grid-cols-2">
+            <div
+              className={cn(
+                "order-2 grid min-w-0 max-w-full gap-5 xl:grid-cols-2",
+                view !== "today" && "hidden"
+              )}
+            >
               <section
                 data-plan-section="today-list"
                 className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e0d8c3] bg-white/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]"
@@ -870,11 +1231,15 @@ export default function PlanPage() {
                                 aria-label={`Schedule ${task.title}`}
                                 defaultValue={
                                   task.scheduledStart &&
-                                  isSameLocalDay(
+                                  isSameDayInTimeZone(
                                     task.scheduledStart,
-                                    selectedDate
+                                    selectedKey,
+                                    userTimeZone
                                   )
-                                    ? `${String(new Date(task.scheduledStart).getHours()).padStart(2, "0")}:${String(new Date(task.scheduledStart).getMinutes()).padStart(2, "0")}`
+                                    ? timeInputValue(
+                                        task.scheduledStart,
+                                        userTimeZone
+                                      )
                                     : ""
                                 }
                                 onChange={(event) =>
@@ -902,40 +1267,57 @@ export default function PlanPage() {
                     </article>
                   ))}
                 </div>
-                <div className="border-t border-black/[0.055] p-4">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">
-                    Available this week
-                  </p>
-                  {weekTasks.filter(
-                    (task) => !isSameLocalDay(task.startDate, selectedDate)
-                  ).length === 0 && (
-                    <p className="py-3 text-xs text-black/35">
-                      No other weekly tasks waiting.
-                    </p>
-                  )}
-                  {weekTasks
-                    .filter(
-                      (task) => !isSameLocalDay(task.startDate, selectedDate)
-                    )
-                    .slice(0, 8)
-                    .map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() =>
-                          updateTask(task.id, {
-                            startDate: new Date(
-                              `${selectedKey}T00:00:00`
-                            ).toISOString(),
-                          })
-                        }
-                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-black/[0.035]"
-                      >
-                        <Plus className="h-3.5 w-3.5 text-[#d0902f]" />
-                        <span className="flex-1 truncate">{task.title}</span>
-                        <span className="text-black/30">Add to day</span>
-                      </button>
-                    ))}
-                </div>
+                <details className="group border-t border-black/[0.055] p-4">
+                  <summary className="cursor-pointer list-none text-xs font-semibold text-[#65764d] marker:hidden">
+                    <span className="inline-flex items-center gap-2">
+                      <Plus className="h-3.5 w-3.5 transition group-open:rotate-45" />
+                      Choose from this week
+                    </span>
+                  </summary>
+                  <div className="mt-3">
+                    {weekTasks.filter(
+                      (task) =>
+                        !isSameDayInTimeZone(
+                          task.startDate,
+                          selectedKey,
+                          userTimeZone
+                        )
+                    ).length === 0 && (
+                      <p className="py-3 text-xs text-black/35">
+                        No other weekly tasks waiting.
+                      </p>
+                    )}
+                    {weekTasks
+                      .filter(
+                        (task) =>
+                          !isSameDayInTimeZone(
+                            task.startDate,
+                            selectedKey,
+                            userTimeZone
+                          )
+                      )
+                      .slice(0, 8)
+                      .map((task) => (
+                        <button
+                          key={task.id}
+                          onClick={() =>
+                            updateTask(task.id, {
+                              startDate: planDateTime(
+                                selectedKey,
+                                "00:00:00",
+                                userTimeZone
+                              ).toISOString(),
+                            })
+                          }
+                          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-black/[0.035]"
+                        >
+                          <Plus className="h-3.5 w-3.5 text-[#d0902f]" />
+                          <span className="flex-1 truncate">{task.title}</span>
+                          <span className="text-black/30">Add to day</span>
+                        </button>
+                      ))}
+                  </div>
+                </details>
               </section>
 
               <section
@@ -992,8 +1374,8 @@ export default function PlanPage() {
                             {item.title}
                           </p>
                           <p className="mt-0.5 text-[11px] text-black/40">
-                            {formatTime(item.start)} – {formatTime(item.end)} ·{" "}
-                            {item.type}
+                            {formatTime(item.start, userTimeZone)} –{" "}
+                            {formatTime(item.end, userTimeZone)} · {item.type}
                           </p>
                         </div>
                       </article>
@@ -1123,19 +1505,88 @@ export default function PlanPage() {
             </div>
           </div>
         )}
-        <WeeklyReview
-          onTasksChanged={() => {
-            void fetch("/api/tasks")
-              .then(expectJson<TaskRecord[]>)
-              .then(setTasks)
-              .catch((caught) =>
-                setError(
-                  caught instanceof Error
-                    ? caught.message
-                    : "Unable to refresh tasks"
-                )
-              );
+        <div className={cn(view !== "review" && "hidden")}>
+          <WeeklyReview
+            onTasksChanged={() => {
+              void fetch("/api/tasks")
+                .then(expectJson<TaskRecord[]>)
+                .then(setTasks)
+                .catch((caught) =>
+                  setError(
+                    caught instanceof Error
+                      ? caught.message
+                      : "Unable to refresh tasks"
+                  )
+                );
+            }}
+          />
+        </div>
+        <DailyRise
+          open={ritual === "rise"}
+          onOpenChange={(open) => !open && setRitual(null)}
+          dateLabel={selectedDate.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
+          initialIntention={intention}
+          todayTasks={unfinishedTodayTasks}
+          carryoverTasks={carryoverTasks}
+          availableTasks={weekTasks.filter(
+            (task) =>
+              !todayTasks.some((todayTask) => todayTask.id === task.id) &&
+              !carryoverTasks.some((carryover) => carryover.id === task.id)
+          )}
+          capacityMessage={capacityMessage}
+          busy={saving || scheduling !== null}
+          onAddTask={async (task) => {
+            await updateTask(task.id, {
+              startDate: planDateTime(
+                selectedKey,
+                "00:00:00",
+                userTimeZone
+              ).toISOString(),
+              plannedWeekStart: `${weekStartKey}T00:00:00.000Z`,
+            });
           }}
+          onDurationChange={async (task, duration) => {
+            await updateTask(task.id, { duration });
+          }}
+          onSchedule={async () => {
+            await autoSchedule("day");
+          }}
+          onFinish={finishRise}
+        />
+        <DailyUnwind
+          open={ritual === "unwind"}
+          onOpenChange={(open) => !open && setRitual(null)}
+          completedTasks={completedTodayTasks}
+          unfinishedTasks={unfinishedTodayTasks}
+          endedEvents={dayEvents
+            .filter(
+              (event) =>
+                !event.allDay &&
+                event.status?.toLowerCase() !== "cancelled" &&
+                event.status?.toLowerCase() !== "canceled" &&
+                !mirroredEventKeys.has(
+                  `${event.feedId}:${event.externalEventId}`
+                ) &&
+                new Date(event.end).getTime() <= Date.now()
+            )
+            .map((event) => ({
+              id: event.id,
+              title: event.title,
+              start: event.start,
+              end: event.end,
+              calendarName: event.feed?.name ?? "Calendar",
+            }))}
+          timeZone={userTimeZone}
+          initialVibe={plan?.dayVibe ?? null}
+          initialReflection={plan?.unwindReflection ?? ""}
+          earliestTaskDate={earliestUnwindTaskDate}
+          busy={saving}
+          onTaskAction={placeUnfinishedTask}
+          onFinish={finishUnwind}
         />
       </div>
     </div>

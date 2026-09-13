@@ -69,10 +69,10 @@ export default function SettingsPage() {
 
   const tabs = useMemo(() => {
     const baseTabs = [
-      { id: "accounts", label: "Accounts" },
       { id: "user", label: "User" },
       { id: "calendar", label: "Calendar" },
       { id: "auto-schedule", label: "Auto-Schedule" },
+      { id: "accounts", label: "Accounts" },
       { id: "task-sync", label: "Task Sync" },
       { id: "notifications", label: "Notifications" },
       { id: "import-export", label: "Import/Export" },
@@ -103,7 +103,48 @@ export default function SettingsPage() {
     return baseTabs;
   }, [isAdmin]);
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>("accounts");
+  const tabGroups = useMemo(
+    () =>
+      [
+        { label: "Personal", tabs: tabs.filter((tab) => tab.id === "user") },
+        {
+          label: "Planning",
+          tabs: tabs.filter((tab) =>
+            ["calendar", "auto-schedule"].includes(tab.id)
+          ),
+        },
+        {
+          label: "Connections",
+          tabs: tabs.filter((tab) =>
+            ["accounts", "task-sync"].includes(tab.id)
+          ),
+        },
+        {
+          label: "Notifications & data",
+          tabs: tabs.filter((tab) =>
+            ["notifications", "import-export"].includes(tab.id)
+          ),
+        },
+        {
+          label: "Admin",
+          tabs: tabs.filter(
+            (tab) =>
+              ![
+                "user",
+                "calendar",
+                "auto-schedule",
+                "accounts",
+                "task-sync",
+                "notifications",
+                "import-export",
+              ].includes(tab.id)
+          ),
+        },
+      ].filter((group) => group.tabs.length > 0),
+    [tabs]
+  );
+
+  const [activeTab, setActiveTab] = useState<SettingsTab>("user");
 
   // Check initial hash and handle changes
   useEffect(() => {
@@ -247,25 +288,35 @@ export default function SettingsPage() {
       <div className="flex min-w-0 flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">
           <Card className="overflow-x-auto">
-            <nav className="flex gap-1 p-1 lg:block lg:space-y-1">
-              {tabs.map((tab) => (
-                <a
-                  key={tab.id}
-                  href={`#${tab.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveTab(tab.id as SettingsTab);
-                  }}
-                  className={cn(
-                    "flex w-auto shrink-0 items-center whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full",
-                    !isHydrated && "duration-0",
-                    activeTab === tab.id
-                      ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
+            <nav className="flex gap-2 p-1 lg:block lg:space-y-4">
+              {tabGroups.map((group) => (
+                <div
+                  key={group.label}
+                  className="flex shrink-0 gap-1 lg:block lg:space-y-1"
                 >
-                  {tab.label}
-                </a>
+                  <p className="hidden px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-black/35 lg:block">
+                    {group.label}
+                  </p>
+                  {group.tabs.map((tab) => (
+                    <a
+                      key={tab.id}
+                      href={`#${tab.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveTab(tab.id as SettingsTab);
+                      }}
+                      className={cn(
+                        "flex w-auto shrink-0 items-center whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full",
+                        !isHydrated && "duration-0",
+                        activeTab === tab.id
+                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      {tab.label}
+                    </a>
+                  ))}
+                </div>
               ))}
             </nav>
           </Card>

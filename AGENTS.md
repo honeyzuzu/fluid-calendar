@@ -1,6 +1,6 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-09
+Last updated: 2026-09-12
 
 ## Product Goal
 
@@ -238,6 +238,13 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Each tune-up card also exposes task status. Completed tasks are excluded from the tune-up queue.
 
 ### Daily and weekly planning
+
+- Plan is divided into Today, Week, and Review views so daily planning, weekly organization, and reflection do not compete in one long screen. Switching views keeps an unsaved Weekly Review draft mounted, and the timezone-aware intention reminder is hidden on Plan itself to avoid repeating the same content.
+- Daily Rise is a four-step guided morning ritual built on the existing intention, daily/weekly task selection, estimates, capacity meter, and Schedule day behavior. It calls out yesterday’s unfinished work only when the prior Daily Unwind was not completed, remains manually available, and always offers a friendly “Not now” exit.
+- Daily Unwind shows actual tasks completed that day and ended calendar events as separate memory cues. Every unfinished daily task must be marked done, moved to tomorrow or another date, returned to This week, or placed in Backlog before finishing. An optional private day vibe and one short reflection are stored on `DailyPlan`; they are not shared with Friends or sent to AI.
+- `UserSettings.dailyRiseEnabled`, `dailyRiseTime`, `dailyUnwindEnabled`, `dailyUnwindTime`, and `dailyRitualDays` configure timezone-aware in-app invitations. Version one can prompt only while Sunnie is open; background web push and email reminders are deferred.
+- Rise and Unwind use concentrated sunrise/sunset motion and a small focus-pet cameo. Motion follows the user’s reduced-motion preference, and completing rituals does not create streak pressure or a second reward economy.
+- The primary navigation keeps Plan, Calendar, Tasks, and Focus visible while Brain Dump and Friends live under More; the pending-friend indicator remains visible on More. Settings are grouped into Personal, Planning, Connections, Notifications & data, and Admin sections.
 
 - `/plan` stores a daily intention and completion state in `DailyPlan`.
 - Today’s intention appears in a compact shared reminder beneath the main navigation on every authenticated app page; the empty state links back to Plan with “Set your daily intention!”

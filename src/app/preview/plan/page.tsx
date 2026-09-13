@@ -11,9 +11,11 @@ import {
   Gauge,
   Leaf,
   ListChecks,
+  MoonStar,
   Plus,
   Sparkles,
   Sun,
+  Sunrise,
   X,
 } from "lucide-react";
 
@@ -63,6 +65,7 @@ const initialDayTasks: PreviewTask[] = [
 
 export default function PlanningPreviewPage() {
   const [dayTasks, setDayTasks] = useState(initialDayTasks);
+  const [view, setView] = useState<"today" | "week" | "review">("today");
 
   const toggleTask = (id: number) => {
     setDayTasks((current) =>
@@ -92,6 +95,7 @@ export default function PlanningPreviewPage() {
                 ["Calendar", false],
                 ["Tasks", false],
                 ["Focus", false],
+                ["More", false],
               ].map(([label, active]) => (
                 <span
                   key={String(label)}
@@ -113,24 +117,12 @@ export default function PlanningPreviewPage() {
         </div>
       </header>
 
-      <aside className="border-b border-[#e4dfbd] bg-[#fff4c9] px-5 py-2 text-[#5c5537] lg:px-8">
-        <div className="mx-auto flex max-w-[1480px] items-center gap-2.5 text-sm">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#dcebc7] text-[#55703c] shadow-[0_2px_0_#b9d09b]">
-            <Leaf className="h-4 w-4" />
-          </span>
-          <span className="font-semibold">Today&apos;s intention</span>
-          <span className="text-black/55">
-            Finish the important things, then leave room for friends.
-          </span>
-        </div>
-      </aside>
-
       <section className="mx-auto flex max-w-[1480px] flex-col px-5 py-7 lg:px-8">
         <div className="relative order-1 mb-6 flex flex-col justify-between gap-6 overflow-hidden rounded-[2rem] border border-[#ead7a5] bg-gradient-to-br from-[#fff7d6] via-[#ffe7b5] to-[#f4c783] p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7 xl:flex-row xl:items-end">
           <div>
             <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5">
-                <Sparkles className="h-3.5 w-3.5" /> Daily planning
+                <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
               </span>
             </div>
             <h1 className="max-w-2xl text-3xl font-semibold tracking-[-0.045em] text-[#42381f] sm:text-5xl">
@@ -157,18 +149,39 @@ export default function PlanningPreviewPage() {
                 <ChevronRight className="h-4 w-4" />
               </PreviewIconButton>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <span className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm">
-                <Sparkles className="h-3.5 w-3.5" /> Schedule day
-              </span>
+            {view === "today" && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm">
+                  <Sunrise className="h-3.5 w-3.5" /> Daily Rise
+                </span>
+                <span className="flex items-center justify-center gap-2 rounded-xl bg-[#69658e] px-4 py-2.5 text-xs font-semibold text-white shadow-sm">
+                  <MoonStar className="h-3.5 w-3.5" /> Daily Unwind
+                </span>
+              </div>
+            )}
+            {view === "week" && (
               <span className="flex items-center justify-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-xs font-semibold text-white shadow-sm">
                 <CalendarDays className="h-3.5 w-3.5" /> Schedule week
               </span>
-            </div>
+            )}
           </div>
         </div>
 
-        <section className="order-2 mb-5 overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 p-5 shadow-[0_12px_35px_rgba(80,86,55,0.07)]">
+        <nav className="order-2 mb-5 grid grid-cols-3 gap-1 self-center rounded-2xl border border-[#dfe3c7] bg-white/70 p-1.5 shadow-sm sm:w-[480px]">
+          {(["today", "week", "review"] as const).map((id) => (
+            <button
+              key={id}
+              onClick={() => setView(id)}
+              className={`rounded-xl px-3 py-2.5 text-sm font-semibold capitalize ${view === id ? "bg-[#f8e4a1] text-[#77591d] shadow-sm" : "text-black/45"}`}
+            >
+              {id}
+            </button>
+          ))}
+        </nav>
+
+        <section
+          className={`order-2 mb-5 overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 p-5 shadow-[0_12px_35px_rgba(80,86,55,0.07)] ${view !== "today" ? "hidden" : ""}`}
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#8b6d27]">
@@ -244,7 +257,9 @@ export default function PlanningPreviewPage() {
           </div>
         </section>
 
-        <section className="order-4 mt-5 rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-5 shadow-[0_14px_35px_rgba(113,91,50,0.08)]">
+        <section
+          className={`order-4 mt-5 rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-5 shadow-[0_14px_35px_rgba(113,91,50,0.08)] ${view !== "week" ? "hidden" : ""}`}
+        >
           <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b16b43]">
@@ -304,7 +319,9 @@ export default function PlanningPreviewPage() {
           </div>
         </section>
 
-        <div className="order-3 grid gap-5 xl:grid-cols-2">
+        <div
+          className={`order-3 grid gap-5 xl:grid-cols-2 ${view !== "today" ? "hidden" : ""}`}
+        >
           <section className="order-2 overflow-hidden rounded-3xl border border-[#e0d8c3] bg-white/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]">
             <div className="border-b border-black/[0.055] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c26343]">
@@ -421,7 +438,7 @@ export default function PlanningPreviewPage() {
             </div>
           </aside>
         </div>
-        <div className="order-5">
+        <div className={`order-5 ${view !== "review" ? "hidden" : ""}`}>
           <WeeklyReview preview={weeklyReviewPreview} />
         </div>
       </section>

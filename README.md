@@ -5,7 +5,7 @@ A private planner for the owner, friends, and family, built from the open-source
 ## What Sunnie does
 
 - Manage tasks and projects, or turn a Brain Dump into tasks and refine them with Task Tune-up.
-- Plan from Backlog to This week to a selected day, with a saved daily intention.
+- Begin with a playful Daily Rise, close with a private Daily Unwind, and plan from Backlog to This week to a selected day without repeating the weekly review.
 - Schedule tasks around calendar conflicts, working hours, sleep hours, and locked blocks.
 - Review completed tasks and past events, save private weekly reflections, and choose next-week priorities.
 - Connect Google Calendar, Apple Calendar, and compatible CalDAV providers.

@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
   const rawDate = request.nextUrl.searchParams.get("date");
   const date = parsePlanDate(rawDate);
   if (!date) {
-    return NextResponse.json({ error: "A valid date is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "A valid date is required" },
+      { status: 400 }
+    );
   }
 
   const plan = await prisma.dailyPlan.findUnique({
@@ -37,22 +40,85 @@ export async function PUT(request: NextRequest) {
     date?: unknown;
     intention?: unknown;
     completed?: unknown;
+    dayVibe?: unknown;
+    unwindReflection?: unknown;
+    unwindCompleted?: unknown;
   };
   const date = parsePlanDate(body.date);
   if (!date) {
-    return NextResponse.json({ error: "A valid date is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "A valid date is required" },
+      { status: 400 }
+    );
   }
   if (body.intention !== undefined && typeof body.intention !== "string") {
-    return NextResponse.json({ error: "Intention must be text" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Intention must be text" },
+      { status: 400 }
+    );
   }
   if (body.completed !== undefined && typeof body.completed !== "boolean") {
-    return NextResponse.json({ error: "Completed must be true or false" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Completed must be true or false" },
+      { status: 400 }
+    );
+  }
+  const allowedVibes = ["stormy", "cloudy", "soft", "sunny", "glowing"];
+  if (
+    body.dayVibe !== undefined &&
+    body.dayVibe !== null &&
+    (typeof body.dayVibe !== "string" || !allowedVibes.includes(body.dayVibe))
+  ) {
+    return NextResponse.json(
+      { error: "Choose a valid day vibe" },
+      { status: 400 }
+    );
+  }
+  if (
+    body.unwindReflection !== undefined &&
+    typeof body.unwindReflection !== "string"
+  ) {
+    return NextResponse.json(
+      { error: "Reflection must be text" },
+      { status: 400 }
+    );
+  }
+  if (
+    body.unwindCompleted !== undefined &&
+    typeof body.unwindCompleted !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "Unwind completion must be true or false" },
+      { status: 400 }
+    );
   }
 
-  const intention = typeof body.intention === "string" ? body.intention.trim().slice(0, 500) : undefined;
-  const completedAt = typeof body.completed === "boolean"
-    ? body.completed ? new Date() : null
-    : undefined;
+  const intention =
+    typeof body.intention === "string"
+      ? body.intention.trim().slice(0, 500)
+      : undefined;
+  const completedAt =
+    typeof body.completed === "boolean"
+      ? body.completed
+        ? new Date()
+        : null
+      : undefined;
+  const dayVibe =
+    body.dayVibe === null
+      ? null
+      : typeof body.dayVibe === "string"
+        ? body.dayVibe
+        : undefined;
+  const unwindReflection =
+    typeof body.unwindReflection === "string"
+      ? body.unwindReflection.trim().slice(0, 1000)
+      : undefined;
+  const unwindCompletedAt =
+    typeof body.unwindCompleted === "boolean"
+      ? body.unwindCompleted
+        ? new Date()
+        : null
+      : undefined;
 
   const plan = await prisma.dailyPlan.upsert({
     where: { userId_date: { userId: auth.userId, date } },
@@ -61,10 +127,16 @@ export async function PUT(request: NextRequest) {
       date,
       intention: intention ?? null,
       completedAt: completedAt ?? null,
+      dayVibe: dayVibe ?? null,
+      unwindReflection: unwindReflection ?? "",
+      unwindCompletedAt: unwindCompletedAt ?? null,
     },
     update: {
       ...(intention !== undefined && { intention }),
       ...(completedAt !== undefined && { completedAt }),
+      ...(dayVibe !== undefined && { dayVibe }),
+      ...(unwindReflection !== undefined && { unwindReflection }),
+      ...(unwindCompletedAt !== undefined && { unwindCompletedAt }),
     },
   });
 

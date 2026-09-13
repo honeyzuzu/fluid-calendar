@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Brain } from "lucide-react";
+import { Brain, MoreHorizontal } from "lucide-react";
 import { BsCalendar, BsListTask } from "react-icons/bs";
 import {
   HiOutlineLightBulb,
@@ -14,6 +14,12 @@ import {
 import { RiKeyboardLine } from "react-icons/ri";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { cn } from "@/lib/utils";
 
@@ -58,24 +64,17 @@ export function AppNav({ className }: AppNavProps) {
     },
     { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: BsListTask },
     {
-      href: "/brain-dump",
-      label: "Brain Dump",
-      mobileLabel: "Dump",
-      icon: Brain,
-    },
-    {
-      href: "/friends",
-      label: "Friends",
-      mobileLabel: "Friends",
-      icon: HiOutlineUserGroup,
-    },
-    {
       href: "/focus",
       label: "Focus",
       mobileLabel: "Focus",
       icon: HiOutlineLightBulb,
     },
   ];
+  const moreLinks = [
+    { href: "/brain-dump", label: "Brain Dump", icon: Brain },
+    { href: "/friends", label: "Friends", icon: HiOutlineUserGroup },
+  ];
+  const moreIsActive = moreLinks.some((link) => pathname === link.href);
 
   return (
     <>
@@ -133,6 +132,42 @@ export function AppNav({ className }: AppNavProps) {
                     </Link>
                   );
                 })}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
+                        moreIsActive
+                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                          : "text-[#626849] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                      )}
+                    >
+                      <span className="relative">
+                        <MoreHorizontal className="h-4 w-4" />
+                        {hasPendingFriendRequest && (
+                          <span
+                            aria-label="Pending friend request"
+                            className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fff9e8] bg-[#e7895b]"
+                          />
+                        )}
+                      </span>
+                      <span className="hidden xl:inline">More</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {moreLinks.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <DropdownMenuItem key={link.href} asChild>
+                          <Link href={link.href} className="cursor-pointer">
+                            <Icon className="mr-2 h-4 w-4" />
+                            {link.label}
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
@@ -165,7 +200,7 @@ export function AppNav({ className }: AppNavProps) {
       </nav>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(5rem+env(safe-area-inset-bottom))] grid-cols-6 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(5rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
       >
         {links.map((link) => {
           const Icon = link.icon;
@@ -202,6 +237,47 @@ export function AppNav({ className }: AppNavProps) {
             </Link>
           );
         })}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
+                moreIsActive ? "text-[#77591d]" : "text-[#74785f]"
+              )}
+            >
+              <span
+                className={cn(
+                  "grid h-9 w-11 place-items-center rounded-xl",
+                  moreIsActive && "bg-[#f8e4a1] shadow-sm"
+                )}
+              >
+                <span className="relative">
+                  <MoreHorizontal className="h-5 w-5" />
+                  {hasPendingFriendRequest && (
+                    <span
+                      aria-label="Pending friend request"
+                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fffdf5] bg-[#e7895b]"
+                    />
+                  )}
+                </span>
+              </span>
+              <span>More</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="mb-2 w-52">
+            {moreLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <DropdownMenuItem key={link.href} asChild>
+                  <Link href={link.href} className="cursor-pointer py-3">
+                    <Icon className="mr-2 h-4 w-4" />
+                    {link.label}
+                  </Link>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </nav>
     </>
   );

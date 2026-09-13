@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { BookOpen, RotateCcw } from "lucide-react";
+import { BookOpen, MoonStar, RotateCcw, Sunrise } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,6 +253,79 @@ export function UserSettings() {
                 })
               }
             />
+          </div>
+        </div>
+      </SettingRow>
+
+      <SettingRow
+        label="Daily Rhythm"
+        description="Choose when Sunnie gently invites you to begin and close your day. Prompts appear while the app is open."
+      >
+        <div className="space-y-4 rounded-2xl border border-[#dce3c9] bg-[#fffdf5] p-4">
+          <label className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Sunrise className="h-4 w-4 text-[#d99d32]" /> Daily Rise
+            </span>
+            <input
+              type="checkbox"
+              checked={user.dailyRiseEnabled}
+              onChange={(event) =>
+                updateUserSettings({ dailyRiseEnabled: event.target.checked })
+              }
+              className="h-4 w-4 rounded border-[#cbd5b8] text-[#7f9b5d] focus:ring-[#b6c994]"
+            />
+          </label>
+          {user.dailyRiseEnabled && (
+            <Input
+              aria-label="Daily Rise time"
+              type="time"
+              value={user.dailyRiseTime}
+              onChange={(event) =>
+                updateUserSettings({ dailyRiseTime: event.target.value })
+              }
+            />
+          )}
+          <label className="flex items-center justify-between gap-4 border-t border-black/[0.055] pt-4">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <MoonStar className="h-4 w-4 text-[#8069a8]" /> Daily Unwind
+            </span>
+            <input
+              type="checkbox"
+              checked={user.dailyUnwindEnabled}
+              onChange={(event) =>
+                updateUserSettings({ dailyUnwindEnabled: event.target.checked })
+              }
+              className="h-4 w-4 rounded border-[#cbd5b8] text-[#7f9b5d] focus:ring-[#b6c994]"
+            />
+          </label>
+          {user.dailyUnwindEnabled && (
+            <Input
+              aria-label="Daily Unwind time"
+              type="time"
+              value={user.dailyUnwindTime}
+              onChange={(event) =>
+                updateUserSettings({ dailyUnwindTime: event.target.value })
+              }
+            />
+          )}
+          <div className="border-t border-black/[0.055] pt-4">
+            <Label className="text-xs">Prompt me</Label>
+            <Select
+              value={user.dailyRitualDays}
+              onValueChange={(value) =>
+                updateUserSettings({
+                  dailyRitualDays: value as "working" | "everyday",
+                })
+              }
+            >
+              <SelectTrigger className="mt-1.5">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="working">On my working days</SelectItem>
+                <SelectItem value="everyday">Every day</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </SettingRow>

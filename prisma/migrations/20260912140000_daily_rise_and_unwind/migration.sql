@@ -1,0 +1,11 @@
+ALTER TABLE "DailyPlan"
+ADD COLUMN "dayVibe" TEXT,
+ADD COLUMN "unwindReflection" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "unwindCompletedAt" TIMESTAMP(3);
+
+ALTER TABLE "UserSettings"
+ADD COLUMN "dailyRiseEnabled" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "dailyRiseTime" TEXT NOT NULL DEFAULT '08:00',
+ADD COLUMN "dailyUnwindEnabled" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "dailyUnwindTime" TEXT NOT NULL DEFAULT '17:00',
+ADD COLUMN "dailyRitualDays" TEXT NOT NULL DEFAULT 'working';

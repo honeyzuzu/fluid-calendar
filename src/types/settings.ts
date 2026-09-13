@@ -13,6 +13,11 @@ export interface UserSettings {
   sleepHoursStart: string;
   sleepHoursEnd: string;
   sleepHoursConfigured: boolean;
+  dailyRiseEnabled: boolean;
+  dailyRiseTime: string;
+  dailyUnwindEnabled: boolean;
+  dailyUnwindTime: string;
+  dailyRitualDays: "working" | "everyday";
 }
 
 export interface CalendarSettings {

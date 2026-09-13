@@ -1,12 +1,12 @@
 # Sunnie work queue
 
-Last reviewed: 2026-09-09 against local commit `8e17fc8`.
+Last reviewed: 2026-09-12.
 
 Use this file for concrete work we have chosen to do. Put rough feature thoughts in [FEATURE_IDEAS.md](FEATURE_IDEAS.md), and consult [AGENTS.md](AGENTS.md) for what already exists.
 
 ## Current work
 
-No implementation task selected yet. Choose an idea to flesh out when ready.
+No implementation task is currently waiting. Daily Rise, Daily Unwind, and the related decluttering pass are implemented locally and awaiting commit/deployment.
 
 ## Maintenance candidates
 

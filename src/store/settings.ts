@@ -49,6 +49,11 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
     sleepHoursStart: "23:00",
     sleepHoursEnd: "07:00",
     sleepHoursConfigured: false,
+    dailyRiseEnabled: true,
+    dailyRiseTime: "08:00",
+    dailyUnwindEnabled: true,
+    dailyUnwindTime: "17:00",
+    dailyRitualDays: "working",
   },
   calendar: {
     workingHours: {
@@ -137,15 +142,23 @@ export const useSettingsStore = create<SettingsStore>()(
               "Content-Type": "application/json",
             },
             body: JSON.stringify(newSettings),
-          }).catch((error) => {
-            logger.error(
-              "Failed to save user settings to database",
-              {
-                error: error instanceof Error ? error.message : "Unknown error",
-              },
-              LOG_SOURCE
-            );
-          });
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Request failed (${response.status})`);
+              }
+              window.dispatchEvent(new Event("sunnie:user-settings-updated"));
+            })
+            .catch((error) => {
+              logger.error(
+                "Failed to save user settings to database",
+                {
+                  error:
+                    error instanceof Error ? error.message : "Unknown error",
+                },
+                LOG_SOURCE
+              );
+            });
 
           return { user: newSettings };
         }),
@@ -398,6 +411,11 @@ export const useSettingsStore = create<SettingsStore>()(
             sleepHoursStart: userSettings.sleepHoursStart,
             sleepHoursEnd: userSettings.sleepHoursEnd,
             sleepHoursConfigured: userSettings.sleepHoursConfigured,
+            dailyRiseEnabled: userSettings.dailyRiseEnabled,
+            dailyRiseTime: userSettings.dailyRiseTime,
+            dailyUnwindEnabled: userSettings.dailyUnwindEnabled,
+            dailyUnwindTime: userSettings.dailyUnwindTime,
+            dailyRitualDays: userSettings.dailyRitualDays,
           });
 
           // More updates will be added here
@@ -499,6 +517,14 @@ export const useSettingsStore = create<SettingsStore>()(
           resendApiKey: undefined,
         },
       }),
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<SettingsStore>;
+        return {
+          ...current,
+          ...saved,
+          user: { ...current.user, ...saved.user },
+        };
+      },
     }
   )
 );

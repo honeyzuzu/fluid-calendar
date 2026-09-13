@@ -4,38 +4,53 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { ArrowRight, Leaf } from "lucide-react";
 
 import {
   DAILY_INTENTION_UPDATED_EVENT,
+  dateKeyInTimeZone,
   localDateKey,
 } from "@/lib/daily-intention";
 import { cn } from "@/lib/utils";
 
 type DailyPlanResponse = { intention: string | null } | null;
 type IntentionUpdate = { date: string; intention: string | null };
+type UserSettingsResponse = { timeZone?: string | null };
 
 export function DailyIntentionBanner() {
   const { status } = useSession();
+  const pathname = usePathname();
   const [intention, setIntention] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const today = localDateKey();
+  const [today, setToday] = useState(() => localDateKey());
 
   const load = useCallback(async () => {
     if (status !== "authenticated") return;
     try {
-      const response = await fetch(`/api/daily-plan?date=${today}`, {
+      const settingsResponse = await fetch("/api/user-settings", {
+        cache: "no-store",
+      });
+      const settings = settingsResponse.ok
+        ? ((await settingsResponse.json()) as UserSettingsResponse)
+        : null;
+      const nextToday = dateKeyInTimeZone(
+        new Date(),
+        settings?.timeZone ?? null
+      );
+      const response = await fetch(`/api/daily-plan?date=${nextToday}`, {
         cache: "no-store",
       });
       if (!response.ok) return;
       const plan = (await response.json()) as DailyPlanResponse;
+      setToday(nextToday);
       setIntention(plan?.intention?.trim() || null);
       setLoaded(true);
     } catch {
       // Keep the reminder quiet if a background refresh briefly fails.
     }
-  }, [status, today]);
+  }, [status]);
 
   useEffect(() => {
     void load();
@@ -47,15 +62,20 @@ export function DailyIntentionBanner() {
       }
     };
     const handleFocus = () => void load();
+    const interval = window.setInterval(() => void load(), 60_000);
     window.addEventListener(DAILY_INTENTION_UPDATED_EVENT, handleUpdate);
+    window.addEventListener("sunnie:user-settings-updated", handleFocus);
     window.addEventListener("focus", handleFocus);
     return () => {
+      window.clearInterval(interval);
       window.removeEventListener(DAILY_INTENTION_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener("sunnie:user-settings-updated", handleFocus);
       window.removeEventListener("focus", handleFocus);
     };
   }, [load, today]);
 
-  if (status !== "authenticated" || !loaded) return null;
+  if (status !== "authenticated" || !loaded || pathname === "/plan")
+    return null;
 
   return (
     <aside className="relative z-20 flex-none border-b border-[#e4dfbd] bg-[#fff4c9]/95 px-3 py-2 text-[#5c5537] shadow-[0_2px_12px_rgba(94,83,43,0.05)] sm:px-4">
