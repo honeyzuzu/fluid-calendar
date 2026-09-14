@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import { BsArrowRepeat, BsGoogle, BsMicrosoft, BsTrash } from "react-icons/bs";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
@@ -13,10 +14,7 @@ import {
 } from "@/components/ui/popover";
 
 import { newDate } from "@/lib/date-utils";
-import {
-  FRIEND_CALENDAR_COLORS,
-  getFriendCalendarColor,
-} from "@/lib/friend-calendar-colors";
+import { getFriendCalendarColor } from "@/lib/friend-calendar-colors";
 import { cn } from "@/lib/utils";
 
 import {
@@ -41,6 +39,8 @@ type FriendShare = {
 };
 
 export function FeedManager() {
+  const { colorTheme } = useTheme();
+  const friendColors = colorTheme.palettes.friends;
   const [syncingFeeds, setSyncingFeeds] = useState<Set<string>>(new Set());
   const [colorFeedId, setColorFeedId] = useState<string | null>(null);
   const [friendShares, setFriendShares] = useState<FriendShare[]>([]);
@@ -223,7 +223,8 @@ export function FeedManager() {
             {friendShares.map((connection) => {
               const friendColor = getFriendCalendarColor(
                 connection.friend.id,
-                friendCalendarColors
+                friendCalendarColors,
+                friendColors[0].value
               );
               return (
                 <div
@@ -261,9 +262,9 @@ export function FeedManager() {
                         Every shared block from this friend uses the same color.
                       </p>
                       <div className="mt-3 grid grid-cols-3 gap-2">
-                        {FRIEND_CALENDAR_COLORS.map((color) => (
+                        {friendColors.map((color) => (
                           <button
-                            key={color.value}
+                            key={color.id}
                             type="button"
                             onClick={() =>
                               setFriendCalendarColor(

@@ -411,6 +411,7 @@ model UserSettings {
   dailyUnwindTime      String   @default("17:00")
   dailyRitualDays      String   @default("working") // "working" or "everyday"
   theme                String   @default("system") // "light", "dark", "system"
+  colorTheme           String   @default("base") // planner colorway id from src/lib/color-themes.ts
   defaultView          String   @default("week") // "day", "week", "month", "agenda"
   timeZone             String
   weekStartDay         String   @default("sunday") // "monday", "sunday"

@@ -1,17 +1,14 @@
-export const DEFAULT_FRIEND_CALENDAR_COLOR = "#D7CBEA";
+import { BASE_COLOR_THEME } from "@/lib/color-themes";
 
-export const FRIEND_CALENDAR_COLORS = [
-  { name: "Lavender mist", value: "#D7CBEA" },
-  { name: "Powder blue", value: "#C6DCEB" },
-  { name: "Blush cloud", value: "#EBCBD7" },
-  { name: "Peach cream", value: "#F0D0B7" },
-  { name: "Misty teal", value: "#C5DEDA" },
-  { name: "Periwinkle", value: "#CBD1EE" },
-] as const;
+export const DEFAULT_FRIEND_CALENDAR_COLOR =
+  BASE_COLOR_THEME.palettes.friends[0].value;
+
+export const FRIEND_CALENDAR_COLORS = BASE_COLOR_THEME.palettes.friends;
 
 export function getFriendCalendarColor(
   friendId: string,
-  colors: Record<string, string>
+  colors: Record<string, string>,
+  fallbackColor = DEFAULT_FRIEND_CALENDAR_COLOR
 ) {
-  return colors[friendId] || DEFAULT_FRIEND_CALENDAR_COLOR;
+  return colors[friendId] || fallbackColor;
 }

@@ -89,6 +89,7 @@ Important source locations:
 - `src/services/scheduling`: auto-scheduling engine.
 - `src/lib/caldav-*`: CalDAV synchronization and serialization.
 - `src/app/preview/plan/page.tsx`: public fake-data screenshot preview.
+- `src/lib/color-themes.ts` and `docs/colorways.md`: canonical colorway registry and owner hex worksheet.
 - `prisma/schema.prisma`: canonical data model.
 - `prisma/migrations`: production database migrations.
 - `Dockerfile` and `entrypoint.sh`: Railway production build/startup.
@@ -278,14 +279,17 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ### Calendar and colors
 
+- Sunnie colorways use 14 overarching theme roles plus five mini-palettes: eight event colors, six project colors, six task colors, six friend colors, and four semantic status colors. Each theme therefore contains exactly 44 hex values. `Sunnie Base` preserves the current identity, `Autumn — Golden Hour` is the first owner-supplied theme, and two more themes are planned.
+- `UserSettings.colorTheme` persists the selected planner colorway. The theme provider applies the active registry entry to both the existing HSL design tokens and Sunnie-specific CSS variables. Until palette-slot fields are added, existing item colors remain stored as raw hex values and do not yet recolor automatically.
+
 - Calendar views and event creation/editing are retained from FluidCalendar.
 - Opening Calendar triggers a background sync shortly after hydration. While the tab remains visible, Google/CalDAV feeds and friend availability refresh every five minutes; returning to a stale tab refreshes them as well. The header refresh control runs the same combined pass and exposes the exact last-refresh time on hover.
 - Calendar header controls wrap into a deliberate second row below very wide desktop widths. Navigation arrows are not duplicated, the date truncates safely, and the control row scrolls only when a phone is too narrow, preventing buttons and labels from collapsing into one another.
 - The calendar feed sidebar becomes an overlay below 1280px so it cannot crush the calendar canvas. Its persistent right/left edge arrows open and close it on desktop, constrained windows, and mobile; the old hamburger toggle is removed.
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
-- The color picker includes a pastel Sunnie rainbow plus a custom color input.
-- Event presets are arranged into three balanced groups: Sky & twilight, Sea & garden, and Sunset & earth. The 12-color set adds teal, deeper sage/pine, apricot, tangerine, clay, and cocoa alongside blues and purples, while remaining distinct from task urgency and project colors.
+- The event color picker offers eight curated Base colors rather than the former 12, followed by a clear `+` custom-color control. Custom colors still require explicit confirmation before they are applied.
+- Event presets are arranged into two balanced four-color groups: Sky & water and Garden & sunset. The smaller set keeps cool, green, warm, and earthy choices while remaining distinct from task and project colors.
 - Custom colors are applied only after explicit confirmation, avoiding accidental commits while dragging.
 - Recently used custom colors are saved as quick-access colors.
 - Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.

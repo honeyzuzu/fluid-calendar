@@ -16,10 +16,10 @@ describe("calendar event colors", () => {
   });
 
   it("organizes a varied palette into balanced visual groups", () => {
-    expect(SUNNIE_EVENT_COLOR_GROUPS).toHaveLength(3);
+    expect(SUNNIE_EVENT_COLOR_GROUPS).toHaveLength(2);
     expect(
       SUNNIE_EVENT_COLOR_GROUPS.every((group) => group.colors.length === 4)
     ).toBe(true);
-    expect(SUNNIE_PASTEL_COLORS).toHaveLength(12);
+    expect(SUNNIE_PASTEL_COLORS).toHaveLength(8);
   });
 });

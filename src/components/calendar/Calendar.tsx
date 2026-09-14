@@ -255,7 +255,7 @@ export function Calendar({
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="relative z-30 flex flex-none flex-col gap-1.5 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 p-2 backdrop-blur-sm md:flex-row md:flex-wrap md:items-center md:gap-2 md:px-4">
+        <header className="sunnie-calendar-toolbar relative z-30 flex flex-none flex-col gap-2 overflow-visible border-b border-border bg-card/85 px-3 py-2.5 backdrop-blur-md md:flex-row md:flex-wrap md:items-center md:gap-3 md:px-5 md:py-3">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
             <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
               {formatDate(currentDate)}
@@ -330,7 +330,7 @@ export function Calendar({
           </div>
 
           {/* View Switching Buttons */}
-          <div className="flex w-full shrink-0 items-center justify-start gap-1 overflow-x-auto border-t border-[#e7e3cf] pt-1.5 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:overflow-visible 2xl:border-0 2xl:pt-0">
+          <div className="flex w-full shrink-0 items-center justify-start gap-1 overflow-x-auto border-t border-border/70 pt-2 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:overflow-visible 2xl:border-0 2xl:pt-0">
             <button
               type="button"
               onClick={() => void refreshCalendars()}
@@ -352,64 +352,68 @@ export function Calendar({
               <span className="md:hidden lg:inline">Add event</span>
               <span className="hidden md:inline lg:hidden">Add</span>
             </button>
-            <button
-              onClick={() => setView("day")}
-              className={cn(
-                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
-                view === "day"
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              Day
-            </button>
-            <button
-              onClick={() => setView("week")}
-              className={cn(
-                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
-                view === "week"
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => setView("month")}
-              className={cn(
-                "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
-                view === "month"
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              Month
-            </button>
-            <button
-              onClick={() => setView("multiMonth")}
-              className={cn(
-                "hidden rounded-lg px-3 py-1.5 text-sm font-medium md:block",
-                view === "multiMonth"
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              Year
-            </button>
+            <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-border/80 bg-muted/45 p-1">
+              <button
+                onClick={() => setView("day")}
+                className={cn(
+                  "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
+                  view === "day"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                )}
+              >
+                Day
+              </button>
+              <button
+                onClick={() => setView("week")}
+                className={cn(
+                  "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
+                  view === "week"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                )}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setView("month")}
+                className={cn(
+                  "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
+                  view === "month"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                )}
+              >
+                Month
+              </button>
+              <button
+                onClick={() => setView("multiMonth")}
+                className={cn(
+                  "hidden rounded-lg px-3 py-1.5 text-sm font-medium md:block",
+                  view === "multiMonth"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                )}
+              >
+                Year
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Calendar Grid */}
-        <div className="relative z-0 flex-1 overflow-hidden">
-          {view === "day" ? (
-            <DayView currentDate={currentDate} onDateClick={setDate} />
-          ) : view === "week" ? (
-            <WeekView currentDate={currentDate} onDateClick={setDate} />
-          ) : view === "month" ? (
-            <MonthView currentDate={currentDate} onDateClick={setDate} />
-          ) : (
-            <MultiMonthView currentDate={currentDate} onDateClick={setDate} />
-          )}
+        <div className="relative z-0 flex-1 overflow-hidden bg-background p-1.5 sm:p-3">
+          <div className="sunnie-calendar-frame h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_10px_30px_rgba(63,67,46,0.07)]">
+            {view === "day" ? (
+              <DayView currentDate={currentDate} onDateClick={setDate} />
+            ) : view === "week" ? (
+              <WeekView currentDate={currentDate} onDateClick={setDate} />
+            ) : view === "month" ? (
+              <MonthView currentDate={currentDate} onDateClick={setDate} />
+            ) : (
+              <MultiMonthView currentDate={currentDate} onDateClick={setDate} />
+            )}
+          </div>
         </div>
       </main>
     </div>

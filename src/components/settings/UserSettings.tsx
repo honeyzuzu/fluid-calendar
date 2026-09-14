@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { MoonStar, Sunrise } from "lucide-react";
+import { MoonStar, Palette, Sunrise } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { COLOR_THEMES, ColorThemeId } from "@/lib/color-themes";
 
 import { useSettingsStore } from "@/store/settings";
 
@@ -140,6 +142,44 @@ export function UserSettings() {
           </div>
         </SettingRow>
       )}
+
+      <SettingRow
+        label="Planner colorway"
+        description="Changes Sunnie's overall theme and its coordinated item palettes. Two more colorways are being designed."
+      >
+        <div className="space-y-2">
+          <Select
+            value={user.colorTheme || "base"}
+            onValueChange={(value) =>
+              updateUserSettings({ colorTheme: value as ColorThemeId })
+            }
+          >
+            <SelectTrigger aria-label="Planner colorway">
+              <Palette className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(COLOR_THEMES).map((theme) => (
+                <SelectItem key={theme.id} value={theme.id}>
+                  {theme.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-1.5" aria-label="Current colorway preview">
+            {COLOR_THEMES[user.colorTheme || "base"].palettes.events
+              .slice(0, 6)
+              .map((swatch) => (
+                <span
+                  key={swatch.id}
+                  className="h-5 w-5 rounded-full border border-black/10 shadow-sm"
+                  style={{ backgroundColor: swatch.value }}
+                  title={swatch.name}
+                />
+              ))}
+          </div>
+        </div>
+      </SettingRow>
 
       <SettingRow
         label="Time Format"

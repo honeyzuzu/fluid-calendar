@@ -61,6 +61,7 @@ Sunnie's private deployment keeps SaaS features disabled. Redis workers, Kuberne
 - [FEATURE_IDEAS.md](FEATURE_IDEAS.md): your informal feature brain dump and ideas to discuss.
 - [@TODO.md](@TODO.md): selected implementation work and maintenance candidates.
 - [Local PostgreSQL guide](docs/local-postgres.md): development database setup.
+- [Colorway worksheet](docs/colorways.md): exact global and item-palette roles for every planner theme.
 - `src/app` and `src/components`: routes and interface components.
 - `src/services/scheduling`: automatic scheduling.
 - `prisma/schema.prisma` and `prisma/migrations`: data model and migrations.

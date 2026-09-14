@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { isColorThemeId } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -54,6 +55,7 @@ export async function PATCH(request: NextRequest) {
     const allowed = [
       "onboardingVersion",
       "theme",
+      "colorTheme",
       "defaultView",
       "timeZone",
       "weekStartDay",
@@ -72,6 +74,15 @@ export async function PATCH(request: NextRequest) {
         .filter((key) => body[key] !== undefined)
         .map((key) => [key, body[key]])
     );
+    if (
+      updates.colorTheme !== undefined &&
+      !isColorThemeId(updates.colorTheme)
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid planner colorway" },
+        { status: 400 }
+      );
+    }
     const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
     if (
       (updates.dailyRiseTime !== undefined &&

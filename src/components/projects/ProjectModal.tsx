@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,10 +16,7 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Textarea } from "@/components/ui/textarea";
 
 import { getReadableTextColor } from "@/lib/color-contrast";
-import {
-  DEFAULT_PROJECT_COLOR,
-  SUNNIE_PROJECT_COLORS,
-} from "@/lib/project-colors";
+import { DEFAULT_PROJECT_COLOR } from "@/lib/project-colors";
 import { cn } from "@/lib/utils";
 
 import { useProjectStore } from "@/store/project";
@@ -34,6 +32,9 @@ interface ProjectModalProps {
 }
 
 export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
+  const { colorTheme } = useTheme();
+  const projectColors = colorTheme.palettes.projects;
+  const defaultProjectColor = projectColors[0]?.value || DEFAULT_PROJECT_COLOR;
   const { createProject, updateProject } = useProjectStore();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -45,13 +46,13 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     if (project && isOpen) {
       setName(project.name);
       setDescription(project.description || "");
-      setColor(project.color || DEFAULT_PROJECT_COLOR);
+      setColor(project.color || defaultProjectColor);
     } else if (!project && isOpen) {
       setName("");
       setDescription("");
-      setColor(DEFAULT_PROJECT_COLOR);
+      setColor(defaultProjectColor);
     }
-  }, [project, isOpen]);
+  }, [project, isOpen, defaultProjectColor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,20 +120,20 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                 This colors the project tile only, not the tasks inside it.
               </p>
               <div className="mt-3 grid grid-cols-4 gap-2">
-                {SUNNIE_PROJECT_COLORS.map((preset) => {
+                {projectColors.map((preset) => {
                   const isSelected = color.toUpperCase() === preset.value;
                   return (
                     <button
-                      key={preset.value}
+                      key={preset.id}
                       type="button"
                       aria-label={`Use ${preset.name}`}
                       aria-pressed={isSelected}
                       title={preset.name}
                       onClick={() => setColor(preset.value)}
                       className={cn(
-                        "h-11 rounded-xl border border-black/10 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#64734a] focus-visible:ring-offset-2 motion-reduce:transform-none",
+                        "h-11 rounded-xl border border-black/10 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transform-none",
                         isSelected &&
-                          "ring-2 ring-[#596741] ring-offset-2 ring-offset-background"
+                          "ring-2 ring-primary ring-offset-2 ring-offset-background"
                       )}
                       style={{ backgroundColor: preset.value }}
                     >

@@ -1,3 +1,5 @@
+import type { ColorThemeId } from "@/lib/color-themes";
+
 export type TimeFormat = "12h" | "24h";
 export type WeekStartDay = "monday" | "sunday";
 export type ThemeMode = "light" | "dark" | "system";
@@ -6,6 +8,7 @@ export type CalendarView = "day" | "week" | "month" | "agenda";
 export interface UserSettings {
   onboardingVersion?: number;
   theme: ThemeMode;
+  colorTheme?: ColorThemeId;
   defaultView: CalendarView;
   timeZone: string;
   weekStartDay: WeekStartDay;

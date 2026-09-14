@@ -7,6 +7,14 @@ import React, {
   useEffect,
 } from "react";
 
+import {
+  BASE_COLOR_THEME,
+  ColorTheme,
+  ColorThemeId,
+  getColorTheme,
+  getColorThemeCssVariables,
+} from "@/lib/color-themes";
+
 import { useSettingsStore } from "@/store/settings";
 
 import { ThemeMode } from "@/types/settings";
@@ -14,6 +22,8 @@ import { ThemeMode } from "@/types/settings";
 type ThemeContextType = {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  colorTheme: ColorTheme;
+  setColorTheme: (theme: ColorThemeId) => void;
 };
 
 type ThemeProviderProps = {
@@ -43,6 +53,9 @@ export function ThemeProvider({
 
   // Use forcedTheme if provided, otherwise use user theme
   const currentTheme = forcedTheme || user.theme;
+  const currentColorTheme = getColorTheme(
+    user.colorTheme || BASE_COLOR_THEME.id
+  );
 
   // Function to apply theme to the DOM
   const applyTheme = useCallback(
@@ -97,6 +110,16 @@ export function ThemeProvider({
     }
   }, [user.theme, forcedTheme, applyTheme]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.dataset.colorTheme = currentColorTheme.id;
+    for (const [property, value] of Object.entries(
+      getColorThemeCssVariables(currentColorTheme)
+    )) {
+      root.style.setProperty(property, value);
+    }
+  }, [currentColorTheme]);
+
   // Listen for system theme changes if system preference is enabled
   useEffect(() => {
     if (
@@ -127,8 +150,19 @@ export function ThemeProvider({
     }
   };
 
+  const setColorTheme = (theme: ColorThemeId) => {
+    updateUserSettings({ colorTheme: theme });
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme: currentTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme: currentTheme,
+        setTheme,
+        colorTheme: currentColorTheme,
+        setColorTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

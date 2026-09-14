@@ -130,7 +130,7 @@
 @layer base {
   html {
     min-height: 100%;
-    background-color: #fff9e8;
+    background-color: var(--sunnie-canvas, #fff9e8);
   }
   * {
     @apply border-border transition-colors duration-200;
@@ -146,40 +146,40 @@
     background:
       radial-gradient(
         circle at 7% 18%,
-        rgba(248, 201, 93, 0.16),
+        color-mix(in srgb, var(--sunnie-warm-glow, #f8c95d) 16%, transparent),
         transparent 22rem
       ),
       radial-gradient(
         circle at 94% 12%,
-        rgba(184, 217, 139, 0.18),
+        color-mix(in srgb, var(--sunnie-cool-glow, #b8d98b) 18%, transparent),
         transparent 25rem
       ),
-      #fff9e8;
+      var(--sunnie-canvas, #fff9e8);
   }
 
   .sunnie-app .bg-white,
   .sunnie-app .dark\:bg-gray-800,
   .sunnie-app .dark\:bg-gray-900 {
-    background-color: #fffdf5 !important;
+    background-color: var(--sunnie-surface, #fffdf5) !important;
   }
 
   .sunnie-app .bg-gray-50,
   .sunnie-app .dark\:bg-gray-700 {
-    background-color: #f8f3dc !important;
+    background-color: var(--sunnie-surface-muted, #eef3df) !important;
   }
 
   .sunnie-app .border-gray-200,
   .sunnie-app .dark\:border-gray-700 {
-    border-color: #dfe2c8 !important;
+    border-color: var(--sunnie-border, #dfe2c8) !important;
   }
 
   .sunnie-app .text-blue-600,
   .sunnie-app .dark\:text-blue-400 {
-    color: #64734a !important;
+    color: var(--sunnie-primary, #64734a) !important;
   }
 
   .sunnie-app .bg-blue-600 {
-    background-color: #64734a !important;
+    background-color: var(--sunnie-primary, #64734a) !important;
   }
 }
 
@@ -198,17 +198,17 @@
 
 .fc .fc-button {
   @apply rounded-md border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-  background-color: #fffdf5;
-  border-color: #dfe2c8;
-  color: #596044;
+  background-color: var(--sunnie-surface, #fffdf5);
+  border-color: var(--sunnie-border, #dfe2c8);
+  color: var(--sunnie-ink-soft, #596044);
   border-radius: 0.75rem;
 }
 
 .fc .fc-button-primary {
   @apply border-blue-600 bg-blue-600 text-white hover:bg-blue-700;
-  background-color: #64734a;
-  border-color: #64734a;
-  color: #fff9e8;
+  background-color: var(--sunnie-primary, #64734a);
+  border-color: var(--sunnie-primary, #64734a);
+  color: var(--sunnie-on-primary, #fff9e8);
 }
 
 .fc .fc-daygrid-day-frame {
@@ -409,8 +409,96 @@
 
 .fc .fc-col-header-cell {
   @apply border-b border-gray-200 bg-white;
-  background-color: #fffdf5;
-  border-color: #dfe2c8;
+  background-color: var(--sunnie-surface, #fffdf5);
+  border-color: var(--sunnie-border, #dfe2c8);
+}
+
+/* The calendar should feel like a paper planner rather than a default data
+   grid. These structural styles intentionally consume theme tokens so every
+   future colorway inherits the same calm hierarchy. */
+.sunnie-calendar-frame .fc {
+  --fc-page-bg-color: var(--sunnie-surface, #fffdf5);
+  --fc-neutral-bg-color: var(--sunnie-surface-muted, #eef3df);
+  --fc-border-color: color-mix(
+    in srgb,
+    var(--sunnie-border, #dfe2c8) 68%,
+    transparent
+  );
+  --fc-today-bg-color: color-mix(
+    in srgb,
+    var(--sunnie-accent, #f8e4a1) 32%,
+    transparent
+  );
+  background: var(--sunnie-surface, #fffdf5);
+  color: var(--sunnie-ink, #3f432e);
+}
+
+.sunnie-calendar-frame .fc-theme-standard .fc-scrollgrid {
+  border: 0;
+}
+
+.sunnie-calendar-frame .fc-theme-standard td,
+.sunnie-calendar-frame .fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.sunnie-calendar-frame .fc-col-header-cell {
+  background: color-mix(
+    in srgb,
+    var(--sunnie-surface-muted, #eef3df) 44%,
+    var(--sunnie-surface, #fffdf5)
+  );
+}
+
+.sunnie-calendar-frame .fc-col-header-cell-cushion {
+  padding: 0.7rem 0.35rem;
+  color: var(--sunnie-ink-soft, #5f6848);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sunnie-calendar-frame .fc-timegrid-slot {
+  height: 3.5rem;
+}
+
+.sunnie-calendar-frame .fc-timegrid-slot-label-cushion,
+.sunnie-calendar-frame .fc-timegrid-axis-cushion {
+  padding-right: 0.65rem;
+  color: var(--sunnie-ink-soft, #5f6848);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.sunnie-calendar-frame .fc-daygrid-day-number {
+  margin: 0.25rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  color: var(--sunnie-ink-soft, #5f6848);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.sunnie-calendar-frame .fc-day-today .fc-daygrid-day-number {
+  background: var(--sunnie-accent, #f8e4a1);
+  color: var(--sunnie-on-accent, #77591d);
+}
+
+.sunnie-calendar-frame .fc-daygrid-day-frame,
+.sunnie-calendar-frame .fc-timegrid-col-frame {
+  transition: background-color 160ms ease;
+}
+
+@media (hover: hover) {
+  .sunnie-calendar-frame .fc-daygrid-day-frame:hover,
+  .sunnie-calendar-frame .fc-timegrid-col-frame:hover {
+    background: color-mix(
+      in srgb,
+      var(--sunnie-accent, #f8e4a1) 9%,
+      transparent
+    );
+  }
 }
 
 /* Dark mode styles for FullCalendar */

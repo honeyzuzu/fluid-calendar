@@ -8,10 +8,6 @@ This is a repository planning document, separate from Sunnie's in-app Brain Dump
 
 <!-- Add your ideas below as simple bullets. No template required. -->
 
-- Add seasonal/color theme packs for the entire app. Choosing a new planner theme should update Sunnie's overall colors as well as the coordinated color choices available for calendar, task, project, and friend items. Theme-linked items should move to the matching color in the new pack, while truly custom colors should stay custom. Work through the owner's theme ideas before choosing the first packs.
-
-- Replace the custom color picker's editing-style color bubbles with a clear `+` button for adding a custom color. Existing custom colors should be simple choices; editing or removing one should be a separate deliberate action.
-
 - Explore a four-day stale-task cleanup. If a task is postponed or rolled forward for four consecutive days, move it out of the active daily view into an archive/backlog so low-priority work cannot become an overwhelming pile. Never delete it automatically. The user should be able to recover it easily if it still matters. Work out how this should interact with Sunnie’s existing weekly rollover count and gentle three-week prompt.
 
 - Add more celebrations and create a stronger early “aha!” moment. Celebrate meaningful progress during onboarding and daily planning, not only task completion. The eventual unification of calendars, tasks, and optional sources such as email or Slack could become that moment: scattered work suddenly feels organized in one warm, clear place. Do not require or prioritize every integration just to deliver the first version. Inspiration: [this product walkthrough](https://www.youtube.com/watch?v=N_Cy3gpHE58).
@@ -32,6 +28,13 @@ When useful, explore:
 - **Later possibilities:** Extras that can wait.
 
 We can fill these in together. A rough bullet is enough to begin.
+
+- **Original thought:** Add seasonal/color theme packs for the entire app. The planner theme should update Sunnie's overall colors and the coordinated colors available for calendar, task, project, and friend items. Add three new themes and preserve the current colors as the Base theme. Make the calendar feel prettier and less dated. Replace the custom color picker's editing-style bubbles with a clear `+` button.
+  - **Why it matters:** The whole planner should feel intentionally styled rather than like separate features using unrelated hardcoded colors.
+  - **What it could feel like:** Choosing a new colorway changes the app surfaces and every theme-linked item while keeping custom colors fixed. Calendar, project, task, and friend choices remain coordinated but visually distinct.
+  - **Small first version:** Use the exact 44-color contract in [the colorway worksheet](docs/colorways.md), keep Sunnie Base, collect three new 44-color sets, persist the selected colorway, and finish moving the current interface onto theme tokens.
+  - **Open questions:** Autumn — Golden Hour is supplied; the owner still needs to provide the names, moods, and 88 hexes for the remaining two themes. The final calendar card treatment and recent-custom-color management interaction will be chosen during the visual pass.
+  - **Later possibilities:** An optional automatic seasonal rotation can wait until manual colorway selection and stable item recoloring are complete.
 
 ## Ready for a future session
 

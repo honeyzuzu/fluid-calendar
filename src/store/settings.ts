@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { BASE_COLOR_THEME } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
 
 import { Settings } from "@/types/settings";
@@ -42,6 +43,7 @@ interface SettingsStore extends Settings {
 const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
   user: {
     theme: "system",
+    colorTheme: BASE_COLOR_THEME.id,
     defaultView: "week",
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     weekStartDay: "sunday",
@@ -404,6 +406,7 @@ export const useSettingsStore = create<SettingsStore>()(
           // Update all settings
           get().updateUserSettings({
             theme: userSettings.theme,
+            colorTheme: userSettings.colorTheme || BASE_COLOR_THEME.id,
             defaultView: userSettings.defaultView,
             timeZone: userSettings.timeZone,
             weekStartDay: userSettings.weekStartDay,

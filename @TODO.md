@@ -6,7 +6,7 @@ Use this file for concrete work we have chosen to do. Put rough feature thoughts
 
 ## Current work
 
-No implementation task is currently waiting.
+- [ ] Complete the colorway overhaul defined in [the colorway worksheet](docs/colorways.md). Sunnie Base and Autumn — Golden Hour are registered, and the user preference, reduced event/project palettes, `+` custom event-color control, and first calendar-frame polish are implemented. Next, collect 44 hexes for each of the owner's two remaining themes, add stable palette-slot persistence for theme-linked items, replace remaining hardcoded Sunnie colors with theme tokens, and finish responsive calendar visual QA.
 
 ## Maintenance candidates
 

@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { Check, Palette } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 
-import {
-  SUNNIE_EVENT_COLOR_GROUPS,
-  SUNNIE_PASTEL_COLORS,
-} from "@/lib/calendar-colors";
 import { MAX_RECENT_COLORS, addRecentColor } from "@/lib/recent-colors";
 import { cn } from "@/lib/utils";
 
@@ -34,15 +31,16 @@ export function SunnieColorPicker({
   defaultLabel = "Use calendar color",
   className,
 }: SunnieColorPickerProps) {
+  const { colorTheme } = useTheme();
+  const eventColors = colorTheme.palettes.events;
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  const displayedColor =
-    value || fallbackColor || SUNNIE_PASTEL_COLORS[0].value;
+  const displayedColor = value || fallbackColor || eventColors[0].value;
   const [customColor, setCustomColor] = useState(displayedColor);
   const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
-  const isPreset = SUNNIE_PASTEL_COLORS.some(
+  const isPreset = eventColors.some(
     (color) => color.value.toLowerCase() === value?.toLowerCase()
   );
-  const presetValues = SUNNIE_PASTEL_COLORS.map((color) => color.value);
+  const presetValues = eventColors.map((color) => color.value);
 
   useEffect(() => {
     try {
@@ -107,45 +105,31 @@ export function SunnieColorPicker({
         <p className="mb-3 text-xs leading-relaxed text-black/45">
           Pick a mood for this event. Task urgency colors stay separate.
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {SUNNIE_EVENT_COLOR_GROUPS.map((group) => (
-            <div
-              key={group.name}
-              className="rounded-xl bg-[#f8f6ed] p-2.5"
-              aria-label={group.name}
-            >
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-black/40">
-                {group.name}
-              </p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {group.colors.map((color) => {
-                  const selected =
-                    color.value.toLowerCase() === value?.toLowerCase();
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {eventColors.map((color) => {
+            const selected = color.value.toLowerCase() === value?.toLowerCase();
 
-                  return (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => onChange(color.value)}
-                      className={cn(
-                        "flex aspect-square min-h-8 items-center justify-center rounded-[10px] border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#64734a] focus:ring-offset-2 motion-reduce:transform-none",
-                        selected &&
-                          "ring-2 ring-[#4f5c3d] ring-offset-2 ring-offset-white"
-                      )}
-                      style={{ backgroundColor: color.value }}
-                      title={color.name}
-                      aria-label={color.name}
-                      aria-pressed={selected}
-                    >
-                      {selected && (
-                        <Check className="h-4 w-4 text-white drop-shadow-sm" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            return (
+              <button
+                key={color.id}
+                type="button"
+                onClick={() => onChange(color.value)}
+                className={cn(
+                  "flex aspect-square min-h-9 items-center justify-center rounded-xl border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
+                  selected &&
+                    "ring-2 ring-primary ring-offset-2 ring-offset-card"
+                )}
+                style={{ backgroundColor: color.value }}
+                title={color.name}
+                aria-label={color.name}
+                aria-pressed={selected}
+              >
+                {selected && (
+                  <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -192,7 +176,7 @@ export function SunnieColorPicker({
           />
           <span
             className={cn(
-              "inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground",
+              "inline-flex h-9 items-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground",
               value && !isPreset && "ring-2 ring-ring ring-offset-2"
             )}
           >
@@ -201,8 +185,8 @@ export function SunnieColorPicker({
               style={{ backgroundColor: customColor }}
               aria-hidden="true"
             />
-            <Palette className="h-4 w-4" />
-            Custom
+            <Plus className="h-4 w-4" />
+            Custom color
           </span>
         </label>
 

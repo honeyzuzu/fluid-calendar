@@ -34,7 +34,8 @@ export type FriendCalendarItem = {
 export async function getFriendCalendarItems(
   start: Date,
   end: Date,
-  friendColors: Record<string, string> = {}
+  friendColors: Record<string, string> = {},
+  fallbackColor?: string
 ) {
   try {
     const response = await fetch(
@@ -50,7 +51,11 @@ export async function getFriendCalendarItems(
     );
 
     return blocks.map((block): FriendCalendarItem => {
-      const friendColor = getFriendCalendarColor(block.ownerId, friendColors);
+      const friendColor = getFriendCalendarColor(
+        block.ownerId,
+        friendColors,
+        fallbackColor
+      );
       const friendLane = Math.min(friendLanes.get(block.ownerId) ?? 0, 15);
       return {
         id: `friend-${block.id}`,

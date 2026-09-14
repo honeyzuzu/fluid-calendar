@@ -18,6 +18,7 @@ import {
   getTapSelectionRange,
 } from "@/lib/calendar-selection";
 import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
+import { getColorTheme } from "@/lib/color-themes";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarItems } from "@/lib/friend-calendar";
@@ -50,6 +51,8 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
     (state) => state.friendRefreshRevision
   );
   const { user: userSettings, calendar: calendarSettings } = useSettingsStore();
+  const friendFallbackColor = getColorTheme(userSettings.colorTheme).palettes
+    .friends[0].value;
   const { updateTask } = useTaskStore();
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent>>();
   const [selectedTask, setSelectedTask] = useState<Task>();
@@ -90,7 +93,8 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
       const friendItems = await getFriendCalendarItems(
         arg.start,
         arg.end,
-        friendCalendarColors
+        friendCalendarColors,
+        friendFallbackColor
       );
       const formattedItems = items
         .filter((item) => {
@@ -140,7 +144,13 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
         ),
       ]);
     },
-    [feeds, friendCalendarColors, getAllCalendarItems, hiddenFriendIds]
+    [
+      feeds,
+      friendCalendarColors,
+      friendFallbackColor,
+      getAllCalendarItems,
+      hiddenFriendIds,
+    ]
   );
 
   // Initial data load
