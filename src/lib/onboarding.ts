@@ -1,6 +1,7 @@
 import type { IntentionQuote } from "@/lib/daily-intention";
 
 export const CURRENT_ONBOARDING_VERSION = 3;
+export const ONBOARDING_TOUR_ENABLED = false;
 export const ONBOARDING_SESSION_KEY = `sunnie:onboarding-v${CURRENT_ONBOARDING_VERSION}-step`;
 export const ONBOARDING_REPLAY_EVENT = "sunnie:onboarding-replay";
 export const WEEKLY_REVIEW_TOUR_STEP_EVENT = "sunnie:weekly-review-tour-step";
@@ -134,9 +135,9 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: "tasks",
-    title: "Tasks hold the useful details",
+    title: "Everything for tasks, together",
     description:
-      "Add duration, priority, energy, and a preferred time so Sunnie can plan around your real day.",
+      "Keep tasks organized, empty your thoughts in Brain dump, and use Tune-up to add the details Sunnie needs to plan your day.",
     href: "/tasks",
     quote: {
       text: "Nothing great was ever achieved without enthusiasm.",
@@ -165,18 +166,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     quote: {
       text: "The most effective way to do it is to do it.",
       author: "Amelia Earhart",
-    },
-    layout: "tour",
-  },
-  {
-    id: "brain-dump",
-    title: "Empty your head quickly",
-    description:
-      "Brain Dump turns each thought on its own line into a task. Tune-up helps fill in anything the task is missing.",
-    href: "/brain-dump",
-    quote: {
-      text: "For the great doesn't happen through impulse alone, and is a succession of little things that are brought together.",
-      author: "Vincent van Gogh",
     },
     layout: "tour",
   },

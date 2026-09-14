@@ -18,6 +18,8 @@ import { CommandPalette } from "@/components/ui/command-palette";
 import { ShortcutsModal } from "@/components/ui/shortcuts-modal";
 import { Toaster } from "@/components/ui/sonner";
 
+import { ONBOARDING_TOUR_ENABLED } from "@/lib/onboarding";
+
 import { usePageTitle } from "@/hooks/use-page-title";
 
 import { useShortcutsStore } from "@/store/shortcuts";
@@ -85,7 +87,7 @@ export default function RootLayout({
             <AppNav />
             <DailyIntentionBanner />
             <DailyRhythmPrompt />
-            <OnboardingTour />
+            {ONBOARDING_TOUR_ENABLED && <OnboardingTour />}
             <div
               aria-hidden="true"
               className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[#f8c95d]/10 blur-3xl"

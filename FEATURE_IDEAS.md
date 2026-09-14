@@ -8,6 +8,10 @@ This is a repository planning document, separate from Sunnie's in-app Brain Dump
 
 <!-- Add your ideas below as simple bullets. No template required. -->
 
+- Add seasonal/color theme packs for the entire app. Choosing a new planner theme should update Sunnie's overall colors as well as the coordinated color choices available for calendar, task, project, and friend items. Theme-linked items should move to the matching color in the new pack, while truly custom colors should stay custom. Work through the owner's theme ideas before choosing the first packs.
+
+- Replace the custom color picker's editing-style color bubbles with a clear `+` button for adding a custom color. Existing custom colors should be simple choices; editing or removing one should be a separate deliberate action.
+
 - Explore a four-day stale-task cleanup. If a task is postponed or rolled forward for four consecutive days, move it out of the active daily view into an archive/backlog so low-priority work cannot become an overwhelming pile. Never delete it automatically. The user should be able to recover it easily if it still matters. Work out how this should interact with Sunnie’s existing weekly rollover count and gentle three-week prompt.
 
 - Add more celebrations and create a stronger early “aha!” moment. Celebrate meaningful progress during onboarding and daily planning, not only task completion. The eventual unification of calendars, tasks, and optional sources such as email or Slack could become that moment: scattered work suddenly feels organized in one warm, clear place. Do not require or prioritize every integration just to deliver the first version. Inspiration: [this product walkthrough](https://www.youtube.com/watch?v=N_Cy3gpHE58).
@@ -36,6 +40,10 @@ We can fill these in together. A rough bullet is enough to begin.
 ## Implemented or parked
 
 <!-- Keep the original idea and add its outcome: a commit/task link if implemented, or a short reason if parked. -->
+
+- **Original thought:** Combine all the task items into one tab because Task Tune-up and Brain Dump are both part of working with tasks, and simplify the unnecessary List/Board choice.
+
+  - **Implemented locally:** Tasks now contains My tasks, Brain dump, and Tune-up as one responsive workspace. The separate status board switch is removed, old Brain Dump links redirect into Tasks, and Brain Dump no longer appears in primary navigation. The tutorial content points to the unified Tasks experience, while the tutorial itself is temporarily turned off for a broader redesign.
 
 - **Original thought:** Make the entry page a more fun daily welcome experience, especially on mobile. Instead of always opening on the static “Welcome to Sunnie / Plan your day” screen, opening Sunnie fresh for the day could begin a Sunsama-style daily planning ritual.
 

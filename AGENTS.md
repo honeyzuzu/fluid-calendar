@@ -1,6 +1,6 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-12
+Last updated: 2026-09-14
 
 ## Product Goal
 
@@ -205,33 +205,33 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ### First-time onboarding
 
+- The guided onboarding and replay controls are temporarily disabled through `ONBOARDING_TOUR_ENABLED` while the owner redesigns the tutorial. Keep the existing tour implementation and saved onboarding data intact so the refreshed version can be resumed later.
 - `UserSettings.onboardingVersion` stores the latest completed welcome-tour version. Version `3` adds Weekly Review to the main tour. Existing accounts receive a short four-step Weekly Review tour; accounts that also missed the version 2 sleep-hours update receive both updates without repeating the full introduction.
 - `UserSettings.sleepHoursStart`, `sleepHoursEnd`, and `sleepHoursConfigured` persist the user's normal rest window in PostgreSQL. Bedtime and wake-up are editable under User Settings as well as onboarding. Auto-scheduling filters out every slot that overlaps the configured window, including overnight windows, and authenticated manual task updates reject scheduled times that overlap it.
-- The authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, asks for sleep hours, and then shows brief page-level bubbles for Calendar, Tasks, Brain Dump, Plan, Friends, and Focus.
+- When re-enabled, the authenticated common layout opens a required one-time onboarding flow. It first explains Sunnie, embeds the existing Google/Apple/CalDAV account manager, lets the user enable or hide imported calendars, asks for sleep hours, and then shows brief page-level bubbles for Calendar, the unified Tasks workspace, Plan, Friends, and Focus.
 - New-user onboarding creates a small user-named practice task on the Tasks step, selects it in Focus, and immediately opens Focus next so the combined setup/focus/break Pomodoro controls are visible during the tour.
 - Tour progress survives same-tab OAuth redirects through session storage, while completion is persisted per user in PostgreSQL by `/api/onboarding`.
 - Each step contains a short curated quote with its author. The tour has Back/Next controls but no permanent skip; an interrupted user resumes until the current version is completed.
-- User Settings includes replay controls for the app tour and the shorter Weekly Review tour. Replays skip account setup and practice-task creation, and do not change the saved onboarding state. Tour routes are prefetched and Next advances immediately without waiting for calendar-status refreshes.
+- The hidden replay controls support the app tour and the shorter Weekly Review tour. When restored, replays skip account setup and practice-task creation and do not change the saved onboarding state. Tour routes are prefetched and Next advances immediately without waiting for calendar-status refreshes.
 
 ### Tasks and projects
 
 - Tasks support status, title, descriptions, start/due dates, duration, priority, energy, preferred time, tags, projects, recurrence, and external sync metadata.
 - Tasks default to `isAutoScheduled = true`; users opt out rather than opt in.
 - Manual calendar placement locks a task so later auto-scheduling does not unexpectedly move it.
-- Task list and board views are inherited and retained.
-- The Tasks workspace is centered at a readable maximum width. Its filters form a compact toolbar on desktop, list cards gain columns as space permits, and board columns stay centered rather than leaving the content stranded against one edge.
+- Tasks, Brain Dump, and Task Tune-up live under one Tasks destination. The internal My tasks, Brain dump, and Tune-up controls replace the former List/Board switch, and legacy `/brain-dump` visits redirect into the Tasks workspace.
+- The Tasks workspace uses one responsive task view instead of a separate status board. Its filters form a compact toolbar on desktop, cards gain columns as space permits, and the detailed table remains available only on very wide screens.
 - The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 - Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.
 - Filled task, event, and project surfaces choose warm white text by default and switch to Sunnie's soft near-black when WCAG contrast would otherwise be poor. The project picker is visible as a horizontal chip row on mobile Tasks screens.
-- Tasks in both list and board layouts can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them.
-- Board status columns share the app-wide drag context. A high-layer task preview follows the pointer above every column while dragging, and dropping on a status updates the task. Board cards use a dedicated touch-safe grip with a shorter hold and more movement tolerance so mobile scrolling and task actions do not fight the drag gesture.
-- The task board stacks its status columns on phones and uses three fluid columns from tablet widths upward; it does not rely on fixed 320px columns or a hidden horizontal scrollbar. The desktop Projects panel collapses to a slim arrow rail and reserves layout space whenever opened, including on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
-- Calendar, Projects, and Focus sidebar controls use attached rectangular edge tabs with one seamless flat side instead of detached circular buttons. Calendar and Projects each render one persistent toggle outside the panel transform, preventing doubled controls, clipped click targets, or missing tabs at wide breakpoints; tab and panel surfaces use the same background color. Opening the desktop Projects panel always expands its parent layout width from a slim rail to 256px, including constrained desktop windows, so Tasks list/board content shifts rather than sitting underneath it; the panel itself uses an opaque warm-cream surface.
+- Task cards can be dragged onto a project tile in the desktop sidebar to reassign them, or onto the remove-project drop zone to unassign them. A high-layer preview follows the pointer during the drag, and the touch-safe grip keeps mobile scrolling and task actions from fighting the gesture.
+- The desktop Projects panel collapses to a slim arrow rail and reserves layout space whenever opened, including on constrained windows; the mobile project chip list can also be folded with the same side-arrow language.
+- Calendar, Projects, and Focus sidebar controls use attached rectangular edge tabs with one seamless flat side instead of detached circular buttons. Calendar and Projects each render one persistent toggle outside the panel transform, preventing doubled controls, clipped click targets, or missing tabs at wide breakpoints; tab and panel surfaces use the same background color. Opening the desktop Projects panel always expands its parent layout width from a slim rail to 256px, including constrained desktop windows, so Tasks content shifts rather than sitting underneath it; the panel itself uses an opaque warm-cream surface.
 
 ### Brain Dump and task tune-up
 
-- `/brain-dump` turns each non-empty line or common list item into a separate auto-schedulable task; repeated lines in the same dump are ignored.
+- The Brain dump view inside `/tasks` turns each non-empty line or common list item into a separate auto-schedulable task; repeated lines in the same dump are ignored. `/brain-dump` remains only as a compatibility redirect.
 - Brain Dump is deterministic and does not require an AI provider. Users should put one thought on each line; optional AI paragraph interpretation is a possible later enhancement.
 - Unsaved brain-dump text is retained only in that browser's local storage. Submitted items become normal database-backed tasks.
 - Task Tune-up cycles flashcard-style through every active task that is missing a duration, due date, priority, or energy level, including tasks created elsewhere in Sunnie. Due date uses the native date picker and is required before saving a tune-up card.
@@ -244,7 +244,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Daily Unwind shows actual tasks completed that day and ended calendar events as separate memory cues. Every unfinished daily task must be marked done, moved to tomorrow or another date, returned to This week, or placed in Backlog before finishing. An optional private day vibe and one short reflection are stored on `DailyPlan`; they are not shared with Friends or sent to AI.
 - `UserSettings.dailyRiseEnabled`, `dailyRiseTime`, `dailyUnwindEnabled`, `dailyUnwindTime`, and `dailyRitualDays` configure timezone-aware in-app invitations. Version one can prompt only while Sunnie is open; background web push and email reminders are deferred.
 - Rise and Unwind use concentrated sunrise/sunset motion and a small focus-pet cameo. Motion follows the user’s reduced-motion preference, and completing rituals does not create streak pressure or a second reward economy.
-- The primary navigation keeps Plan, Calendar, Tasks, and Focus visible while Brain Dump and Friends live under More; the pending-friend indicator remains visible on More. Settings are grouped into Personal, Planning, Connections, Notifications & data, and Admin sections.
+- The primary navigation keeps Plan, Calendar, Tasks, and Focus visible while Friends lives under More; the pending-friend indicator remains visible on More. Brain Dump and Tune-up are inside Tasks. Settings are grouped into Personal, Planning, Connections, Notifications & data, and Admin sections.
 
 - `/plan` stores a daily intention and completion state in `DailyPlan`.
 - Today’s intention appears in a compact shared reminder beneath the main navigation on every authenticated app page; the empty state links back to Plan with “Set your daily intention!”
@@ -254,7 +254,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - The flow is Backlog -> This week -> selected day.
 - The Plan page uses a bright daily-planning hero and an interactive three-step landing pad: set an intention, choose today’s tasks, and give those tasks time. The daily workspace presents the intention first, followed by the task list and timeline; weekly planning remains below it and visually teaches the Backlog -> This week -> a day flow. This hierarchy is preserved on mobile as a single readable column.
 - The daily landing pad includes a capacity meter based on configured working hours. It combines selected task estimates with the union of timed commitments from enabled calendars inside the work window, excluding all-day events, cancellations, and known mirrored task blocks. Green, amber, and coral states give non-judgmental guidance; days outside configured working days stay open-ended.
-- Primary Plan tiles and the Tasks, Brain Dump, Friends, Focus, and Settings roots explicitly contain horizontal overflow and allow grid/flex children to shrink. Plan uses narrower gutters below 380px, removes phone-width minimums from its progress tile, and stacks dense manual-time controls at the narrowest width.
+- Primary Plan tiles and the Tasks, Friends, Focus, and Settings roots explicitly contain horizontal overflow and allow grid/flex children to shrink. Plan uses narrower gutters below 380px, removes phone-width minimums from its progress tile, and stacks dense manual-time controls at the narrowest width.
 - Users can add and remove tasks from a week or day.
 - `Schedule day` schedules only unfinished, auto-schedulable tasks selected for that day inside that local-day window.
 - `Schedule week` schedules the weekly pool inside the selected Sunday-Saturday window.

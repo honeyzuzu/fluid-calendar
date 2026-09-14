@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Brain, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { BsCalendar, BsListTask } from "react-icons/bs";
 import {
   HiOutlineLightBulb,
@@ -71,7 +71,6 @@ export function AppNav({ className }: AppNavProps) {
     },
   ];
   const moreLinks = [
-    { href: "/brain-dump", label: "Brain Dump", icon: Brain },
     { href: "/friends", label: "Friends", icon: HiOutlineUserGroup },
   ];
   const moreIsActive = moreLinks.some((link) => pathname === link.href);

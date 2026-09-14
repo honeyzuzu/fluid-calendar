@@ -1,6 +1,7 @@
 import {
   CURRENT_ONBOARDING_VERSION,
   ONBOARDING_STEPS,
+  ONBOARDING_TOUR_ENABLED,
   REPLAY_ONBOARDING_STEPS,
   SLEEP_ONBOARDING_STEPS,
   WEEKLY_REVIEW_ONBOARDING_STEPS,
@@ -10,6 +11,20 @@ import {
 describe("Sunnie onboarding", () => {
   it("uses a positive version so existing accounts start incomplete", () => {
     expect(CURRENT_ONBOARDING_VERSION).toBe(3);
+  });
+
+  it("keeps the tour paused while its next version is redesigned", () => {
+    expect(ONBOARDING_TOUR_ENABLED).toBe(false);
+  });
+
+  it("teaches task capture in Tasks instead of visiting a separate page", () => {
+    const tasksStep = ONBOARDING_STEPS.find((step) => step.id === "tasks");
+
+    expect(tasksStep?.href).toBe("/tasks");
+    expect(tasksStep?.description).toContain("Brain dump");
+    expect(ONBOARDING_STEPS.some((step) => step.href === "/brain-dump")).toBe(
+      false
+    );
   });
 
   it("includes the four-part weekly review in new and returning-user tours", () => {

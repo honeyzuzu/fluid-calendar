@@ -15,14 +15,14 @@ describe("responsive application shell", () => {
     expect(layout).toContain("lg:pb-0");
   });
 
-  it("uses fluid board columns without fixed-width horizontal clipping", () => {
-    const board = read("src/components/tasks/BoardView/BoardView.tsx");
-    const column = read("src/components/tasks/BoardView/Column.tsx");
+  it("keeps capture and tune-up inside the responsive Tasks workspace", () => {
+    const tasks = read("src/app/(common)/tasks/page.tsx");
+    const capture = read("src/components/tasks/TaskCaptureWorkspace.tsx");
 
-    expect(board).toContain("md:grid-cols-3");
-    expect(board).toContain("overflow-x-hidden");
-    expect(column).toContain("min-w-0 w-full");
-    expect(column).not.toContain("w-[85vw]");
+    expect(tasks).toContain('"brain-dump"');
+    expect(tasks).toContain('"tune-up"');
+    expect(tasks).not.toContain("BoardView");
+    expect(capture).toContain("overflow-x-clip");
   });
 
   it("uses edge arrows for every collapsible left panel", () => {
@@ -63,7 +63,7 @@ describe("responsive application shell", () => {
     const surfaces = [
       "src/app/(common)/plan/page.tsx",
       "src/app/(common)/tasks/page.tsx",
-      "src/app/(common)/brain-dump/page.tsx",
+      "src/components/tasks/TaskCaptureWorkspace.tsx",
       "src/app/(common)/friends/page.tsx",
       "src/app/(common)/settings/page.tsx",
       "src/components/focus/FocusMode.tsx",
