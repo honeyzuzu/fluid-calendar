@@ -279,7 +279,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ### Calendar and colors
 
-- Sunnie colorways use 14 overarching theme roles plus five mini-palettes: eight event colors, six project colors, six task colors, six friend colors, and four semantic status colors. Each theme therefore contains exactly 44 hex values. `Sunnie Base` preserves the current identity, `Autumn — Golden Hour` is the first owner-supplied theme, and two more themes are planned.
+- Sunnie colorways use 14 overarching theme roles plus five mini-palettes: eight event colors, six project colors, six task colors, six friend colors, and four semantic status colors. Each theme therefore contains exactly 44 hex values. `Sunnie Base` preserves the current identity alongside the four owner-supplied seasonal themes: `Spring — Fresh Air`, `Summer — Sun-Kissed`, `Autumn — Golden Hour`, and `Winter — Candlelight & Snow`.
 - `UserSettings.colorTheme` persists the selected planner colorway. The theme provider applies the active registry entry to both the existing HSL design tokens and Sunnie-specific CSS variables. Until palette-slot fields are added, existing item colors remain stored as raw hex values and do not yet recolor automatically.
 
 - Calendar views and event creation/editing are retained from FluidCalendar.

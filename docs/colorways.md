@@ -2,11 +2,11 @@
 
 Last reviewed: 2026-09-14.
 
-Sunnie will have four planner colorways: the existing **Sunnie Base** plus
-**three new themes** supplied by the owner. **Autumn — Golden Hour** is now
-available, with two more themes still to come. Each theme uses the same stable
-roles and palette-slot IDs so changing themes can eventually recolor every
-theme-linked item without changing what that item means.
+Sunnie has five planner colorways: the existing **Sunnie Base** plus four
+owner-supplied seasonal themes: **Spring — Fresh Air**, **Summer — Sun-Kissed**,
+**Autumn — Golden Hour**, and **Winter — Candlelight & Snow**. Each theme uses
+the same stable roles and palette-slot IDs so changing themes can eventually
+recolor every theme-linked item without changing what that item means.
 
 ## Exact color count
 
@@ -22,9 +22,8 @@ Each theme needs exactly **44 hex colors**:
 | Status palette        |      4 | Success, warning, danger, and information meaning                      |
 | **Total per theme**   | **44** |                                                                        |
 
-The three new themes require **132 new hex values** altogether. Sunnie Base and
-Autumn — Golden Hour now supply 88 colors; **88 new hex values remain** for the
-last two themes.
+The four seasonal themes supply **176 new hex values**. Together with Sunnie
+Base, the completed collection contains **220 coordinated colors**.
 
 ## Available theme: Autumn — Golden Hour
 
@@ -39,6 +38,48 @@ slots in `src/lib/color-themes.ts`.
 The supplied primary/on-primary and accent/on-accent pairs pass WCAG AA normal
 text contrast. Weathered Taupe is preserved for decorative muted details, while
 small muted labels use the darker Olive Bark role for reliable readability.
+
+## Available theme: Spring — Fresh Air
+
+**Mood:** The first warm days after winter—open windows, rainy mornings, tiny
+flowers, garden greens, picnic blankets, and soft sunlight.
+
+Its coordinated story is Fresh Air for the interface, April Showers for events,
+Garden Party for projects, First Bloom for tasks, and Picnic Basket for friends.
+The exact 44 names and hexes are registered under the stable slots in
+`src/lib/color-themes.ts`.
+
+Matcha Leaf with the supplied Petal White measures 4.49:1, just below the 4.5:1
+normal-text target. Both supplied colors remain intact; small primary controls
+automatically use Sunnie's nearly identical accessible warm-white fallback.
+
+## Available theme: Summer — Sun-Kissed
+
+**Mood:** Long sunny days filled with fruit stands, salty air, garden flowers,
+cold drinks, and evenings that seem to last forever.
+
+Its coordinated story is Sun-Kissed for the interface, Strawberry Picking for
+events, Farmers Market for projects, Seaside Holiday for tasks, and Summer in
+Bloom for friends. The exact 44 names and hexes are registered under the stable
+slots in `src/lib/color-themes.ts`.
+
+Sea Glass with Coconut Cream measures 3.88:1, so small primary controls use the
+automatic accessible dark-text fallback while both supplied colors remain
+available unchanged.
+
+## Available theme: Winter — Candlelight & Snow
+
+**Mood:** A quiet winter day moving from fresh snowfall and evergreen branches
+to baking in a warm kitchen, rosy twilight, and hot drinks under a blanket.
+
+Its coordinated story is Candlelight & Snow for the interface, Snow Day for
+events, Gingerbread House for projects, Sugar Plum for tasks, and Hot Cocoa for
+friends. The exact 44 names and hexes are registered under the stable slots in
+`src/lib/color-themes.ts`.
+
+Cranberry Cream with Mulled Berry measures 4.29:1, so small accent controls use
+the automatic accessible dark-text fallback while both supplied colors remain
+available unchanged.
 
 ## Why these counts
 
@@ -131,9 +172,9 @@ Provide one hex for every row for each new theme.
 | `danger`  | Danger           | `#C9705C`       |
 | `info`    | Information      | `#7397C7`       |
 
-## What to send for each new theme
+## Contract for any future theme
 
-For each of the remaining two themes, provide:
+Provide:
 
 1. Theme name and a one-sentence mood.
 2. Fourteen overarching hexes in the role order above.

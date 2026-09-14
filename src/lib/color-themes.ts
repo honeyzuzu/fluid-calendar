@@ -1,4 +1,7 @@
-import { getReadableTextColor } from "@/lib/color-contrast";
+import {
+  getReadableTextColor,
+  hasReadableContrast,
+} from "@/lib/color-contrast";
 
 export const COLOR_THEME_CORE_ROLES = [
   "canvas",
@@ -33,7 +36,12 @@ export const COLOR_THEME_HEX_COUNT =
   );
 
 export type ColorThemeCoreRole = (typeof COLOR_THEME_CORE_ROLES)[number];
-export type ColorThemeId = "base" | "autumn-golden-hour";
+export type ColorThemeId =
+  | "base"
+  | "autumn-golden-hour"
+  | "spring-fresh-air"
+  | "summer-sun-kissed"
+  | "winter-candlelight-snow";
 export type ColorThemePaletteName = keyof typeof COLOR_THEME_PALETTE_SIZES;
 
 export type ColorThemeSwatch = {
@@ -185,9 +193,207 @@ export const AUTUMN_GOLDEN_HOUR_THEME: ColorTheme = {
   },
 };
 
+export const SPRING_FRESH_AIR_THEME: ColorTheme = {
+  id: "spring-fresh-air",
+  name: "Spring — Fresh Air",
+  description:
+    "Open windows, rainy mornings, tiny flowers, garden greens, and soft sunlight.",
+  core: {
+    canvas: "#F7F6EB",
+    surface: "#FCFBF5",
+    surfaceRaised: "#FFFDF8",
+    surfaceMuted: "#E6EBDD",
+    ink: "#3D4438",
+    inkSoft: "#5D6858",
+    inkMuted: "#7B8378",
+    border: "#DCE1D3",
+    primary: "#647A59",
+    onPrimary: "#FBFAF3",
+    accent: "#F0CF72",
+    onAccent: "#5B5129",
+    warmGlow: "#F1B77D",
+    coolGlow: "#A9D2CE",
+  },
+  palettes: {
+    events: [
+      { id: "event-1", name: "Raincoat", value: "#E1B94F" },
+      { id: "event-2", name: "Puddle Blue", value: "#719DB5" },
+      { id: "event-3", name: "Rain Cloud", value: "#879AA1" },
+      { id: "event-4", name: "Wet Clover", value: "#71906C" },
+      { id: "event-5", name: "Lilac Rain", value: "#A89CC2" },
+      { id: "event-6", name: "Tulip", value: "#D98287" },
+      { id: "event-7", name: "Misty Mint", value: "#82B5A5" },
+      { id: "event-8", name: "After the Rain", value: "#6592A0" },
+    ],
+    projects: [
+      { id: "project-1", name: "Tea Rose", value: "#D8A3A5" },
+      { id: "project-2", name: "Lavender Sprig", value: "#B5A6C5" },
+      { id: "project-3", name: "Sweet Pea", value: "#E5B7C4" },
+      { id: "project-4", name: "Garden Sage", value: "#9DAE8A" },
+      { id: "project-5", name: "Chamomile", value: "#E5C875" },
+      { id: "project-6", name: "Blue China", value: "#8FAFC0" },
+    ],
+    tasks: [
+      { id: "task-1", name: "Cherry Blossom", value: "#E8BEC2" },
+      { id: "task-2", name: "Daffodil", value: "#ECD58D" },
+      { id: "task-3", name: "New Leaf", value: "#B8CBA6" },
+      { id: "task-4", name: "Crocus", value: "#C7B8D5" },
+      { id: "task-5", name: "Forget-Me-Not", value: "#AFC9D7" },
+      { id: "task-6", name: "Peach Blossom", value: "#EDC2A8" },
+    ],
+    friends: [
+      { id: "friend-1", name: "Strawberry Jam", value: "#CE7E7E" },
+      { id: "friend-2", name: "Lemonade", value: "#E4C86F" },
+      { id: "friend-3", name: "Picnic Grass", value: "#91A878" },
+      { id: "friend-4", name: "Gingham Blue", value: "#8DAEC1" },
+      { id: "friend-5", name: "Wicker Basket", value: "#C5A47D" },
+      { id: "friend-6", name: "Wildflower", value: "#B395B5" },
+    ],
+    statuses: [
+      { id: "success", name: "Garden Green", value: "#63845D" },
+      { id: "warning", name: "Marigold", value: "#C99636" },
+      { id: "danger", name: "Poppy", value: "#BE6867" },
+      { id: "info", name: "Rain Blue", value: "#648CA5" },
+    ],
+  },
+};
+
+export const SUMMER_SUN_KISSED_THEME: ColorTheme = {
+  id: "summer-sun-kissed",
+  name: "Summer — Sun-Kissed",
+  description:
+    "Long sunny days filled with fruit stands, salty air, flowers, and cold drinks.",
+  core: {
+    canvas: "#FBF5E7",
+    surface: "#FFF9EE",
+    surfaceRaised: "#FFFCF5",
+    surfaceMuted: "#E7E8D4",
+    ink: "#41453A",
+    inkSoft: "#626B56",
+    inkMuted: "#7F8170",
+    border: "#E2D9C2",
+    primary: "#56877F",
+    onPrimary: "#FFF9EE",
+    accent: "#F2C85E",
+    onAccent: "#5B4C20",
+    warmGlow: "#F2A36F",
+    coolGlow: "#8FCAC8",
+  },
+  palettes: {
+    events: [
+      { id: "event-1", name: "Strawberry", value: "#D94F45" },
+      { id: "event-2", name: "Strawberry Milk", value: "#E7A4A5" },
+      { id: "event-3", name: "Buttercup", value: "#E9B94F" },
+      { id: "event-4", name: "Leaf Hat", value: "#6F925F" },
+      { id: "event-5", name: "Berry Basket", value: "#B88663" },
+      { id: "event-6", name: "Blue Sky", value: "#75A8BC" },
+      { id: "event-7", name: "Wildflower", value: "#A58AB3" },
+      { id: "event-8", name: "Fresh Mint", value: "#72A68C" },
+    ],
+    projects: [
+      { id: "project-1", name: "Tomato", value: "#C95043" },
+      { id: "project-2", name: "Basil", value: "#71885B" },
+      { id: "project-3", name: "Fresh Bread", value: "#D7AE78" },
+      { id: "project-4", name: "Pottery", value: "#C9784D" },
+      { id: "project-5", name: "Green Apple", value: "#91A75E" },
+      { id: "project-6", name: "Market Blue", value: "#6E91A2" },
+    ],
+    tasks: [
+      { id: "task-1", name: "Seafoam", value: "#A9D4C8" },
+      { id: "task-2", name: "Ocean Milk", value: "#B9D6DF" },
+      { id: "task-3", name: "Seashell Pink", value: "#E9BDB5" },
+      { id: "task-4", name: "Beach Towel", value: "#A8AFD0" },
+      { id: "task-5", name: "Lemon Ice", value: "#EAD88D" },
+      { id: "task-6", name: "Warm Sand", value: "#DDC6A5" },
+    ],
+    friends: [
+      { id: "friend-1", name: "Tea Rose", value: "#D79FA1" },
+      { id: "friend-2", name: "Morning Mist", value: "#8FA8A0" },
+      { id: "friend-3", name: "Lily Pad", value: "#587A70" },
+      { id: "friend-4", name: "Canyon Sunset", value: "#D98767" },
+      { id: "friend-5", name: "Sunflower", value: "#D9AF58" },
+      { id: "friend-6", name: "Hydrangea", value: "#899EBE" },
+    ],
+    statuses: [
+      { id: "success", name: "Basil Green", value: "#60845E" },
+      { id: "warning", name: "Golden Sun", value: "#D39B32" },
+      { id: "danger", name: "Tomato Red", value: "#C45C50" },
+      { id: "info", name: "Ocean Blue", value: "#5F91A8" },
+    ],
+  },
+};
+
+export const WINTER_CANDLELIGHT_SNOW_THEME: ColorTheme = {
+  id: "winter-candlelight-snow",
+  name: "Winter — Candlelight & Snow",
+  description:
+    "Fresh snowfall and evergreen branches followed by rosy twilight and hot drinks.",
+  core: {
+    canvas: "#F5F3EC",
+    surface: "#FBFAF6",
+    surfaceRaised: "#FFFEFA",
+    surfaceMuted: "#E2E5DF",
+    ink: "#343E39",
+    inkSoft: "#56615C",
+    inkMuted: "#777F7C",
+    border: "#D7DBD7",
+    primary: "#4F6659",
+    onPrimary: "#FBFAF6",
+    accent: "#D9A5A2",
+    onAccent: "#613F42",
+    warmGlow: "#E6B66C",
+    coolGlow: "#A9C6CF",
+  },
+  palettes: {
+    events: [
+      { id: "event-1", name: "Snowy Sky", value: "#91B4C4" },
+      { id: "event-2", name: "Blue Shadow", value: "#718CA4" },
+      { id: "event-3", name: "Snow Lavender", value: "#A9A4BE" },
+      { id: "event-4", name: "Evergreen", value: "#557264" },
+      { id: "event-5", name: "Rosy Cheeks", value: "#C98282" },
+      { id: "event-6", name: "Winterberry", value: "#A45E67" },
+      { id: "event-7", name: "Wool Scarf", value: "#B88C70" },
+      { id: "event-8", name: "Golden Window", value: "#D5AE68" },
+    ],
+    projects: [
+      { id: "project-1", name: "Gingerbread", value: "#B77D59" },
+      { id: "project-2", name: "Cinnamon", value: "#A96455" },
+      { id: "project-3", name: "Vanilla Icing", value: "#DED0B5" },
+      { id: "project-4", name: "Peppermint", value: "#C57878" },
+      { id: "project-5", name: "Sugared Sage", value: "#8FA58D" },
+      { id: "project-6", name: "Sugar Plum", value: "#96788F" },
+    ],
+    tasks: [
+      { id: "task-1", name: "Ballet Slipper", value: "#E1BCC0" },
+      { id: "task-2", name: "Sugar Plum", value: "#C5A7C0" },
+      { id: "task-3", name: "Frosted Lilac", value: "#B9B6D0" },
+      { id: "task-4", name: "Peppermint Cream", value: "#E2B5B1" },
+      { id: "task-5", name: "Winter Mint", value: "#B4CDC3" },
+      { id: "task-6", name: "Champagne Snow", value: "#E4D5B5" },
+    ],
+    friends: [
+      { id: "friend-1", name: "Cocoa", value: "#9A7968" },
+      { id: "friend-2", name: "Marshmallow", value: "#D8CABB" },
+      { id: "friend-3", name: "Cranberry Jam", value: "#A96C70" },
+      { id: "friend-4", name: "Knit Sweater", value: "#87979A" },
+      { id: "friend-5", name: "Pistachio Biscotti", value: "#9DA486" },
+      { id: "friend-6", name: "Honey Mug", value: "#C69A62" },
+    ],
+    statuses: [
+      { id: "success", name: "Evergreen", value: "#587862" },
+      { id: "warning", name: "Candle Gold", value: "#C5913E" },
+      { id: "danger", name: "Cranberry", value: "#AF5F64" },
+      { id: "info", name: "Winter Blue", value: "#6388A0" },
+    ],
+  },
+};
+
 export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
   base: BASE_COLOR_THEME,
   "autumn-golden-hour": AUTUMN_GOLDEN_HOUR_THEME,
+  "spring-fresh-air": SPRING_FRESH_AIR_THEME,
+  "summer-sun-kissed": SUMMER_SUN_KISSED_THEME,
+  "winter-candlelight-snow": WINTER_CANDLELIGHT_SNOW_THEME,
 };
 
 export function isColorThemeId(value: unknown): value is ColorThemeId {
@@ -227,6 +433,18 @@ export function getColorThemeCssVariables(theme: ColorTheme) {
     theme.palettes.statuses.map((swatch) => [swatch.id, swatch.value])
   );
   const event = theme.palettes.events;
+  const primaryForeground = hasReadableContrast(
+    theme.core.onPrimary,
+    theme.core.primary
+  )
+    ? theme.core.onPrimary
+    : getReadableTextColor(theme.core.primary);
+  const accentForeground = hasReadableContrast(
+    theme.core.onAccent,
+    theme.core.accent
+  )
+    ? theme.core.onAccent
+    : getReadableTextColor(theme.core.accent);
 
   return {
     "--background": hexToHslChannels(theme.core.canvas),
@@ -236,7 +454,7 @@ export function getColorThemeCssVariables(theme: ColorTheme) {
     "--popover": hexToHslChannels(theme.core.surfaceRaised),
     "--popover-foreground": hexToHslChannels(theme.core.ink),
     "--primary": hexToHslChannels(theme.core.primary),
-    "--primary-foreground": hexToHslChannels(theme.core.onPrimary),
+    "--primary-foreground": hexToHslChannels(primaryForeground),
     "--secondary": hexToHslChannels(theme.core.surfaceMuted),
     "--secondary-foreground": hexToHslChannels(theme.core.inkSoft),
     "--muted": hexToHslChannels(theme.core.surfaceMuted),
@@ -244,7 +462,7 @@ export function getColorThemeCssVariables(theme: ColorTheme) {
     // available for larger/decorative uses through --sunnie-ink-muted.
     "--muted-foreground": hexToHslChannels(theme.core.inkSoft),
     "--accent": hexToHslChannels(theme.core.accent),
-    "--accent-foreground": hexToHslChannels(theme.core.onAccent),
+    "--accent-foreground": hexToHslChannels(accentForeground),
     "--destructive": hexToHslChannels(status.danger),
     "--destructive-foreground": hexToHslChannels(
       getReadableTextColor(status.danger)

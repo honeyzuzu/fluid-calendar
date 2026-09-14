@@ -1,4 +1,7 @@
-import { getReadableTextColor } from "@/lib/color-contrast";
+import {
+  getReadableTextColor,
+  hasReadableContrast,
+} from "@/lib/color-contrast";
 
 describe("automatic colored-tile text contrast", () => {
   it("prefers warm white on dark colors", () => {
@@ -14,5 +17,10 @@ describe("automatic colored-tile text contrast", () => {
   it("uses soft black for missing or unsupported colors", () => {
     expect(getReadableTextColor(null)).toBe("#313526");
     expect(getReadableTextColor("var(--muted)")).toBe("#313526");
+  });
+
+  it("detects borderline foreground pairs before applying theme tokens", () => {
+    expect(hasReadableContrast("#FBFAF3", "#647A59")).toBe(false);
+    expect(hasReadableContrast("#FFFDF7", "#647A59")).toBe(true);
   });
 });

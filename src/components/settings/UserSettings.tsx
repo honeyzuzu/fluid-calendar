@@ -145,7 +145,7 @@ export function UserSettings() {
 
       <SettingRow
         label="Planner colorway"
-        description="Changes Sunnie's overall theme and its coordinated item palettes. Two more colorways are being designed."
+        description="Changes Sunnie's overall theme and its coordinated seasonal item palettes."
       >
         <div className="space-y-2">
           <Select

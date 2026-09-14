@@ -5,6 +5,9 @@ import {
   COLOR_THEME_CORE_ROLES,
   COLOR_THEME_HEX_COUNT,
   COLOR_THEME_PALETTE_SIZES,
+  SPRING_FRESH_AIR_THEME,
+  SUMMER_SUN_KISSED_THEME,
+  WINTER_CANDLELIGHT_SNOW_THEME,
   getColorTheme,
   getColorThemeCssVariables,
   isColorThemeId,
@@ -73,6 +76,47 @@ describe("planner colorways", () => {
     expect(AUTUMN_GOLDEN_HOUR_THEME.palettes.tasks[4]).toMatchObject({
       name: "Dusky Plum",
       value: "#A18691",
+    });
+  });
+
+  it("registers the owner-supplied Spring palette", () => {
+    expect(COLOR_THEMES["spring-fresh-air"]).toBe(SPRING_FRESH_AIR_THEME);
+    expect(SPRING_FRESH_AIR_THEME.core.primary).toBe("#647A59");
+    expect(SPRING_FRESH_AIR_THEME.palettes.events[0]).toMatchObject({
+      name: "Raincoat",
+      value: "#E1B94F",
+    });
+    expect(SPRING_FRESH_AIR_THEME.palettes.friends[0]).toMatchObject({
+      name: "Strawberry Jam",
+      value: "#CE7E7E",
+    });
+  });
+
+  it("registers the owner-supplied Summer palette", () => {
+    expect(COLOR_THEMES["summer-sun-kissed"]).toBe(SUMMER_SUN_KISSED_THEME);
+    expect(SUMMER_SUN_KISSED_THEME.core.primary).toBe("#56877F");
+    expect(SUMMER_SUN_KISSED_THEME.palettes.events[0]).toMatchObject({
+      name: "Strawberry",
+      value: "#D94F45",
+    });
+    expect(SUMMER_SUN_KISSED_THEME.palettes.tasks[0]).toMatchObject({
+      name: "Seafoam",
+      value: "#A9D4C8",
+    });
+  });
+
+  it("registers the owner-supplied Winter palette", () => {
+    expect(COLOR_THEMES["winter-candlelight-snow"]).toBe(
+      WINTER_CANDLELIGHT_SNOW_THEME
+    );
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.core.primary).toBe("#4F6659");
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.palettes.events[7]).toMatchObject({
+      name: "Golden Window",
+      value: "#D5AE68",
+    });
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.palettes.projects[5]).toMatchObject({
+      name: "Sugar Plum",
+      value: "#96788F",
     });
   });
 });

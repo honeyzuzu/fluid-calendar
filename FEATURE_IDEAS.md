@@ -33,7 +33,7 @@ We can fill these in together. A rough bullet is enough to begin.
   - **Why it matters:** The whole planner should feel intentionally styled rather than like separate features using unrelated hardcoded colors.
   - **What it could feel like:** Choosing a new colorway changes the app surfaces and every theme-linked item while keeping custom colors fixed. Calendar, project, task, and friend choices remain coordinated but visually distinct.
   - **Small first version:** Use the exact 44-color contract in [the colorway worksheet](docs/colorways.md), keep Sunnie Base, collect three new 44-color sets, persist the selected colorway, and finish moving the current interface onto theme tokens.
-  - **Open questions:** Autumn — Golden Hour is supplied; the owner still needs to provide the names, moods, and 88 hexes for the remaining two themes. The final calendar card treatment and recent-custom-color management interaction will be chosen during the visual pass.
+  - **Open questions:** All four seasonal colorways are supplied. The final calendar card treatment and recent-custom-color management interaction will be chosen during the visual pass.
   - **Later possibilities:** An optional automatic seasonal rotation can wait until manual colorway selection and stable item recoloring are complete.
 
 ## Ready for a future session

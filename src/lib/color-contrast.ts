@@ -38,6 +38,17 @@ function contrastRatio(first: number, second: number) {
   return (lightest + 0.05) / (darkest + 0.05);
 }
 
+export function hasReadableContrast(
+  foregroundColor: string,
+  backgroundColor: string,
+  minimumRatio = 4.5
+) {
+  const foreground = relativeLuminance(foregroundColor);
+  const background = relativeLuminance(backgroundColor);
+  if (foreground === null || background === null) return false;
+  return contrastRatio(foreground, background) >= minimumRatio;
+}
+
 /**
  * Sunnie prefers warm white text on color. For light colors where that would
  * fail WCAG AA normal-text contrast, it switches to the app's soft black.
