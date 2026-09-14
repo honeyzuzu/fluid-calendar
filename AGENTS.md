@@ -203,7 +203,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Mobile layouts exist for the main navigation, calendar, tasks, focus, settings, and related screens. The fixed mobile navigation is 5rem tall with larger 20px icons and 11px labels, plus safe-area padding for phones with home indicators.
 - Below 1024px, primary app destinations use the fixed mobile icon bar instead of squeezing or dropping the desktop navigation. Between 1024px and 1280px, the top navigation remains compact and icon-only.
 - The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
-- The upstream support banner on the calendar is intentionally compact.
+- The upstream support banner has been removed from the calendar.
 
 ### First-time onboarding
 

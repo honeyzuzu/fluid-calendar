@@ -13,7 +13,6 @@ import { MonthView } from "@/components/calendar/MonthView";
 import { MultiMonthView } from "@/components/calendar/MultiMonthView";
 import { WeekView } from "@/components/calendar/WeekView";
 import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
-import { SponsorshipBanner } from "@/components/ui/sponsorship-banner";
 
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { isSaasEnabled } from "@/lib/config";
@@ -212,9 +211,6 @@ export function Calendar({
           <div className="flex-1 overflow-y-auto">
             <FeedManager />
           </div>
-
-          {/* Sponsorship Banner */}
-          <SponsorshipBanner />
         </div>
       </aside>
 
