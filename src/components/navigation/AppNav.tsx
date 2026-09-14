@@ -79,7 +79,7 @@ export function AppNav({ className }: AppNavProps) {
     <>
       <nav
         className={cn(
-          "relative z-10 min-h-16 flex-none border-b border-[#dfe2c8] bg-[#fff9e8]/95 shadow-[0_3px_18px_rgba(95,103,64,0.06)] backdrop-blur-md",
+          "relative z-10 min-h-16 flex-none border-b border-border bg-background/95 shadow-sm backdrop-blur-md",
           className
         )}
       >
@@ -113,8 +113,8 @@ export function AppNav({ className }: AppNavProps) {
                       className={cn(
                         "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
                         isActive
-                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-                          : "text-[#626849] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                          ? "bg-accent text-accent-foreground shadow-sm"
+                          : "text-secondary-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
                       <span className="relative">
@@ -123,7 +123,7 @@ export function AppNav({ className }: AppNavProps) {
                           hasPendingFriendRequest && (
                             <span
                               aria-label="Pending friend request"
-                              className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fff9e8] bg-[#e7895b]"
+                              className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-destructive"
                             />
                           )}
                       </span>
@@ -137,8 +137,8 @@ export function AppNav({ className }: AppNavProps) {
                       className={cn(
                         "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
                         moreIsActive
-                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-                          : "text-[#626849] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                          ? "bg-accent text-accent-foreground shadow-sm"
+                          : "text-secondary-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
                       <span className="relative">
@@ -146,7 +146,7 @@ export function AppNav({ className }: AppNavProps) {
                         {hasPendingFriendRequest && (
                           <span
                             aria-label="Pending friend request"
-                            className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fff9e8] bg-[#e7895b]"
+                            className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-destructive"
                           />
                         )}
                       </span>
@@ -172,7 +172,7 @@ export function AppNav({ className }: AppNavProps) {
             <div className="flex shrink-0 items-center gap-1">
               <button
                 onClick={openCommandPalette}
-                className="hidden items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39] xl:flex"
+                className="hidden items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground xl:flex"
                 title="Search or run a command (⌘K)"
               >
                 <HiOutlineSearch className="h-4 w-4" />
@@ -183,7 +183,7 @@ export function AppNav({ className }: AppNavProps) {
               </button>
               <button
                 onClick={() => setShortcutsOpen(true)}
-                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-[#74785f] hover:bg-[#eef3df] hover:text-[#4f5d39]"
+                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                 title="View Keyboard Shortcuts (Press ?)"
               >
                 <RiKeyboardLine className="h-4 w-4" />
@@ -199,7 +199,7 @@ export function AppNav({ className }: AppNavProps) {
       </nav>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(5rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-[#dfe2c8] bg-[#fffdf5]/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_rgba(63,67,46,0.08)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(5rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-border bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-lg backdrop-blur-md lg:hidden"
       >
         {links.map((link) => {
           const Icon = link.icon;
@@ -212,14 +212,14 @@ export function AppNav({ className }: AppNavProps) {
               className={cn(
                 "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
                 isActive
-                  ? "text-[#77591d]"
-                  : "text-[#74785f] hover:bg-[#eef3df]"
+                  ? "text-accent-foreground"
+                  : "text-muted-foreground hover:bg-muted"
               )}
             >
               <span
                 className={cn(
                   "grid h-9 w-11 place-items-center rounded-xl",
-                  isActive && "bg-[#f8e4a1] shadow-sm"
+                  isActive && "bg-accent shadow-sm"
                 )}
               >
                 <span className="relative">
@@ -227,7 +227,7 @@ export function AppNav({ className }: AppNavProps) {
                   {link.href === "/friends" && hasPendingFriendRequest && (
                     <span
                       aria-label="Pending friend request"
-                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fffdf5] bg-[#e7895b]"
+                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-destructive"
                     />
                   )}
                 </span>
@@ -241,13 +241,15 @@ export function AppNav({ className }: AppNavProps) {
             <button
               className={cn(
                 "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
-                moreIsActive ? "text-[#77591d]" : "text-[#74785f]"
+                moreIsActive
+                  ? "text-accent-foreground"
+                  : "text-muted-foreground"
               )}
             >
               <span
                 className={cn(
                   "grid h-9 w-11 place-items-center rounded-xl",
-                  moreIsActive && "bg-[#f8e4a1] shadow-sm"
+                  moreIsActive && "bg-accent shadow-sm"
                 )}
               >
                 <span className="relative">
@@ -255,7 +257,7 @@ export function AppNav({ className }: AppNavProps) {
                   {hasPendingFriendRequest && (
                     <span
                       aria-label="Pending friend request"
-                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fffdf5] bg-[#e7895b]"
+                      className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-destructive"
                     />
                   )}
                 </span>

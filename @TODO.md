@@ -6,7 +6,7 @@ Use this file for concrete work we have chosen to do. Put rough feature thoughts
 
 ## Current work
 
-- [ ] Complete the colorway overhaul defined in [the colorway worksheet](docs/colorways.md). Sunnie Base and all four seasonal colorways are registered, and the user preference, reduced event/project palettes, `+` custom event-color control, and first calendar-frame polish are implemented. Next, add stable palette-slot persistence for theme-linked items, replace remaining hardcoded Sunnie colors with theme tokens, and finish responsive calendar visual QA.
+- [ ] Complete the colorway overhaul defined in [the colorway worksheet](docs/colorways.md). All five colorways are registered. **Apply & refresh** now remaps recognized palette-linked data without touching provider events, scheduled task colors are aesthetic rather than priority-coded, and the primary navigation, Calendar, Tasks, Plan, Friends, Settings, and event editor consume theme tokens. Next, replace remaining inherited hardcoded Base colors on secondary surfaces and finish responsive visual QA.
 
 ## Maintenance candidates
 

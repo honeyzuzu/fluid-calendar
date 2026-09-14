@@ -296,7 +296,8 @@
   --friend-lane-offset: 108px;
 }
 
-/* Scheduled tasks use soft, filled urgency tones instead of a hard side bar. */
+/* Scheduled tasks use stable aesthetic slots. Priority remains a compact label
+   and does not control the whole block color. */
 .fc .calendar-task {
   border: 1px solid rgba(88, 92, 65, 0.16) !important;
   border-radius: 0.625rem !important;
@@ -328,40 +329,41 @@
   }
 }
 
-.fc .calendar-task-priority-high {
-  background-color: rgba(247, 190, 181, 0.84) !important;
-  border-color: rgba(190, 91, 76, 0.3) !important;
+.fc .calendar-task-color-1 {
+  background-color: var(--sunnie-task-1, #f7beb5) !important;
 }
-
-.fc .calendar-task-priority-high .fc-event-main {
-  color: #713d35 !important;
+.fc .calendar-task-color-1 .fc-event-main {
+  color: var(--sunnie-task-1-foreground, #313526) !important;
 }
-
-.fc .calendar-task-priority-medium {
-  background-color: rgba(249, 218, 148, 0.86) !important;
-  border-color: rgba(190, 137, 47, 0.28) !important;
+.fc .calendar-task-color-2 {
+  background-color: var(--sunnie-task-2, #f9da94) !important;
 }
-
-.fc .calendar-task-priority-medium .fc-event-main {
-  color: #675027 !important;
+.fc .calendar-task-color-2 .fc-event-main {
+  color: var(--sunnie-task-2-foreground, #313526) !important;
 }
-
-.fc .calendar-task-priority-low {
-  background-color: rgba(193, 224, 203, 0.86) !important;
-  border-color: rgba(92, 142, 105, 0.25) !important;
+.fc .calendar-task-color-3 {
+  background-color: var(--sunnie-task-3, #c1e0cb) !important;
 }
-
-.fc .calendar-task-priority-low .fc-event-main {
-  color: #3f6147 !important;
+.fc .calendar-task-color-3 .fc-event-main {
+  color: var(--sunnie-task-3-foreground, #313526) !important;
 }
-
-.fc .calendar-task-priority-none {
-  background-color: rgba(217, 207, 238, 0.78) !important;
-  border-color: rgba(119, 99, 158, 0.22) !important;
+.fc .calendar-task-color-4 {
+  background-color: var(--sunnie-task-4, #d9cfee) !important;
 }
-
-.fc .calendar-task-priority-none .fc-event-main {
-  color: #57496f !important;
+.fc .calendar-task-color-4 .fc-event-main {
+  color: var(--sunnie-task-4-foreground, #313526) !important;
+}
+.fc .calendar-task-color-5 {
+  background-color: var(--sunnie-task-5, #c6dceb) !important;
+}
+.fc .calendar-task-color-5 .fc-event-main {
+  color: var(--sunnie-task-5-foreground, #313526) !important;
+}
+.fc .calendar-task-color-6 {
+  background-color: var(--sunnie-task-6, #e7dfc5) !important;
+}
+.fc .calendar-task-color-6 .fc-event-main {
+  color: var(--sunnie-task-6-foreground, #313526) !important;
 }
 
 /* A 15-minute block is only half a normal row. Remove vertical padding and

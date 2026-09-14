@@ -140,6 +140,11 @@ export const CalendarEventContent = memo(function CalendarEventContent({
           {location}
         </div>
       )}
+      {isTask && priority && priority !== "none" && !isCompactTimedTask && (
+        <span className="ml-5 w-fit rounded-full bg-black/10 px-1.5 py-0.5 text-[9px] font-semibold capitalize leading-none">
+          {priority}
+        </span>
+      )}
     </div>
   );
 });

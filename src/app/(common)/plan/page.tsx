@@ -760,7 +760,7 @@ export default function PlanPage() {
   };
 
   return (
-    <div className="min-h-full w-full min-w-0 overflow-x-clip bg-[radial-gradient(circle_at_top_left,_#fff0c8_0,_#fff9e8_32rem,_#f6f7e9_75rem)] px-3 py-5 text-[#3f432e] min-[380px]:px-4 sm:px-5 lg:p-8">
+    <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
         <header className="relative mb-6 overflow-hidden rounded-[2rem] border border-[#ead7a5] bg-gradient-to-br from-[#fff7d6] via-[#ffe7b5] to-[#f4c783] p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7">
           <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border-[28px] border-white/20" />
@@ -871,7 +871,7 @@ export default function PlanPage() {
               className={cn(
                 "rounded-xl px-3 py-2.5 text-sm font-semibold transition",
                 view === id
-                  ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                  ? "bg-accent text-accent-foreground shadow-sm"
                   : "text-black/45 hover:bg-white"
               )}
             >

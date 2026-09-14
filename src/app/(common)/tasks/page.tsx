@@ -145,10 +145,10 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8]">
+    <div className="flex h-full w-full min-w-0 overflow-x-clip bg-background">
       {workspace === "tasks" && <ProjectSidebar />}
       <div className="flex min-w-0 flex-1 flex-col" data-task-page>
-        <div className="relative z-30 overflow-visible border-b border-[#dfe2c8] bg-[#fffdf5]/75 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
+        <div className="relative z-30 overflow-visible border-b border-border bg-card/75 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
           <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 flex-col items-start gap-3">
               <div>
@@ -399,8 +399,8 @@ function WorkspaceButton({
       aria-pressed={active}
       className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition sm:px-3 sm:text-sm ${
         active
-          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-          : "text-[#687052] hover:bg-[#eef3df]"
+          ? "bg-accent text-accent-foreground shadow-sm"
+          : "text-muted-foreground hover:bg-muted"
       }`}
     >
       <Icon className="h-4 w-4 shrink-0" />

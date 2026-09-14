@@ -27,6 +27,7 @@ import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
+import { getCalendarEventChangeKind } from "@/lib/calendar-event-update";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
@@ -313,7 +314,22 @@ export function EventModal({
         if (feed.type === "GOOGLE" && !event.externalEventId) {
           throw new Error("Cannot edit this Google Calendar event");
         }
-        await updateEvent(event.id, eventData, editMode);
+        const changes = getCalendarEventChangeKind(event, eventData);
+        if (!changes.contentChanged) {
+          if (changes.colorChanged) {
+            const response = await fetch(`/api/events/${event.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ color: eventData.color }),
+            });
+            if (!response.ok) {
+              throw new Error("Failed to save the event color");
+            }
+            await useCalendarStore.getState().loadFromDatabase();
+          }
+        } else {
+          await updateEvent(event.id, eventData, editMode);
+        }
       } else {
         // For new events
         await addEvent(eventData);
@@ -447,7 +463,7 @@ export function EventModal({
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[760px] w-[calc(100vw-1rem)] max-w-[680px] flex-col gap-0 overflow-hidden p-0 sm:h-auto">
           {isSubmitting && <LoadingOverlay />}
-          <DialogHeader className="flex-none space-y-1.5 border-b border-black/[0.055] bg-[#fffdf5] px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
+          <DialogHeader className="flex-none space-y-1.5 border-b border-border bg-card px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
             <DialogTitle>{event?.id ? "Edit Event" : "New Event"}</DialogTitle>
           </DialogHeader>
 
@@ -564,7 +580,7 @@ export function EventModal({
                       key={minutes}
                       type="button"
                       onClick={() => applyDuration(minutes)}
-                      className="rounded-lg border border-black/[0.07] bg-white px-2.5 py-1 text-xs font-semibold text-[#65734c] hover:bg-[#eef3df]"
+                      className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-secondary-foreground hover:bg-muted"
                     >
                       {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
                     </button>
@@ -587,7 +603,7 @@ export function EventModal({
                 type="button"
                 onClick={() => setShowDetails((current) => !current)}
                 aria-expanded={showDetails}
-                className="flex w-full items-center justify-between rounded-xl border border-black/[0.07] bg-[#f7f5eb] px-3 py-2 text-sm font-semibold text-[#60684a] hover:bg-[#eef3df]"
+                className="flex w-full items-center justify-between rounded-xl border border-border bg-muted/60 px-3 py-2 text-sm font-semibold text-secondary-foreground hover:bg-muted"
               >
                 Color, location, notes &amp; repeat
                 <ChevronDown
@@ -599,7 +615,7 @@ export function EventModal({
               </button>
 
               {showDetails && (
-                <div className="space-y-4 rounded-2xl border border-black/[0.055] bg-[#fcfbf5] p-4">
+                <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
                   <div className="space-y-2">
                     <Label>Event color</Label>
                     <SunnieColorPicker
@@ -679,7 +695,7 @@ export function EventModal({
               )}
             </div>
 
-            <div className="flex flex-none items-center justify-between gap-3 border-t border-black/[0.06] bg-[#fffdf5] px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex flex-none items-center justify-between gap-3 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
               {event?.id ? (
                 <Button
                   type="button"

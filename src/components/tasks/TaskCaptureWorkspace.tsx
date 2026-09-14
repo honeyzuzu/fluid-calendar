@@ -27,7 +27,7 @@ import { EnergyLevel, Priority, TaskStatus } from "@/types/task";
 
 const DRAFT_STORAGE_KEY = "sunnie-brain-dump-draft";
 const selectClassName =
-  "h-12 w-full rounded-xl border border-[#dce3c9] bg-[#fffdf5] px-3 text-sm font-medium text-[#3f432e] outline-none focus:border-[#91a96d] focus:ring-4 focus:ring-[#dfe9ca]/50";
+  "h-12 w-full rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-ring/20";
 
 type View = "dump" | "tune-up";
 type TunableTask = {
@@ -209,7 +209,7 @@ export function TaskCaptureWorkspace({
   };
 
   return (
-    <main className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] p-3 pb-24 text-[#3f432e] min-[380px]:p-4 sm:p-6 md:pb-6 lg:p-8">
+    <main className="min-h-full w-full min-w-0 overflow-x-clip bg-background p-3 pb-24 text-foreground min-[380px]:p-4 sm:p-6 md:pb-6 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-5xl">
         <header className="mb-6">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#d0902f]">
@@ -271,7 +271,7 @@ export function TaskCaptureWorkspace({
                     welcome too.
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-[#eef3df] px-3 py-1 text-xs font-semibold text-[#617047]">
+                <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-secondary-foreground">
                   {parsedTasks.length}{" "}
                   {parsedTasks.length === 1 ? "task" : "tasks"}
                 </span>
@@ -295,7 +295,7 @@ export function TaskCaptureWorkspace({
                 placeholder={
                   "Book dentist appointment\nReply to Maya\nOutline September goals\nPick up cat food"
                 }
-                className="mt-5 min-h-[300px] w-full resize-y rounded-2xl border border-[#dde4c9] bg-[#fffdf5] p-4 text-base leading-8 outline-none placeholder:text-black/25 focus:border-[#91a96d] focus:ring-4 focus:ring-[#dfe9ca]/50 sm:min-h-[360px]"
+                className="mt-5 min-h-[300px] w-full resize-y rounded-2xl border border-border bg-card p-4 text-base leading-8 outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-ring/20 sm:min-h-[360px]"
                 maxLength={16000}
                 autoFocus
               />
@@ -308,7 +308,7 @@ export function TaskCaptureWorkspace({
                 <button
                   type="submit"
                   disabled={!parsedTasks.length || savingDump}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#64734a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_#465331] transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
                 >
                   {savingDump ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -322,7 +322,7 @@ export function TaskCaptureWorkspace({
 
             <aside className="space-y-4">
               {createdCount > 0 && (
-                <section className="rounded-2xl border border-[#cddcaf] bg-[#eef3df] p-5 text-[#53633d] shadow-sm">
+                <section className="rounded-2xl border border-border bg-muted p-5 text-secondary-foreground shadow-sm">
                   <div className="flex items-center gap-2 font-semibold">
                     <span className="grid h-7 w-7 place-items-center rounded-full bg-[#84a75e] text-white">
                       <Check className="h-4 w-4" />
@@ -419,8 +419,8 @@ function TabButton({
       className={cn(
         "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition",
         active
-          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
-          : "text-[#687052] hover:bg-[#eef3df]"
+          ? "bg-accent text-accent-foreground shadow-sm"
+          : "text-muted-foreground hover:bg-muted"
       )}
     >
       <Icon className="h-4 w-4" /> {children}
@@ -517,7 +517,7 @@ function TaskTuneUp({
             </button>
             <Link
               href="/plan"
-              className="rounded-xl bg-[#64734a] px-4 py-2.5 text-sm font-semibold text-white"
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
             >
               Open Plan
             </Link>
@@ -641,14 +641,14 @@ function TaskTuneUp({
                 type="button"
                 onClick={onPrevious}
                 aria-label="Previous task"
-                className="grid h-11 w-11 place-items-center rounded-xl border border-black/10 bg-white text-black/50 hover:bg-[#eef3df]"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 type="button"
                 onClick={onNext}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold text-black/55 hover:bg-[#eef3df]"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:bg-muted"
               >
                 Skip for now <ChevronRight className="h-4 w-4" />
               </button>
@@ -656,7 +656,7 @@ function TaskTuneUp({
             <button
               type="submit"
               disabled={!ready || saving}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#64734a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_#465331] disabled:opacity-40"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-40"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -670,7 +670,7 @@ function TaskTuneUp({
       </form>
 
       <aside className="space-y-4">
-        <section className="rounded-2xl border border-black/[0.06] bg-[#eef3df] p-5 shadow-sm">
+        <section className="rounded-2xl border border-border bg-muted p-5 shadow-sm">
           <h3 className="font-semibold">What counts as untuned?</h3>
           <p className="mt-2 text-sm leading-6 text-black/50">
             Any active task missing a duration, due date, priority, or energy

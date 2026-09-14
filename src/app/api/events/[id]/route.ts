@@ -91,10 +91,21 @@ export async function PATCH(
       );
     }
 
-    const updates = await request.json();
+    const body = (await request.json()) as { color?: unknown };
+    if (
+      !("color" in body) ||
+      (body.color !== null &&
+        (typeof body.color !== "string" ||
+          !/^#[0-9A-Fa-f]{6}$/.test(body.color)))
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid event color" },
+        { status: 400 }
+      );
+    }
     const updated = await prisma.calendarEvent.update({
       where: { id },
-      data: updates,
+      data: { color: body.color },
     });
 
     return NextResponse.json(updated);

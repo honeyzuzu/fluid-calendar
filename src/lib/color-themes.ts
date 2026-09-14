@@ -43,6 +43,11 @@ export type ColorThemeId =
   | "summer-sun-kissed"
   | "winter-candlelight-snow";
 export type ColorThemePaletteName = keyof typeof COLOR_THEME_PALETTE_SIZES;
+export type ThemeLinkedPaletteName =
+  | "events"
+  | "projects"
+  | "tasks"
+  | "friends";
 
 export type ColorThemeSwatch = {
   id: string;
@@ -404,6 +409,54 @@ export function getColorTheme(value: unknown): ColorTheme {
   return isColorThemeId(value) ? COLOR_THEMES[value] : BASE_COLOR_THEME;
 }
 
+const LEGACY_THEME_COLOR_SLOTS: Partial<
+  Record<ThemeLinkedPaletteName, Record<string, string>>
+> = {
+  events: {
+    "#3B82F6": "event-2",
+    "#807CB7": "event-3",
+    "#4F8F91": "event-4",
+    "#668779": "event-5",
+    "#DF8F5E": "event-6",
+  },
+  projects: {
+    "#D5DD8D": "project-4",
+    "#DCA58E": "project-5",
+  },
+};
+
+/** Maps a known palette color to the same stable slot in another colorway.
+ * Unrecognized values are custom colors and intentionally remain unchanged.
+ */
+export function mapThemeLinkedColor(
+  paletteName: ThemeLinkedPaletteName,
+  color: string | null | undefined,
+  targetThemeId: ColorThemeId
+) {
+  if (!color) return color;
+  const normalizedColor = color.toUpperCase();
+  let slotId = LEGACY_THEME_COLOR_SLOTS[paletteName]?.[normalizedColor];
+
+  if (!slotId) {
+    for (const theme of Object.values(COLOR_THEMES)) {
+      const match = theme.palettes[paletteName].find(
+        (swatch) => swatch.value.toUpperCase() === normalizedColor
+      );
+      if (match) {
+        slotId = match.id;
+        break;
+      }
+    }
+  }
+
+  if (!slotId) return color;
+  return (
+    COLOR_THEMES[targetThemeId].palettes[paletteName].find(
+      (swatch) => swatch.id === slotId
+    )?.value || color
+  );
+}
+
 function hexToHslChannels(hex: string) {
   const normalized = hex.replace("#", "");
   const red = Number.parseInt(normalized.slice(0, 2), 16) / 255;
@@ -428,11 +481,22 @@ function hexToHslChannels(hex: string) {
   return `${Math.round(hue * 360)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%`;
 }
 
-export function getColorThemeCssVariables(theme: ColorTheme) {
+export function getColorThemeCssVariables(
+  theme: ColorTheme
+): Record<string, string> {
   const status = Object.fromEntries(
     theme.palettes.statuses.map((swatch) => [swatch.id, swatch.value])
   );
   const event = theme.palettes.events;
+  const taskVariables = Object.fromEntries(
+    theme.palettes.tasks.flatMap((swatch, index) => [
+      [`--sunnie-task-${index + 1}`, swatch.value],
+      [
+        `--sunnie-task-${index + 1}-foreground`,
+        getReadableTextColor(swatch.value),
+      ],
+    ])
+  );
   const primaryForeground = hasReadableContrast(
     theme.core.onPrimary,
     theme.core.primary
@@ -493,5 +557,6 @@ export function getColorThemeCssVariables(theme: ColorTheme) {
     "--sunnie-on-accent": theme.core.onAccent,
     "--sunnie-warm-glow": theme.core.warmGlow,
     "--sunnie-cool-glow": theme.core.coolGlow,
+    ...taskVariables,
   } satisfies Record<string, string>;
 }

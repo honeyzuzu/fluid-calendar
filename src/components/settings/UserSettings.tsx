@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
+
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { MoonStar, Palette, Sunrise } from "lucide-react";
+import { MoonStar, Palette, RefreshCw, Sunrise } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,8 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { COLOR_THEMES, ColorThemeId } from "@/lib/color-themes";
+import {
+  COLOR_THEMES,
+  ColorThemeId,
+  mapThemeLinkedColor,
+} from "@/lib/color-themes";
 
+import { useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
 
 import { TimeFormat, WeekStartDay } from "@/types/settings";
@@ -24,6 +32,55 @@ import { SettingRow, SettingsSection } from "./SettingsSection";
 export function UserSettings() {
   const { data: session } = useSession();
   const { user, updateUserSettings } = useSettingsStore();
+  const [selectedColorTheme, setSelectedColorTheme] = useState<ColorThemeId>(
+    user.colorTheme || "base"
+  );
+  const [isApplyingColorTheme, setIsApplyingColorTheme] = useState(false);
+  const [colorThemeError, setColorThemeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedColorTheme(user.colorTheme || "base");
+  }, [user.colorTheme]);
+
+  const applyColorTheme = async () => {
+    setIsApplyingColorTheme(true);
+    setColorThemeError(null);
+    try {
+      const response = await fetch("/api/color-theme/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ colorTheme: selectedColorTheme }),
+      });
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(result?.error || "Failed to apply planner colorway");
+      }
+
+      useSettingsStore.setState((state) => ({
+        user: { ...state.user, colorTheme: selectedColorTheme },
+      }));
+      const calendarUI = useCalendarUIStore.getState();
+      useCalendarUIStore.setState({
+        friendCalendarColors: Object.fromEntries(
+          Object.entries(calendarUI.friendCalendarColors).map(
+            ([friendId, color]) => [
+              friendId,
+              mapThemeLinkedColor("friends", color, selectedColorTheme) ||
+                color,
+            ]
+          )
+        ),
+      });
+      window.location.reload();
+    } catch (error) {
+      setColorThemeError(
+        error instanceof Error ? error.message : "Failed to apply colorway"
+      );
+      setIsApplyingColorTheme(false);
+    }
+  };
 
   const timeFormats: { value: TimeFormat; label: string }[] = [
     { value: "12h", label: "12-hour" },
@@ -149,10 +206,11 @@ export function UserSettings() {
       >
         <div className="space-y-2">
           <Select
-            value={user.colorTheme || "base"}
-            onValueChange={(value) =>
-              updateUserSettings({ colorTheme: value as ColorThemeId })
-            }
+            value={selectedColorTheme}
+            onValueChange={(value) => {
+              setSelectedColorTheme(value as ColorThemeId);
+              setColorThemeError(null);
+            }}
           >
             <SelectTrigger aria-label="Planner colorway">
               <Palette className="mr-2 h-4 w-4" />
@@ -167,7 +225,7 @@ export function UserSettings() {
             </SelectContent>
           </Select>
           <div className="flex gap-1.5" aria-label="Current colorway preview">
-            {COLOR_THEMES[user.colorTheme || "base"].palettes.events
+            {COLOR_THEMES[selectedColorTheme].palettes.events
               .slice(0, 6)
               .map((swatch) => (
                 <span
@@ -178,6 +236,26 @@ export function UserSettings() {
                 />
               ))}
           </div>
+          <p className="max-w-sm text-xs text-muted-foreground">
+            Apply updates Sunnie surfaces and every recognized palette color.
+            Custom colors stay unchanged.
+          </p>
+          {colorThemeError && (
+            <p className="text-xs font-medium text-destructive" role="alert">
+              {colorThemeError}
+            </p>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void applyColorTheme()}
+            disabled={isApplyingColorTheme}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isApplyingColorTheme ? "animate-spin" : ""}`}
+            />
+            {isApplyingColorTheme ? "Applying…" : "Apply & refresh"}
+          </Button>
         </div>
       </SettingRow>
 
@@ -292,7 +370,7 @@ export function UserSettings() {
         label="Daily Rhythm"
         description="Choose when Sunnie gently invites you to begin and close your day. Prompts appear while the app is open."
       >
-        <div className="space-y-4 rounded-2xl border border-[#dce3c9] bg-[#fffdf5] p-4">
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
           <label className="flex items-center justify-between gap-4">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Sunrise className="h-4 w-4 text-[#d99d32]" /> Daily Rise

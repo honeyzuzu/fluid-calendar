@@ -1,36 +1,29 @@
-import { Priority } from "@/types/task";
-
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
-
-export const TASK_URGENCY_COLORS = {
-  high: "#F7BEB5",
-  medium: "#F9DA94",
-  low: "#C1E0CB",
-  none: "#D9CFEE",
-} as const;
 
 interface CalendarTaskStyleInput {
   isTask: boolean;
-  priority?: string | null;
+  taskId?: string;
   durationMs: number;
+}
+
+function getTaskColorSlot(taskId = "") {
+  const hash = [...taskId].reduce(
+    (total, character) => (total * 31 + character.charCodeAt(0)) >>> 0,
+    0
+  );
+  return (hash % 6) + 1;
 }
 
 export function getCalendarItemClassNames({
   isTask,
-  priority,
+  taskId,
   durationMs,
 }: CalendarTaskStyleInput): string[] {
   if (!isTask) return ["calendar-event"];
 
-  const normalizedPriority = Object.values(Priority).includes(
-    priority as Priority
-  )
-    ? (priority as Priority)
-    : Priority.NONE;
-
   return [
     "calendar-task",
-    `calendar-task-priority-${normalizedPriority}`,
+    `calendar-task-color-${getTaskColorSlot(taskId)}`,
     ...(durationMs > 0 && durationMs <= THIRTY_MINUTES_MS
       ? ["calendar-task-compact"]
       : []),

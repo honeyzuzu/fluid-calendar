@@ -309,7 +309,7 @@ export default function SettingsPage() {
                         "flex w-auto shrink-0 items-center whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full",
                         !isHydrated && "duration-0",
                         activeTab === tab.id
-                          ? "bg-[#f8e4a1] text-[#77591d] shadow-sm"
+                          ? "bg-accent text-accent-foreground shadow-sm"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >

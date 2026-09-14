@@ -280,7 +280,7 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 ### Calendar and colors
 
 - Sunnie colorways use 14 overarching theme roles plus five mini-palettes: eight event colors, six project colors, six task colors, six friend colors, and four semantic status colors. Each theme therefore contains exactly 44 hex values. `Sunnie Base` preserves the current identity alongside the four owner-supplied seasonal themes: `Spring — Fresh Air`, `Summer — Sun-Kissed`, `Autumn — Golden Hour`, and `Winter — Candlelight & Snow`.
-- `UserSettings.colorTheme` persists the selected planner colorway. The theme provider applies the active registry entry to both the existing HSL design tokens and Sunnie-specific CSS variables. Until palette-slot fields are added, existing item colors remain stored as raw hex values and do not yet recolor automatically.
+- `UserSettings.colorTheme` persists the selected planner colorway. Settings uses an explicit **Apply & refresh** action that updates the preference, remaps recognized event/feed/project palette hexes directly in Sunnie's database, remaps browser-local friend colors, and reloads once. Custom/unrecognized hexes remain fixed. The theme provider applies the active registry entry to both the existing HSL design tokens and Sunnie-specific CSS variables.
 
 - Calendar views and event creation/editing are retained from FluidCalendar.
 - Opening Calendar triggers a background sync shortly after hydration. While the tab remains visible, Google/CalDAV feeds and friend availability refresh every five minutes; returning to a stale tab refreshes them as well. The header refresh control runs the same combined pass and exposes the exact last-refresh time on hover.
@@ -296,7 +296,8 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Timed events use separate native date and time pickers plus 30-minute, one-hour, 90-minute, and two-hour quick-duration choices.
 - Calendar headers include an Add event button on desktop and mobile, while a normal tap/click on an empty calendar slot also opens a pre-filled one-hour event.
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
-- Scheduled task blocks use rounded, softly filled pastel urgency colors rather than a blue block with a hard side stripe. High is coral, medium is sunny gold, low is mint, and tasks without a priority are lavender.
+- Scheduled task blocks use rounded, softly filled colors selected deterministically from the active theme's six-color task palette. Priority remains metadata and does not recolor the entire block.
+- Saving only a Sunnie event-color override updates the local `CalendarEvent` record without calling Google, Outlook, or CalDAV. This avoids provider edits and local record recreation for a cosmetic-only change.
 - Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, uses a smaller check icon and reduced padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar. Every calendar task retains a check icon.
 - Event and task deletion confirmations use a Sunnie-styled in-app dialog instead of the browser's native confirmation box. Errors remain readable inside that dialog.
 - Synced event deletion waits only for the connected provider to confirm removal. Sunnie then removes the event locally and performs database reconciliation plus auto-scheduling in the background, so the modal no longer stays blocked on those follow-up passes.

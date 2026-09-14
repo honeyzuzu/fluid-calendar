@@ -199,7 +199,7 @@ export function Calendar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-[#dfe2c8] bg-[#fffdf5] shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
+          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-border bg-card shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
           "transform transition-transform duration-300 ease-in-out",
           !isHydrated && "opacity-0 duration-0",
           isSidebarOpen
@@ -225,7 +225,7 @@ export function Calendar({
         }
         onClick={() => setSidebarOpen(!isSidebarOpen)}
         className={cn(
-          "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] transition-[left,background-color] duration-300 hover:bg-[#eef3df]",
+          "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-[left,background-color] duration-300 hover:bg-muted",
           isSidebarOpen
             ? "left-[calc(min(20rem,86vw)-1px)] xl:left-[319px]"
             : "left-0"
@@ -246,12 +246,12 @@ export function Calendar({
           type="button"
           aria-label="Close calendar sidebar"
           onClick={() => setSidebarOpen(false)}
-          className="absolute inset-0 z-40 bg-[#3f432e]/25 backdrop-blur-[1px] xl:hidden"
+          className="absolute inset-0 z-40 bg-foreground/25 backdrop-blur-[1px] xl:hidden"
         />
       )}
 
       {/* Main Content */}
-      <main className="flex min-w-0 flex-1 flex-col bg-[#fff9e8]">
+      <main className="flex min-w-0 flex-1 flex-col bg-background">
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
@@ -337,7 +337,7 @@ export function Calendar({
               disabled={isRefreshing}
               aria-label={refreshTitle}
               title={refreshTitle}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7d9bd] bg-[#fffdf5] text-[#5f6848] transition hover:bg-[#eef3df] disabled:opacity-55"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-card text-secondary-foreground transition hover:bg-muted disabled:opacity-55"
             >
               <RefreshCw
                 className={cn("h-4 w-4", isRefreshing && "animate-spin")}
@@ -346,7 +346,7 @@ export function Calendar({
             <button
               onClick={handleAddEvent}
               data-testid="add-event-button"
-              className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-[#64734a] px-3 py-1.5 text-sm font-semibold text-white shadow-[0_2px_0_#465331] transition hover:-translate-y-0.5 md:mr-2"
+              className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 md:mr-2"
             >
               <Plus className="h-4 w-4" />
               <span className="md:hidden lg:inline">Add event</span>

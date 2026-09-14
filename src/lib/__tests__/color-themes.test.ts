@@ -11,6 +11,7 @@ import {
   getColorTheme,
   getColorThemeCssVariables,
   isColorThemeId,
+  mapThemeLinkedColor,
 } from "@/lib/color-themes";
 
 describe("planner colorways", () => {
@@ -64,6 +65,8 @@ describe("planner colorways", () => {
     expect(variables["--background"]).toMatch(/^\d+ \d+% \d+%$/);
     expect(variables["--sunnie-canvas"]).toBe("#FFF9E8");
     expect(variables["--sunnie-primary"]).toBe("#64734A");
+    expect(variables["--sunnie-task-1"]).toBe("#F7BEB5");
+    expect(variables["--sunnie-task-1-foreground"]).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
   it("registers the owner-supplied Autumn palette", () => {
@@ -118,5 +121,23 @@ describe("planner colorways", () => {
       name: "Sugar Plum",
       value: "#96788F",
     });
+  });
+
+  it("maps palette-linked colors by stable slot and preserves custom colors", () => {
+    expect(mapThemeLinkedColor("events", "#9BC7D9", "autumn-golden-hour")).toBe(
+      "#8FA05A"
+    );
+    expect(mapThemeLinkedColor("events", "#3b82f6", "spring-fresh-air")).toBe(
+      "#719DB5"
+    );
+    expect(mapThemeLinkedColor("projects", "#D5DD8D", "spring-fresh-air")).toBe(
+      "#9DAE8A"
+    );
+    expect(
+      mapThemeLinkedColor("friends", "#CE7E7E", "winter-candlelight-snow")
+    ).toBe("#9A7968");
+    expect(mapThemeLinkedColor("events", "#123456", "summer-sun-kissed")).toBe(
+      "#123456"
+    );
   });
 });

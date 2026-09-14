@@ -189,15 +189,19 @@ be contrast-checked before a theme is made available.
 
 ## Theme-linked colors versus custom colors
 
-Palette slots are stable identities. For example, an event assigned
-`event-3` keeps that slot when the planner changes themes and receives the new
-theme's `event-3` hex. A custom hex is intentionally fixed and does not change.
+Palette slots are stable identities. When **Apply & refresh** is used, Sunnie
+recognizes palette colors from any of its themes, maps them to the equivalent
+slot in the chosen theme, and then reloads the interface. For example, an event
+using the Base `event-3` color receives the new theme's `event-3` hex. A custom
+hex is intentionally fixed and does not change.
 
 The theme registry and global CSS-variable application are now centralized in
 `src/lib/color-themes.ts`. The database stores the selected planner colorway on
-`UserSettings.colorTheme`. A later data migration will add stable palette-slot
-keys to events, feeds, projects, tasks, and friend preferences before automatic
-recoloring of already-created items is enabled.
+`UserSettings.colorTheme`. Recognized feed, event, and project colors are
+remapped inside Sunnie's database without editing external provider events;
+friend colors are remapped in browser storage. Scheduled tasks derive a stable
+aesthetic slot from their ID. Explicit palette-slot database fields remain a
+possible later hardening step rather than a prerequisite for theme switching.
 
 ## Calendar visual direction
 
@@ -206,9 +210,8 @@ canvas; a quieter grid; softer today emphasis; clearer day typography; tighter
 time rows; and one segmented view switcher. The broader calendar pass should
 continue with:
 
-- Theme-linked event and task colors.
 - Cleaner all-day rows and month overflow.
 - Better visual separation between events, tasks, and friend lanes.
-- Priority and energy labels that do not recolor the entire task.
+- Finish replacing inherited hardcoded Base colors on secondary screens.
 - Refine the recent-custom-color management around the new compact `+` control.
 - Mobile-specific density and event-card typography checks.

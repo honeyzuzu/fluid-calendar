@@ -123,7 +123,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
           allDay: item.allDay,
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
-            priority: item.extendedProps?.priority,
+            taskId: item.id,
             durationMs:
               newDate(item.end).getTime() - newDate(item.start).getTime(),
           }),

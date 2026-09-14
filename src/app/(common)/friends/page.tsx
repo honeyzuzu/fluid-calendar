@@ -160,7 +160,7 @@ export default function FriendsPage() {
   };
 
   return (
-    <main className="min-h-full w-full min-w-0 overflow-x-clip bg-[#fff9e8] p-3 text-[#3f432e] min-[380px]:p-4 sm:p-5 lg:p-8">
+    <main className="min-h-full w-full min-w-0 overflow-x-clip bg-background p-3 text-foreground min-[380px]:p-4 sm:p-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-5xl">
         <div className="mb-7">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#d0902f]">
@@ -205,7 +205,7 @@ export default function FriendsPage() {
             />
             <button
               disabled={saving || !email.trim()}
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#64734a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_#465331] disabled:opacity-40"
+              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-40"
             >
               <MailPlus className="h-4 w-4" />
               Request
@@ -302,7 +302,7 @@ export default function FriendsPage() {
                       </label>
                       <div className="text-xs text-black/45">
                         They share
-                        <div className="mt-1 flex h-[34px] items-center gap-2 rounded-lg bg-[#eef3df] px-2.5 text-xs text-[#607044]">
+                        <div className="mt-1 flex h-[34px] items-center gap-2 rounded-lg bg-muted px-2.5 text-xs text-secondary-foreground">
                           {connection.theirVisibility === "NONE" ? (
                             <EyeOff className="h-3.5 w-3.5" />
                           ) : connection.theirVisibility === "DETAILS" ? (
@@ -336,7 +336,7 @@ export default function FriendsPage() {
                   {incoming.map((connection) => (
                     <div
                       key={connection.id}
-                      className="rounded-xl bg-[#eef3df] p-3"
+                      className="rounded-xl bg-muted p-3"
                     >
                       <p className="text-sm font-medium">
                         {connection.friend.name || connection.friend.email}
@@ -347,7 +347,7 @@ export default function FriendsPage() {
                       <div className="mt-3 flex gap-2">
                         <button
                           onClick={() => void act(connection.id, "accept")}
-                          className="flex items-center gap-1 rounded-lg bg-[#64734a] px-3 py-1.5 text-xs text-white"
+                          className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs text-primary-foreground"
                         >
                           <Check className="h-3.5 w-3.5" />
                           Accept

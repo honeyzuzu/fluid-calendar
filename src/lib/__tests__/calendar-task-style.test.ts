@@ -1,13 +1,11 @@
 import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
 
-import { Priority } from "@/types/task";
-
 describe("calendar task styling", () => {
   it("keeps ordinary calendar events separate from task styling", () => {
     expect(
       getCalendarItemClassNames({
         isTask: false,
-        priority: Priority.HIGH,
+        taskId: "event-1",
         durationMs: 15 * 60 * 1000,
       })
     ).toEqual(["calendar-event"]);
@@ -17,22 +15,23 @@ describe("calendar task styling", () => {
     expect(
       getCalendarItemClassNames({
         isTask: true,
-        priority: Priority.MEDIUM,
+        taskId: "task-1",
         durationMs: 15 * 60 * 1000,
       })
     ).toEqual([
       "calendar-task",
-      "calendar-task-priority-medium",
+      "calendar-task-color-2",
       "calendar-task-compact",
     ]);
   });
 
-  it("uses the gentle neutral tone when priority is missing", () => {
+  it("uses a stable aesthetic color without depending on priority", () => {
     expect(
       getCalendarItemClassNames({
         isTask: true,
+        taskId: "",
         durationMs: 60 * 60 * 1000,
       })
-    ).toEqual(["calendar-task", "calendar-task-priority-none"]);
+    ).toEqual(["calendar-task", "calendar-task-color-1"]);
   });
 });
