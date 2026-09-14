@@ -211,6 +211,9 @@ Provide one hex for every row for each new theme.
 
 ## Contract for any future theme
 
+Start with the fill-in [new theme worksheet](new-theme-template.md). It captures
+the full color and visual-skin contract without requiring code.
+
 Provide:
 
 1. Theme name and a one-sentence mood.
@@ -264,16 +267,25 @@ persisted `calendarStyle` chooses **Classic** or **Bujo**.
 
 - **Classic** preserves the clean, softly rounded Sunnie calendar.
 - **Bujo** uses a theme-selected paper grid, selectively handwritten decorative
-  headings, hand-drawn grid borders, and marker, washi, outline, or sticky-note
+  headings, hand-drawn grid borders, and highlight, washi, outline, or sticky-note
   item treatments. Paper patterns paint the visible calendar body; Winter's
   outline events use their palette color for the border and text, while
   sticky-note tasks include a folded paper corner.
 
 Themes declare semantic variants such as `dot-grid`, `lined-paper`,
-`graph-paper`, `marker`, `washi`, and `sticky-note`. Components and styles
+`graph-paper`, `highlight`, `washi`, and `sticky-note`. Components and styles
 consume those names through shared presentation attributes; they do not check
 for individual theme IDs. This lets future packs change their design language
 without adding theme-specific calendar logic.
+
+The primitive vocabulary also reserves gingham, checker, and striped patterns;
+clean, paper, soft, patterned, and glass surfaces; solid, soft, highlight,
+outline, washi, and sticky-note calendar items; solid, dashed, and hand-drawn
+borders; decorative typography; and reusable ambient-motion and sticker-pack
+IDs. A deliberately loud test-only pack compiles these choices into generic DOM
+attributes. It is not selectable in Settings, but proves that a new pack can
+change the calendar grid, events, tasks, all-day items, borders, typography,
+decoration, and motion without adding a theme-name branch to Calendar.
 
 This first version does not add sticker persistence, custom theme assets, or
 ambient activation animation. The registry includes explicit asset and motion

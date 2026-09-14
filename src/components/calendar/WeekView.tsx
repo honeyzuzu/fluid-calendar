@@ -123,6 +123,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
           allDay: item.allDay,
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
+            allDay: item.allDay,
             taskId: item.id,
             color: item.color,
             colorSlot: item.colorSlot,

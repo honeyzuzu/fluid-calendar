@@ -71,8 +71,13 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     getSunnieTheme(userSettings.colorTheme),
     userSettings.calendarStyle
   );
+  const effectiveEventAppearance = isTask
+    ? presentation.taskAppearance
+    : eventInfo.event.allDay
+      ? presentation.allDayAppearance
+      : presentation.eventAppearance;
   const textColor =
-    !isTask && presentation.eventAppearance === "outline"
+    effectiveEventAppearance === "outline"
       ? eventColor
       : getReadableTextColor(eventColor);
 

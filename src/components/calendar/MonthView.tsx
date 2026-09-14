@@ -122,6 +122,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
           allDay: item.allDay,
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
+            allDay: item.allDay,
             taskId: item.id,
             color: item.color,
             colorSlot: item.colorSlot,

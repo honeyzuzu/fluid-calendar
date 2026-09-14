@@ -15,6 +15,7 @@ import {
   getCalendarStyle,
   getPlannerThemeCssVariables,
   getSunnieTheme,
+  getThemeDomAttributes,
 } from "@/lib/planner-themes";
 
 import { useSettingsStore } from "@/store/settings";
@@ -24,7 +25,7 @@ import { ThemeMode } from "@/types/settings";
 type ThemeContextType = {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  colorTheme: SunnieTheme;
+  colorTheme: SunnieTheme<ColorThemeId>;
   setColorTheme: (theme: ColorThemeId) => void;
   calendarStyle: CalendarStyleId;
   setCalendarStyle: (style: CalendarStyleId) => void;
@@ -119,16 +120,10 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.dataset.colorTheme = currentColorTheme.id;
-    root.dataset.calendarStyle = currentCalendarStyle;
-    root.dataset.calendarGrid = calendarPresentation.gridStyle;
-    root.dataset.calendarEventAppearance = calendarPresentation.eventAppearance;
-    root.dataset.calendarTaskAppearance = calendarPresentation.taskAppearance;
-    root.dataset.calendarBorder = calendarPresentation.borderStyle;
-    root.dataset.calendarTypography = calendarPresentation.typography;
-    root.dataset.themeBackground = currentColorTheme.visual.backgroundStyle;
-    root.dataset.themeSurface = currentColorTheme.visual.surfaceStyle;
-    root.dataset.themeMotion = currentColorTheme.visual.motion.activation;
+    Object.assign(
+      root.dataset,
+      getThemeDomAttributes(currentColorTheme, currentCalendarStyle)
+    );
     for (const [property, value] of Object.entries({
       ...getColorThemeCssVariables(currentColorTheme),
       ...getPlannerThemeCssVariables(currentColorTheme),

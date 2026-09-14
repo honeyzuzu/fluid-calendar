@@ -7,38 +7,73 @@ import {
 } from "@/lib/color-themes";
 
 export const CALENDAR_STYLES = ["classic", "bujo"] as const;
+export const PATTERN_STYLES = [
+  "none",
+  "gingham",
+  "dot-grid",
+  "lined-paper",
+  "checker",
+  "stripes",
+  "graph-paper",
+] as const;
+export const SURFACE_STYLES = [
+  "clean",
+  "paper",
+  "soft",
+  "patterned",
+  "glass",
+] as const;
+export const CALENDAR_ITEM_APPEARANCES = [
+  "solid",
+  "soft",
+  "highlight",
+  "outline",
+  "washi",
+  "sticky-note",
+] as const;
+export const BORDER_STYLES = ["solid", "dashed", "hand-drawn"] as const;
+export const TYPOGRAPHY_STYLES = [
+  "normal",
+  "soft",
+  "handwritten-accent",
+] as const;
+export const AMBIENT_MOTIONS = [
+  "none",
+  "sprout",
+  "petals",
+  "leaves",
+  "sun-shimmer",
+  "snow",
+  "sparkle",
+] as const;
+
+export const STICKER_PACKS = {
+  "visual-test-leaves": {
+    label: "Visual test leaves",
+    stickers: ["leaf-one", "leaf-two"],
+    testOnly: true,
+  },
+} as const;
 
 export type CalendarStyleId = (typeof CALENDAR_STYLES)[number];
 export type ThemeFamily = "original" | "seasonal" | "character" | "special";
 export type AppBackgroundStyle = "ambient" | "paper";
-export type SurfaceStyle = "clean" | "paper" | "glass";
-export type BorderStyle = "solid" | "hand-drawn";
+export type PatternStyle = (typeof PATTERN_STYLES)[number];
+export type SurfaceStyle = (typeof SURFACE_STYLES)[number];
+export type BorderStyle = (typeof BORDER_STYLES)[number];
 export type RadiusStyle = "soft" | "round" | "irregular";
-export type TypographyStyle = "default" | "soft" | "handwritten-accent";
-export type CalendarGridStyle =
-  | "soft"
-  | "dot-grid"
-  | "lined-paper"
-  | "graph-paper";
-export type CalendarItemAppearance =
-  | "card"
-  | "marker"
-  | "washi"
-  | "sticky-note"
-  | "outline";
-export type AmbientMotion =
-  | "none"
-  | "sprout"
-  | "petals"
-  | "sun-shimmer"
-  | "falling-leaves"
-  | "snow";
+export type TypographyStyle = (typeof TYPOGRAPHY_STYLES)[number];
+export type CalendarGridStyle = "soft" | Exclude<PatternStyle, "none">;
+export type CalendarItemAppearance = (typeof CALENDAR_ITEM_APPEARANCES)[number];
+export type AmbientMotion = (typeof AMBIENT_MOTIONS)[number];
+export type StickerPackId = keyof typeof STICKER_PACKS;
 export type ThemeCoreRole = keyof ColorTheme["core"];
 
 export type CalendarPresentation = {
   gridStyle: CalendarGridStyle;
   eventAppearance: CalendarItemAppearance;
   taskAppearance: CalendarItemAppearance;
+  allDayAppearance: CalendarItemAppearance;
   borderStyle: BorderStyle;
   typography: TypographyStyle;
 };
@@ -46,12 +81,17 @@ export type CalendarPresentation = {
 export type ThemeVisualDefinition = {
   backgroundStyle: AppBackgroundStyle;
   surfaceStyle: SurfaceStyle;
+  patterns: {
+    app: PatternStyle;
+    surface: PatternStyle;
+    sidebar: PatternStyle;
+  };
   borderStyle: BorderStyle;
   radiusStyle: RadiusStyle;
   typography: TypographyStyle;
   calendar: Record<CalendarStyleId, CalendarPresentation>;
   assets: {
-    stickerPack?: string;
+    stickerPack?: StickerPackId;
     illustrationPack?: string;
   };
   motion: {
@@ -64,17 +104,22 @@ export type ThemeVisualDefinition = {
   };
 };
 
-export type SunnieTheme = ColorTheme & {
+export type SunnieTheme<ThemeId extends string = string> = Omit<
+  ColorTheme,
+  "id"
+> & {
+  id: ThemeId;
   family: ThemeFamily;
   visual: ThemeVisualDefinition;
 };
 
 const classicPresentation: CalendarPresentation = {
   gridStyle: "soft",
-  eventAppearance: "card",
-  taskAppearance: "card",
+  eventAppearance: "soft",
+  taskAppearance: "soft",
+  allDayAppearance: "soft",
   borderStyle: "solid",
-  typography: "default",
+  typography: "normal",
 };
 
 function seasonalTheme(
@@ -84,13 +129,14 @@ function seasonalTheme(
     CalendarPresentation,
     "gridStyle" | "eventAppearance" | "taskAppearance"
   >
-): SunnieTheme {
+): SunnieTheme<ColorThemeId> {
   return {
     ...colorTheme,
     family: colorTheme.id === BASE_COLOR_THEME.id ? "original" : "seasonal",
     visual: {
       backgroundStyle: "ambient",
       surfaceStyle: "clean",
+      patterns: { app: "none", surface: "none", sidebar: "none" },
       borderStyle: "solid",
       radiusStyle: "round",
       typography: "soft",
@@ -98,6 +144,7 @@ function seasonalTheme(
         classic: classicPresentation,
         bujo: {
           ...bujo,
+          allDayAppearance: "washi",
           borderStyle: "hand-drawn",
           typography: "handwritten-accent",
         },
@@ -118,15 +165,15 @@ function seasonalTheme(
  * this layer describes how components present those colors. Components consume
  * these semantic variants and never branch on a theme id.
  */
-export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme> = {
+export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   base: seasonalTheme(COLOR_THEMES.base, "sprout", {
     gridStyle: "dot-grid",
-    eventAppearance: "marker",
+    eventAppearance: "highlight",
     taskAppearance: "sticky-note",
   }),
   "autumn-golden-hour": seasonalTheme(
     COLOR_THEMES["autumn-golden-hour"],
-    "falling-leaves",
+    "leaves",
     {
       gridStyle: "dot-grid",
       eventAppearance: "washi",
@@ -138,7 +185,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme> = {
     "petals",
     {
       gridStyle: "dot-grid",
-      eventAppearance: "marker",
+      eventAppearance: "highlight",
       taskAppearance: "sticky-note",
     }
   ),
@@ -147,7 +194,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme> = {
     "sun-shimmer",
     {
       gridStyle: "lined-paper",
-      eventAppearance: "marker",
+      eventAppearance: "highlight",
       taskAppearance: "washi",
     }
   ),
@@ -162,6 +209,57 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme> = {
   ),
 };
 
+export type ThemeDomAttributes = Record<
+  | "colorTheme"
+  | "calendarStyle"
+  | "calendarGrid"
+  | "calendarEventAppearance"
+  | "calendarTaskAppearance"
+  | "calendarAllDayAppearance"
+  | "calendarBorder"
+  | "calendarTypography"
+  | "themeBackground"
+  | "themeSurface"
+  | "themeBorder"
+  | "themeRadius"
+  | "themeTypography"
+  | "themeAppPattern"
+  | "themeSurfacePattern"
+  | "themeSidebarPattern"
+  | "themeMotion"
+  | "themeStickerPack",
+  string
+>;
+
+/** Compile a pack into generic presentation attributes for the rendering layer. */
+export function getThemeDomAttributes(
+  theme: SunnieTheme,
+  calendarStyle: unknown
+): ThemeDomAttributes {
+  const style = getCalendarStyle(calendarStyle);
+  const calendar = getCalendarPresentation(theme, style);
+  return {
+    colorTheme: theme.id,
+    calendarStyle: style,
+    calendarGrid: calendar.gridStyle,
+    calendarEventAppearance: calendar.eventAppearance,
+    calendarTaskAppearance: calendar.taskAppearance,
+    calendarAllDayAppearance: calendar.allDayAppearance,
+    calendarBorder: calendar.borderStyle,
+    calendarTypography: calendar.typography,
+    themeBackground: theme.visual.backgroundStyle,
+    themeSurface: theme.visual.surfaceStyle,
+    themeBorder: theme.visual.borderStyle,
+    themeRadius: theme.visual.radiusStyle,
+    themeTypography: theme.visual.typography,
+    themeAppPattern: theme.visual.patterns.app,
+    themeSurfacePattern: theme.visual.patterns.surface,
+    themeSidebarPattern: theme.visual.patterns.sidebar,
+    themeMotion: theme.visual.motion.activation,
+    themeStickerPack: theme.visual.assets.stickerPack ?? "none",
+  };
+}
+
 export function isCalendarStyleId(value: unknown): value is CalendarStyleId {
   return (
     typeof value === "string" &&
@@ -173,7 +271,7 @@ export function getCalendarStyle(value: unknown): CalendarStyleId {
   return isCalendarStyleId(value) ? value : "classic";
 }
 
-export function getSunnieTheme(value: unknown): SunnieTheme {
+export function getSunnieTheme(value: unknown): SunnieTheme<ColorThemeId> {
   const colorTheme = getColorTheme(value);
   return SUNNIE_THEMES[colorTheme.id];
 }

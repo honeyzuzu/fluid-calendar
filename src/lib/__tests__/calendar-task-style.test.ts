@@ -11,6 +11,17 @@ describe("calendar task styling", () => {
     ).toEqual(["calendar-event"]);
   });
 
+  it("marks all-day events so their presentation stays independent", () => {
+    expect(
+      getCalendarItemClassNames({
+        isTask: false,
+        allDay: true,
+        taskId: "event-1",
+        durationMs: 24 * 60 * 60 * 1000,
+      })
+    ).toEqual(["calendar-event", "calendar-event-all-day"]);
+  });
+
   it("marks short tasks as compact without changing their font size", () => {
     expect(
       getCalendarItemClassNames({

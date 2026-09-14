@@ -35,13 +35,16 @@ export const COLOR_THEME_HEX_COUNT =
     0
   );
 
+export const COLOR_THEME_IDS = [
+  "base",
+  "autumn-golden-hour",
+  "spring-fresh-air",
+  "summer-sun-kissed",
+  "winter-candlelight-snow",
+] as const;
+
 export type ColorThemeCoreRole = (typeof COLOR_THEME_CORE_ROLES)[number];
-export type ColorThemeId =
-  | "base"
-  | "autumn-golden-hour"
-  | "spring-fresh-air"
-  | "summer-sun-kissed"
-  | "winter-candlelight-snow";
+export type ColorThemeId = (typeof COLOR_THEME_IDS)[number];
 export type ColorThemePaletteName = keyof typeof COLOR_THEME_PALETTE_SIZES;
 export type ThemeLinkedPaletteName =
   | "events"
