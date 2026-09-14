@@ -193,6 +193,13 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 
 ## Current User-Facing Features
 
+For safe, reversible edits, optimistic UI is the default Sunnie interaction
+rule: update visible local state immediately, persist in the background, and
+restore the previous value with a clear message if persistence fails. Do not
+hold a modal or popover open merely to wait for a routine color or preference
+request. Operations with irreversible effects, provider ambiguity, or required
+server validation may still wait for confirmation.
+
 ### Sunnie identity and responsive UI
 
 - App name, metadata, favicon, Google OAuth logo, setup page, sign-in page, settings, and primary application surfaces use Sunnie branding.
@@ -298,14 +305,14 @@ The intended Sunnie UI emphasizes Google, Apple, and generic CalDAV. However, in
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
 - The shared event, feed, and task color picker stages palette swatches, recent colors, defaults, and custom colors behind one explicit Apply color action. The event palette offers eight curated Base colors rather than the former 12, followed by a clear `+` custom-color control.
 - Event presets are arranged into two balanced four-color groups: Sky & water and Garden & sunset. The smaller set keeps cool, green, warm, and earthy choices while remaining distinct from task and project colors.
-- Color choices are applied only after explicit confirmation, avoiding accidental commits while browsing swatches or dragging a custom-color input. Feed colors update optimistically and roll back on request failure.
+- Color choices are applied only after explicit confirmation, avoiding accidental commits while browsing swatches or dragging a custom-color input. Feed color popovers close immediately; their optimistic updates persist in the background and roll back with a toast on request failure.
 - Recently used custom colors are saved as quick-access colors.
 - Event creation marks title, calendar, start, and end as required and shows an inline error when a calendar is missing.
 - Timed events use separate native date and time pickers plus 30-minute, one-hour, 90-minute, and two-hour quick-duration choices.
 - Calendar headers include an Add event button on desktop and mobile, while a normal tap/click on an empty calendar slot also opens a pre-filled one-hour event.
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
 - Scheduled task blocks use rounded, softly filled colors from the active theme's six-color task palette. A task can choose a theme-linked slot or fixed custom hex directly in its editor, independently of tags and priority; tasks without a choice keep a deterministic palette slot.
-- Saving only a Sunnie event-color override updates local `CalendarEvent` records optimistically without calling Google, Outlook, or CalDAV or reloading the full calendar. It rolls back the affected colors if the local save fails. Equivalent recurrence serializations such as `RRULE:FREQ=WEEKLY` and `FREQ=WEEKLY` do not turn a cosmetic edit into a provider update. A recurring-series color choice updates its master and instances together, while a single-occurrence choice remains scoped to that row. Genuine provider series rebuilds remove rows linked by either the local master relation or provider recurring ID before inserting refreshed instances, preventing duplicates.
+- Saving only a Sunnie event-color override updates local `CalendarEvent` records optimistically without calling Google, Outlook, or CalDAV or reloading the full calendar. The modal closes as soon as the calendar is updated; the database write finishes in the background and rolls back the affected colors with a toast if it fails. Equivalent recurrence serializations such as `RRULE:FREQ=WEEKLY` and `FREQ=WEEKLY` do not turn a cosmetic edit into a provider update. A recurring-series color choice updates its master and instances together, while a single-occurrence choice remains scoped to that row. Genuine provider series rebuilds remove rows linked by either the local master relation or provider recurring ID before inserting refreshed instances, preventing duplicates.
 - Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, uses a smaller check icon and reduced padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar. Every calendar task retains a check icon.
 - Event and task deletion confirmations use a Sunnie-styled in-app dialog instead of the browser's native confirmation box. Errors remain readable inside that dialog.
 - Synced event deletion waits only for the connected provider to confirm removal. Sunnie then removes the event locally and performs database reconciliation plus auto-scheduling in the background, so the modal no longer stays blocked on those follow-up passes.

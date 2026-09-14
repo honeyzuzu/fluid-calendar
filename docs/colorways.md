@@ -327,9 +327,13 @@ rather than raw screen pixels.
 Event, feed, and task color pickers stage preset, recent, default, and custom
 choices behind the same **Apply color** action. Feed colors update optimistically.
 A color-only event save updates the matching local occurrence or series
-immediately, avoids a full calendar reload, and rolls back if its Sunnie-local
-database update fails. Project colors already use the project form's Save action,
-while friend colors are browser-local and immediate.
+immediately and closes the modal without waiting for the request. Feed color
+popovers also close immediately. Both background writes avoid a full calendar
+reload and restore the previous color with a message if persistence fails.
+Project colors already use the project form's Save action, while friend colors
+are browser-local and immediate. Safe, reversible edits should follow this
+optimistic pattern throughout Sunnie; destructive or server-validated actions
+may still wait for confirmation.
 
 ## Calendar visual direction
 

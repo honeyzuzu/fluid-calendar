@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { UsersRound } from "lucide-react";
 import { BsArrowRepeat, BsGoogle, BsMicrosoft, BsTrash } from "react-icons/bs";
+import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -154,10 +155,15 @@ export function FeedManager() {
                         colorTheme.id
                       )}
                       valueSlot={feed.colorSlot}
-                      onChange={async (color, colorSlot) => {
+                      onChange={(color, colorSlot) => {
                         if (color) {
-                          await updateFeed(feed.id, { color, colorSlot });
                           setColorFeedId(null);
+                          void updateFeed(feed.id, { color, colorSlot }).catch(
+                            () =>
+                              toast.error(
+                                "That calendar color could not be saved, so Sunnie restored the previous color."
+                              )
+                          );
                         }
                       }}
                     />

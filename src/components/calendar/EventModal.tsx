@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -356,6 +357,11 @@ export function EventModal({
               })
             );
             calendarStore.setEvents(optimisticEvents);
+
+            // The calendar already reflects the new color. Close immediately
+            // and let the Sunnie-local save finish without blocking the user.
+            resetState();
+            onClose();
             try {
               const response = await fetch(`/api/events/${event.id}`, {
                 method: "PATCH",
@@ -369,7 +375,7 @@ export function EventModal({
               if (!response.ok) {
                 throw new Error("Failed to save the event color");
               }
-            } catch (error) {
+            } catch {
               calendarStore.setEvents(
                 useCalendarStore.getState().events.map((currentEvent) => {
                   const previous = previousColorsById.get(currentEvent.id);
@@ -382,8 +388,11 @@ export function EventModal({
                     : currentEvent;
                 })
               );
-              throw error;
+              toast.error(
+                "That event color could not be saved, so Sunnie restored the previous color."
+              );
             }
+            return;
           }
         } else {
           await updateEvent(event.id, eventData, editMode);

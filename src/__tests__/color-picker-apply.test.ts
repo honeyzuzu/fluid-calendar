@@ -29,4 +29,37 @@ describe("shared color picker apply flow", () => {
     expect(pickerSource).toContain('"Apply color"');
     expect(pickerSource).toContain("isApplying");
   });
+
+  it("closes color UI before background persistence", () => {
+    const feedManagerSource = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "src",
+        "components",
+        "calendar",
+        "FeedManager.tsx"
+      ),
+      "utf8"
+    );
+    const eventModalSource = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "src",
+        "components",
+        "calendar",
+        "EventModal.tsx"
+      ),
+      "utf8"
+    );
+
+    expect(feedManagerSource.indexOf("setColorFeedId(null)")).toBeLessThan(
+      feedManagerSource.indexOf("void updateFeed(feed.id")
+    );
+    expect(
+      eventModalSource.indexOf("calendarStore.setEvents(optimisticEvents)")
+    ).toBeLessThan(eventModalSource.indexOf("const response = await fetch"));
+    expect(eventModalSource.indexOf("onClose();")).toBeLessThan(
+      eventModalSource.indexOf("const response = await fetch")
+    );
+  });
 });
