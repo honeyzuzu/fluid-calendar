@@ -43,7 +43,7 @@ We can fill these in together. A rough bullet is enough to begin.
 
 - **Original thought:** Combine all the task items into one tab because Task Tune-up and Brain Dump are both part of working with tasks, and simplify the unnecessary List/Board choice.
 
-  - **Implemented locally:** Tasks now contains My tasks, Brain dump, and Tune-up as one responsive workspace. The separate status board switch is removed, old Brain Dump links redirect into Tasks, and Brain Dump no longer appears in primary navigation. The tutorial content points to the unified Tasks experience, while the tutorial itself is temporarily turned off for a broader redesign.
+  - **Implemented in `0a51966`:** Tasks now contains My tasks, Brain dump, and Tune-up as one responsive workspace. The separate status board switch is removed, old Brain Dump links redirect into Tasks, and Brain Dump no longer appears in primary navigation. The tutorial content points to the unified Tasks experience, while the tutorial itself is temporarily turned off for a broader redesign.
 
 - **Original thought:** Make the entry page a more fun daily welcome experience, especially on mobile. Instead of always opening on the static “Welcome to Sunnie / Plan your day” screen, opening Sunnie fresh for the day could begin a Sunsama-style daily planning ritual.
 
