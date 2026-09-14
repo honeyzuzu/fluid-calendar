@@ -8,8 +8,8 @@ import {
   STICKER_PACKS,
   SUNNIE_THEMES,
   SURFACE_STYLES,
-  SunnieTheme,
   TYPOGRAPHY_STYLES,
+  VISUAL_TEST_THEME,
   getCalendarPresentation,
   getCalendarStyle,
   getSunnieTheme,
@@ -78,35 +78,7 @@ describe("planner visual themes", () => {
   });
 
   it("compiles an intentionally loud test pack without calendar conditionals", () => {
-    const base = SUNNIE_THEMES.base;
-    const visualTestTheme: SunnieTheme<"visual-test-theme"> = {
-      ...base,
-      id: "visual-test-theme",
-      name: "Visual Test Theme",
-      family: "special",
-      visual: {
-        ...base.visual,
-        surfaceStyle: "patterned",
-        patterns: { app: "stripes", surface: "checker", sidebar: "dot-grid" },
-        borderStyle: "dashed",
-        typography: "handwritten-accent",
-        calendar: {
-          ...base.visual.calendar,
-          bujo: {
-            gridStyle: "gingham",
-            eventAppearance: "highlight",
-            taskAppearance: "sticky-note",
-            allDayAppearance: "washi",
-            borderStyle: "dashed",
-            typography: "handwritten-accent",
-          },
-        },
-        assets: { stickerPack: "visual-test-leaves" },
-        motion: { activation: "leaves" },
-      },
-    };
-
-    expect(getThemeDomAttributes(visualTestTheme, "bujo")).toMatchObject({
+    expect(getThemeDomAttributes(VISUAL_TEST_THEME, "bujo")).toMatchObject({
       colorTheme: "visual-test-theme",
       calendarGrid: "gingham",
       calendarEventAppearance: "highlight",

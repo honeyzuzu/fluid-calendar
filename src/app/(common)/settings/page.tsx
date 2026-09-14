@@ -15,6 +15,7 @@ import { NotificationSettings } from "@/components/settings/NotificationSettings
 import { PresenceDashboard } from "@/components/settings/PresenceDashboard";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import { TaskSyncSettings } from "@/components/settings/TaskSyncSettings";
+import { ThemeLab } from "@/components/settings/ThemeLab";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { UserSettings } from "@/components/settings/UserSettings";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,8 @@ type SettingsTab =
   | "import-export"
   | "admin-dashboard"
   | "notifications"
-  | "presence";
+  | "presence"
+  | "theme-lab";
 
 export default function SettingsPage() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -81,6 +83,7 @@ export default function SettingsPage() {
     // Add admin-only tabs
     if (isAdmin) {
       const adminTabs = [
+        { id: "theme-lab", label: "Theme Lab" },
         { id: "presence", label: "Online" },
         { id: "system", label: "System" },
         { id: "logs", label: "Logs" },
@@ -166,6 +169,7 @@ export default function SettingsPage() {
         "admin-dashboard",
         "notifications",
         "presence",
+        "theme-lab",
       ];
 
       if (allPossibleTabIds.includes(hash)) {
@@ -202,6 +206,7 @@ export default function SettingsPage() {
       "waitlist",
       "admin-dashboard",
       "presence",
+      "theme-lab",
     ];
 
     // If admin status is still loading and the active tab is admin-only, show loading state
@@ -246,6 +251,8 @@ export default function SettingsPage() {
         return <UserManagement />;
       case "presence":
         return <PresenceDashboard />;
+      case "theme-lab":
+        return <ThemeLab />;
       case "import-export":
         return <ImportExportSettings />;
       case "waitlist":

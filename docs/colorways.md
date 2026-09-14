@@ -282,10 +282,11 @@ The primitive vocabulary also reserves gingham, checker, and striped patterns;
 clean, paper, soft, patterned, and glass surfaces; solid, soft, highlight,
 outline, washi, and sticky-note calendar items; solid, dashed, and hand-drawn
 borders; decorative typography; and reusable ambient-motion and sticker-pack
-IDs. A deliberately loud test-only pack compiles these choices into generic DOM
-attributes. It is not selectable in Settings, but proves that a new pack can
-change the calendar grid, events, tasks, all-day items, borders, typography,
-decoration, and motion without adding a theme-name branch to Calendar.
+IDs. A deliberately loud test pack compiles these choices into generic DOM
+attributes. It cannot be saved as a normal planner theme, but admins can inspect
+and remix it in Settings → Theme Lab. It proves that a new pack can change the
+calendar grid, events, tasks, all-day items, borders, typography, decoration,
+and motion without adding a theme-name branch to Calendar.
 
 This first version does not add sticker persistence, custom theme assets, or
 ambient activation animation. The registry includes explicit asset and motion

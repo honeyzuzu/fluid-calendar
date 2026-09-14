@@ -50,7 +50,10 @@ export const AMBIENT_MOTIONS = [
 export const STICKER_PACKS = {
   "visual-test-leaves": {
     label: "Visual test leaves",
-    stickers: ["leaf-one", "leaf-two"],
+    stickers: [
+      { id: "leaf-one", preview: "🍂" },
+      { id: "leaf-two", preview: "🍁" },
+    ],
     testOnly: true,
   },
 } as const;
@@ -208,6 +211,53 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     }
   ),
 };
+
+/**
+ * Deliberately loud, non-persistable pack used by tests and the admin Theme Lab.
+ * It exercises the visual contract without becoming a normal Settings choice.
+ */
+export const VISUAL_TEST_THEME: SunnieTheme<"visual-test-theme"> = {
+  ...SUNNIE_THEMES.base,
+  id: "visual-test-theme",
+  name: "Visual Test Theme",
+  description:
+    "A loud laboratory pack that makes each visual primitive easy to inspect.",
+  family: "special",
+  visual: {
+    ...SUNNIE_THEMES.base.visual,
+    surfaceStyle: "patterned",
+    patterns: { app: "stripes", surface: "checker", sidebar: "dot-grid" },
+    borderStyle: "dashed",
+    typography: "handwritten-accent",
+    calendar: {
+      classic: {
+        gridStyle: "checker",
+        eventAppearance: "solid",
+        taskAppearance: "soft",
+        allDayAppearance: "highlight",
+        borderStyle: "dashed",
+        typography: "normal",
+      },
+      bujo: {
+        gridStyle: "gingham",
+        eventAppearance: "highlight",
+        taskAppearance: "sticky-note",
+        allDayAppearance: "washi",
+        borderStyle: "dashed",
+        typography: "handwritten-accent",
+      },
+    },
+    assets: { stickerPack: "visual-test-leaves" },
+    motion: { activation: "leaves" },
+  },
+};
+
+export const THEME_LAB_THEMES = {
+  ...SUNNIE_THEMES,
+  [VISUAL_TEST_THEME.id]: VISUAL_TEST_THEME,
+} as const;
+
+export type ThemeLabThemeId = keyof typeof THEME_LAB_THEMES;
 
 export type ThemeDomAttributes = Record<
   | "colorTheme"

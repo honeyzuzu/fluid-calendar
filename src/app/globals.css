@@ -596,7 +596,10 @@ html[data-calendar-border="hand-drawn"]
 html[data-calendar-border="hand-drawn"]
   .sunnie-calendar-frame
   .fc-theme-standard
-  th {
+  th,
+html[data-calendar-border="hand-drawn"]
+  .sunnie-calendar-frame
+  .theme-lab-grid-cell {
   border-style: dashed;
 }
 
@@ -607,7 +610,10 @@ html[data-calendar-border="dashed"]
 html[data-calendar-border="dashed"]
   .sunnie-calendar-frame
   .fc-theme-standard
-  th {
+  th,
+html[data-calendar-border="dashed"]
+  .sunnie-calendar-frame
+  .theme-lab-grid-cell {
   border-style: dashed;
 }
 

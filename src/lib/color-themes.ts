@@ -608,7 +608,7 @@ function hexToHslChannels(hex: string) {
 }
 
 export function getColorThemeCssVariables(
-  theme: ColorTheme
+  theme: Pick<ColorTheme, "core" | "palettes">
 ): Record<string, string> {
   const status = Object.fromEntries(
     theme.palettes.statuses.map((swatch) => [swatch.id, swatch.value])
