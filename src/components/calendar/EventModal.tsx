@@ -329,6 +329,7 @@ export function EventModal({
               body: JSON.stringify({
                 color: eventData.color,
                 colorSlot: eventData.colorSlot,
+                mode: event.isRecurring ? editMode || "series" : "single",
               }),
             });
             if (!response.ok) {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RRule } from "rrule";
 
+import { SunnieColorPicker } from "@/components/calendar/SunnieColorPicker";
 import { WeekPicker } from "@/components/planning/WeekPicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -99,6 +100,8 @@ export function TaskModal({
   const [duration, setDuration] = useState<string>("");
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | "">("");
   const [preferredTime, setPreferredTime] = useState<TimePreference | "">("");
+  const [color, setColor] = useState<string | null>(null);
+  const [colorSlot, setColorSlot] = useState<string | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#E5E7EB");
@@ -129,6 +132,8 @@ export function TaskModal({
     setDuration("");
     setEnergyLevel("");
     setPreferredTime("");
+    setColor(null);
+    setColorSlot(null);
     setSelectedTagIds([]);
     setNewTagName("");
     setNewTagColor("#E5E7EB");
@@ -174,6 +179,8 @@ export function TaskModal({
       setDuration(task.duration?.toString() || "");
       setEnergyLevel(task.energyLevel || "");
       setPreferredTime(task.preferredTime || "");
+      setColor(task.color ?? null);
+      setColorSlot(task.colorSlot ?? null);
       setSelectedTagIds(task.tags.map((t) => t.id));
       setProjectId(task.projectId || null);
       setIsRecurring(task.isRecurring);
@@ -211,6 +218,8 @@ export function TaskModal({
         duration: duration ? parseInt(duration, 10) : undefined,
         energyLevel: energyLevel || undefined,
         preferredTime: preferredTime || undefined,
+        color,
+        colorSlot,
         tagIds: selectedTagIds,
         projectId: projectId,
         isRecurring,
@@ -468,6 +477,24 @@ export function TaskModal({
                   ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label>Calendar color</Label>
+            <p className="mb-2 text-xs text-muted-foreground">
+              This colors the task itself and does not require a colored tag.
+            </p>
+            <SunnieColorPicker
+              paletteName="tasks"
+              value={color}
+              valueSlot={colorSlot}
+              onChange={(nextColor, nextSlot) => {
+                setColor(nextColor);
+                setColorSlot(nextSlot);
+              }}
+              allowDefault
+              defaultLabel="Use automatic task color"
+            />
           </div>
 
           <div>

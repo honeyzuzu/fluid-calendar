@@ -30,11 +30,19 @@ When useful, explore:
 We can fill these in together. A rough bullet is enough to begin.
 
 - **Original thought:** Add seasonal/color theme packs for the entire app. The planner theme should update Sunnie's overall colors and the coordinated colors available for calendar, task, project, and friend items. Add three new themes and preserve the current colors as the Base theme. Make the calendar feel prettier and less dated. Replace the custom color picker's editing-style bubbles with a clear `+` button.
+
   - **Why it matters:** The whole planner should feel intentionally styled rather than like separate features using unrelated hardcoded colors.
   - **What it could feel like:** Choosing a new colorway changes the app surfaces and every theme-linked item while keeping custom colors fixed. Calendar, project, task, and friend choices remain coordinated but visually distinct.
   - **Implemented:** The exact 44-color contract in [the colorway worksheet](docs/colorways.md) now powers Sunnie Base and all four seasonal sets. A selection applies immediately; explicit palette slots recolor feeds, events, projects, tasks, and friends while custom colors remain fixed through provider refreshes. Theme and swatch collection names are visible in Settings and color pickers, and the primary application surfaces use semantic theme tokens.
   - **Open questions:** The final calendar card treatment and recent-custom-color management interaction can continue during a later visual pass.
   - **Later possibilities:** An optional automatic seasonal rotation can wait until manual colorway selection and stable item recoloring are complete.
+
+- **Original thought:** Let themes become complete visual worlds rather than only color swaps, and keep a bullet-journal calendar look separate so any colorway can be combined with Classic or Bujo presentation.
+  - **Why it matters:** Sunnie can combine real scheduling and calendar sync with the warmth and personalization of a digital planner without duplicating every theme for every calendar layout.
+  - **What it could feel like:** A seasonal or future character theme can choose paper patterns, surface treatments, decorative headings, marker or washi events, stickers, and a restrained theme moment while calendar behavior stays familiar.
+  - **Implemented first version:** `src/lib/planner-themes.ts` layers declarative visual definitions over the stable color registry. Calendar style persists per user as Classic or Bujo, and Bujo consumes reusable dot-grid, lined-paper, graph-paper, marker, washi, outline, and sticky-note variants without checking theme IDs.
+  - **Open questions:** Test the treatments with real dense calendars, decide which visual controls should eventually be user-overridable, and define the first complete theme pack before adding assets.
+  - **Later possibilities:** Date-relative draggable stickers, theme asset packs, restrained activation motion, reusable gingham and paper-grain patterns, and future worlds such as Cherry Picnic can build on the registry.
 
 ## Ready for a future session
 

@@ -110,9 +110,7 @@ function RhythmShell({
           <div
             className={cn(
               "relative flex-none overflow-hidden border-b border-black/[0.055] px-5 pb-4 pt-5 sm:px-7",
-              isRise
-                ? "bg-gradient-to-br from-[#fff8d6] via-[#ffe7aa] to-[#f8c968]"
-                : "bg-gradient-to-br from-[#f7dfc5] via-[#d9cde8] to-[#aaa6d4]"
+              isRise ? "sunnie-rise-surface" : "sunnie-unwind-surface"
             )}
           >
             <motion.div
@@ -122,8 +120,8 @@ function RhythmShell({
               className={cn(
                 "absolute right-14 top-4 h-16 w-16 rounded-full",
                 isRise
-                  ? "bg-[#f5bd3e] shadow-[0_0_35px_#fff1a8]"
-                  : "bg-[#fff7d2] shadow-[0_0_28px_#fff5cf]"
+                  ? "bg-[var(--sunnie-warm-glow)] shadow-[0_0_35px_var(--sunnie-accent)]"
+                  : "bg-accent shadow-[0_0_28px_var(--sunnie-cool-glow)]"
               )}
             />
             <p className="relative flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-black/50">
@@ -159,7 +157,7 @@ function RhythmShell({
               </motion.div>
             </AnimatePresence>
           </div>
-          <div className="flex-none border-t border-black/[0.055] bg-white px-5 py-4 sm:px-7">
+          <div className="flex-none border-t border-border bg-card px-5 py-4 sm:px-7">
             {footer}
           </div>
         </DialogContent>
@@ -633,7 +631,7 @@ export function DailyUnwind({
                           date: dates[task.id],
                         })
                       }
-                      className="rounded-lg bg-[#69658e] px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-35"
+                      className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-35"
                     >
                       Move
                     </button>

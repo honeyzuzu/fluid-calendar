@@ -44,6 +44,7 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
   user: {
     theme: "system",
     colorTheme: BASE_COLOR_THEME.id,
+    calendarStyle: "classic",
     defaultView: "week",
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     weekStartDay: "sunday",
@@ -407,6 +408,7 @@ export const useSettingsStore = create<SettingsStore>()(
           get().updateUserSettings({
             theme: userSettings.theme,
             colorTheme: userSettings.colorTheme || BASE_COLOR_THEME.id,
+            calendarStyle: userSettings.calendarStyle || "classic",
             defaultView: userSettings.defaultView,
             timeZone: userSettings.timeZone,
             weekStartDay: userSettings.weekStartDay,

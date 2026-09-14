@@ -45,6 +45,8 @@ export interface Task {
   priority?: Priority | null;
   energyLevel?: EnergyLevel | null;
   preferredTime?: TimePreference | null;
+  color?: string | null;
+  colorSlot?: string | null;
   tags: Tag[];
   projectId?: string | null;
   project?: Project | null;

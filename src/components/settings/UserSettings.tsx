@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { MoonStar, Palette, Sunrise } from "lucide-react";
+import { BookOpen, MoonStar, Palette, Sunrise } from "lucide-react";
 
 import { ThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,11 @@ import {
   ColorThemeId,
   getThemeColorSlot,
 } from "@/lib/color-themes";
+import {
+  CalendarStyleId,
+  getCalendarStyle,
+  getSunnieTheme,
+} from "@/lib/planner-themes";
 
 import { useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
@@ -304,6 +309,34 @@ export function UserSettings() {
               Applying colorway…
             </p>
           )}
+        </div>
+      </SettingRow>
+
+      <SettingRow
+        label="Calendar style"
+        description="Choose the calendar's presentation independently from its colorway."
+      >
+        <div className="space-y-2">
+          <Select
+            value={getCalendarStyle(user.calendarStyle)}
+            onValueChange={(value) =>
+              updateUserSettings({ calendarStyle: value as CalendarStyleId })
+            }
+          >
+            <SelectTrigger aria-label="Calendar style">
+              <BookOpen className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="classic">Classic</SelectItem>
+              <SelectItem value="bujo">Bujo</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="max-w-sm text-xs text-muted-foreground">
+            {getCalendarStyle(user.calendarStyle) === "bujo"
+              ? `Paper-like ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.gridStyle.replaceAll("-", " ")} with decorative headings and ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.eventAppearance} events.`
+              : "Sunnie's clean, softly rounded calendar with familiar event cards."}
+          </p>
         </div>
       </SettingRow>
 

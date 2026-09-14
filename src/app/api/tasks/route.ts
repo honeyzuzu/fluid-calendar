@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { parseWeek } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { schedulePushTaskBlock } from "@/lib/task-block-push";
+import { isValidTaskColor, isValidTaskColorSlot } from "@/lib/task-colors";
 import {
   ChangeType,
   TaskChangeTracker,
@@ -122,6 +123,15 @@ export async function POST(request: NextRequest) {
 
     const json = await request.json();
     const { tagIds, recurrenceRule, ...taskData } = json;
+    if (
+      !isValidTaskColor(taskData.color) ||
+      !isValidTaskColorSlot(taskData.colorSlot)
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid task color" },
+        { status: 400 }
+      );
+    }
     delete taskData.rolloverCount;
     delete taskData.rolledFromWeek;
     taskData.completedAt = taskData.status === "completed" ? newDate() : null;

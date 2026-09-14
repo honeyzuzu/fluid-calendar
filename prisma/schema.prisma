@@ -291,6 +291,8 @@ model Task {
   blockDirty   Boolean @default(false) // Push failed, needs retry
 
   // Organization
+  color     String? // Optional fixed custom task color
+  colorSlot String? // Theme-linked task palette slot; null uses custom/automatic color
   tags Tag[]
 
   // Recurrence
@@ -415,6 +417,7 @@ model UserSettings {
   dailyRitualDays      String   @default("working") // "working" or "everyday"
   theme                String   @default("system") // "light", "dark", "system"
   colorTheme           String   @default("base") // planner colorway id from src/lib/color-themes.ts
+  calendarStyle        String   @default("classic") // "classic" or "bujo"
   defaultView          String   @default("week") // "day", "week", "month", "agenda"
   timeZone             String
   weekStartDay         String   @default("sunday") // "monday", "sunday"

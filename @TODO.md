@@ -7,6 +7,9 @@ Use this file for concrete work we have chosen to do. Put rough feature thoughts
 ## Current work
 
 - [x] Colorway overhaul shipped in `6269b40`. All five colorways apply immediately, theme-linked feeds/events/projects/friends use stable slots that survive provider refreshes, custom colors remain fixed, palette names are visible, the four seasonal interface worlds are distinct, and intention motifs change with the active theme. Broader secondary-screen visual polish remains an optional future pass in [the colorway worksheet](docs/colorways.md).
+- [x] First visual-theme engine slice implemented in the current worktree. The higher-level registry preserves the 44-color contract, Calendar style persists independently as Classic or Bujo, and reusable paper-grid/event/task variants are selected declaratively without theme-ID conditionals. Sticker persistence, theme assets, and ambient motion remain later possibilities rather than part of this slice.
+- [x] Recurring-event color edits no longer create duplicate occurrences. Equivalent recurrence rules remain on the local cosmetic path, series colors update every related local row, and genuine provider rebuilds clear both master-linked and provider-ID-linked instances first.
+- [x] Daily Rise, Daily Unwind, their invitations, and the Plan completion bar now consume theme-level semantic colors. Tasks can choose a theme-linked palette slot or fixed custom color directly, independently of tags, and calendar blocks honor that choice in every view.
 
 ## Maintenance candidates
 

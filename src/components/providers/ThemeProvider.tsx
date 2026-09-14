@@ -7,13 +7,15 @@ import React, {
   useEffect,
 } from "react";
 
+import { ColorThemeId, getColorThemeCssVariables } from "@/lib/color-themes";
 import {
-  BASE_COLOR_THEME,
-  ColorTheme,
-  ColorThemeId,
-  getColorTheme,
-  getColorThemeCssVariables,
-} from "@/lib/color-themes";
+  CalendarStyleId,
+  SunnieTheme,
+  getCalendarPresentation,
+  getCalendarStyle,
+  getPlannerThemeCssVariables,
+  getSunnieTheme,
+} from "@/lib/planner-themes";
 
 import { useSettingsStore } from "@/store/settings";
 
@@ -22,8 +24,10 @@ import { ThemeMode } from "@/types/settings";
 type ThemeContextType = {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  colorTheme: ColorTheme;
+  colorTheme: SunnieTheme;
   setColorTheme: (theme: ColorThemeId) => void;
+  calendarStyle: CalendarStyleId;
+  setCalendarStyle: (style: CalendarStyleId) => void;
 };
 
 type ThemeProviderProps = {
@@ -53,8 +57,11 @@ export function ThemeProvider({
 
   // Use forcedTheme if provided, otherwise use user theme
   const currentTheme = forcedTheme || user.theme;
-  const currentColorTheme = getColorTheme(
-    user.colorTheme || BASE_COLOR_THEME.id
+  const currentColorTheme = getSunnieTheme(user.colorTheme);
+  const currentCalendarStyle = getCalendarStyle(user.calendarStyle);
+  const calendarPresentation = getCalendarPresentation(
+    currentColorTheme,
+    currentCalendarStyle
   );
 
   // Function to apply theme to the DOM
@@ -113,12 +120,22 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
     root.dataset.colorTheme = currentColorTheme.id;
-    for (const [property, value] of Object.entries(
-      getColorThemeCssVariables(currentColorTheme)
-    )) {
+    root.dataset.calendarStyle = currentCalendarStyle;
+    root.dataset.calendarGrid = calendarPresentation.gridStyle;
+    root.dataset.calendarEventAppearance = calendarPresentation.eventAppearance;
+    root.dataset.calendarTaskAppearance = calendarPresentation.taskAppearance;
+    root.dataset.calendarBorder = calendarPresentation.borderStyle;
+    root.dataset.calendarTypography = calendarPresentation.typography;
+    root.dataset.themeBackground = currentColorTheme.visual.backgroundStyle;
+    root.dataset.themeSurface = currentColorTheme.visual.surfaceStyle;
+    root.dataset.themeMotion = currentColorTheme.visual.motion.activation;
+    for (const [property, value] of Object.entries({
+      ...getColorThemeCssVariables(currentColorTheme),
+      ...getPlannerThemeCssVariables(currentColorTheme),
+    })) {
       root.style.setProperty(property, value);
     }
-  }, [currentColorTheme]);
+  }, [calendarPresentation, currentCalendarStyle, currentColorTheme]);
 
   // Listen for system theme changes if system preference is enabled
   useEffect(() => {
@@ -154,6 +171,10 @@ export function ThemeProvider({
     updateUserSettings({ colorTheme: theme });
   };
 
+  const setCalendarStyle = (style: CalendarStyleId) => {
+    updateUserSettings({ calendarStyle: style });
+  };
+
   return (
     <ThemeContext.Provider
       value={{
@@ -161,6 +182,8 @@ export function ThemeProvider({
         setTheme,
         colorTheme: currentColorTheme,
         setColorTheme,
+        calendarStyle: currentCalendarStyle,
+        setCalendarStyle,
       }}
     >
       {children}

@@ -839,13 +839,13 @@ export default function PlanPage() {
                 <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
                   <button
                     onClick={() => openRitual("rise")}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-[#f2b847] px-4 py-2.5 text-xs font-semibold text-[#4b3b18] shadow-sm transition hover:bg-[#eeb03a] disabled:opacity-50"
+                    className="sunnie-rise-surface flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-foreground shadow-sm transition hover:brightness-95 disabled:opacity-50"
                   >
                     <Sunrise className="h-3.5 w-3.5" /> Daily Rise
                   </button>
                   <button
                     onClick={() => openRitual("unwind")}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-[#69658e] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5c587e]"
+                    className="sunnie-unwind-surface flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-foreground shadow-sm transition hover:brightness-95"
                   >
                     <MoonStar className="h-3.5 w-3.5" /> Daily Unwind
                   </button>
@@ -934,7 +934,7 @@ export default function PlanPage() {
                       animate={{
                         width: `${(completedPlanningSteps / 3) * 100}%`,
                       }}
-                      className="h-full rounded-full bg-gradient-to-r from-[#f0b947] to-[#7f9b5d]"
+                      className="sunnie-plan-progress h-full rounded-full"
                     />
                   </div>
                 </div>

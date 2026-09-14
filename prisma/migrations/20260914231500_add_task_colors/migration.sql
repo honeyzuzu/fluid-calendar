@@ -1,0 +1,3 @@
+ALTER TABLE "Task"
+ADD COLUMN "color" TEXT,
+ADD COLUMN "colorSlot" TEXT;

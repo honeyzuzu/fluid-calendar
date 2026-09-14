@@ -13,6 +13,7 @@ import {
   deleteTaskBlockEvent,
   schedulePushTaskBlock,
 } from "@/lib/task-block-push";
+import { isValidTaskColor, isValidTaskColorSlot } from "@/lib/task-colors";
 import {
   ChangeType,
   TaskChangeTracker,
@@ -99,6 +100,16 @@ export async function PUT(
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tagIds, project, projectId, userId: _, ...updates } = json;
+
+    if (
+      !isValidTaskColor(updates.color) ||
+      !isValidTaskColorSlot(updates.colorSlot)
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid task color" },
+        { status: 400 }
+      );
+    }
 
     delete updates.completedAt;
     delete updates.rolloverCount;
@@ -271,6 +282,8 @@ export async function PUT(
               priority: task.priority,
               energyLevel: task.energyLevel,
               preferredTime: task.preferredTime,
+              color: task.color,
+              colorSlot: task.colorSlot,
               projectId: task.projectId,
               isRecurring: false,
               completedAt: newDate(), // Set completedAt for the completed instance

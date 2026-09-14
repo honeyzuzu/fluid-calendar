@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { isColorThemeId } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
+import { isCalendarStyleId } from "@/lib/planner-themes";
 import { prisma } from "@/lib/prisma";
 
 const LOG_SOURCE = "UserSettingsAPI";
@@ -56,6 +57,7 @@ export async function PATCH(request: NextRequest) {
       "onboardingVersion",
       "theme",
       "colorTheme",
+      "calendarStyle",
       "defaultView",
       "timeZone",
       "weekStartDay",
@@ -80,6 +82,15 @@ export async function PATCH(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Choose a valid planner colorway" },
+        { status: 400 }
+      );
+    }
+    if (
+      updates.calendarStyle !== undefined &&
+      !isCalendarStyleId(updates.calendarStyle)
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid calendar style" },
         { status: 400 }
       );
     }

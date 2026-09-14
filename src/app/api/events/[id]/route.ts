@@ -94,6 +94,7 @@ export async function PATCH(
     const body = (await request.json()) as {
       color?: unknown;
       colorSlot?: unknown;
+      mode?: unknown;
     };
     if (
       !("color" in body) ||
@@ -117,16 +118,60 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    const updated = await prisma.calendarEvent.update({
-      where: { id },
-      data: {
-        color: body.color,
-        colorSlot:
-          body.colorSlot === undefined
-            ? undefined
-            : (body.colorSlot as string | null),
-      },
-    });
+    if (
+      body.mode !== undefined &&
+      body.mode !== "single" &&
+      body.mode !== "series"
+    ) {
+      return NextResponse.json(
+        { error: "Choose whether to update one event or the series" },
+        { status: 400 }
+      );
+    }
+
+    const colorUpdate = {
+      color: body.color as string | null,
+      colorSlot:
+        body.colorSlot === undefined
+          ? undefined
+          : (body.colorSlot as string | null),
+    };
+
+    if (body.mode === "series" && existingEvent.isRecurring) {
+      const masterDatabaseId = existingEvent.isMaster
+        ? existingEvent.id
+        : existingEvent.masterEventId;
+      const providerSeriesId = existingEvent.isMaster
+        ? existingEvent.externalEventId
+        : existingEvent.recurringEventId;
+      const relatedRows = [
+        { id: existingEvent.id },
+        ...(masterDatabaseId
+          ? [{ id: masterDatabaseId }, { masterEventId: masterDatabaseId }]
+          : []),
+        ...(providerSeriesId
+          ? [
+              { externalEventId: providerSeriesId },
+              { recurringEventId: providerSeriesId },
+            ]
+          : []),
+      ];
+
+      await prisma.calendarEvent.updateMany({
+        where: {
+          feedId: existingEvent.feedId,
+          OR: relatedRows,
+        },
+        data: colorUpdate,
+      });
+    } else {
+      await prisma.calendarEvent.update({
+        where: { id },
+        data: colorUpdate,
+      });
+    }
+
+    const updated = await prisma.calendarEvent.findUnique({ where: { id } });
 
     return NextResponse.json(updated);
   } catch (error) {

@@ -100,27 +100,31 @@ export async function deleteCalendarEvent(
   }
 
   if (mode === "series") {
-    // Delete the event and any related instances from our database
-    if (event.isMaster || !event.masterEventId) {
-      //deleting the master event will cascade to all instances
-      await prisma.calendarEvent.delete({
-        where: {
-          id: event.id,
-        },
-      });
-    } else {
-      const masterEvent = await prisma.calendarEvent.findFirst({
-        where: {
-          id: event.masterEventId,
-        },
-      });
-      //deleting the master event will cascade to all instances
-      await prisma.calendarEvent.delete({
-        where: {
-          id: masterEvent?.id,
-        },
-      });
-    }
+    // Provider-created recurring instances do not always have a local master
+    // row, but they do share recurringEventId. Remove both relationship forms
+    // before regenerated provider instances are inserted.
+    const masterDatabaseId = event.isMaster ? event.id : event.masterEventId;
+    const providerSeriesId = event.isMaster
+      ? event.externalEventId
+      : event.recurringEventId;
+
+    await prisma.calendarEvent.deleteMany({
+      where: {
+        feedId: event.feedId,
+        OR: [
+          { id: event.id },
+          ...(masterDatabaseId
+            ? [{ id: masterDatabaseId }, { masterEventId: masterDatabaseId }]
+            : []),
+          ...(providerSeriesId
+            ? [
+                { externalEventId: providerSeriesId },
+                { recurringEventId: providerSeriesId },
+              ]
+            : []),
+        ],
+      },
+    });
   } else {
     //delete a single instance
     await prisma.calendarEvent.delete({

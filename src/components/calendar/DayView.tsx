@@ -23,6 +23,7 @@ import { getColorTheme } from "@/lib/color-themes";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarItems } from "@/lib/friend-calendar";
+import { getTaskDisplayColor } from "@/lib/task-colors";
 
 import { useCalendarStore, useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
@@ -54,7 +55,6 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
   const { user: userSettings, calendar: calendarSettings } = useSettingsStore();
   const activeColorTheme = getColorTheme(userSettings.colorTheme);
   const friendFallbackColor = activeColorTheme.palettes.friends[0].value;
-  const taskFallbackColor = activeColorTheme.palettes.tasks[0].value;
   const { updateTask } = useTaskStore();
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent>>();
   const [selectedTask, setSelectedTask] = useState<Task>();
@@ -113,16 +113,18 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
           location: item.location,
           backgroundColor:
             item.feedId === "tasks"
-              ? taskFallbackColor
+              ? getTaskDisplayColor(item, activeColorTheme.id)
               : getCalendarDisplayColor(item, feeds, activeColorTheme.id),
           borderColor:
             item.feedId === "tasks"
-              ? taskFallbackColor
+              ? getTaskDisplayColor(item, activeColorTheme.id)
               : getCalendarDisplayColor(item, feeds, activeColorTheme.id),
           allDay: item.allDay,
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
             taskId: item.id,
+            color: item.color,
+            colorSlot: item.colorSlot,
             durationMs:
               newDate(item.end).getTime() - newDate(item.start).getTime(),
           }),
@@ -148,7 +150,6 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
       friendCalendarColors,
       friendFallbackColor,
       activeColorTheme.id,
-      taskFallbackColor,
       getAllCalendarItems,
       hiddenFriendIds,
     ]

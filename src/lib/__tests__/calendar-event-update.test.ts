@@ -34,4 +34,39 @@ describe("calendar event update classification", () => {
       })
     ).toEqual({ contentChanged: true, colorChanged: false });
   });
+
+  it("recognizes equivalent provider and modal recurrence rules", () => {
+    expect(
+      getCalendarEventChangeKind(
+        {
+          ...event,
+          isRecurring: true,
+          recurrenceRule: "RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=WE,MO",
+        },
+        {
+          ...event,
+          isRecurring: true,
+          recurrenceRule: "FREQ=WEEKLY;BYDAY=MO,WE",
+          color: "#C94F3D",
+        }
+      )
+    ).toEqual({ contentChanged: false, colorChanged: true });
+  });
+
+  it("still detects a real recurrence change", () => {
+    expect(
+      getCalendarEventChangeKind(
+        {
+          ...event,
+          isRecurring: true,
+          recurrenceRule: "RRULE:FREQ=WEEKLY;BYDAY=MO",
+        },
+        {
+          ...event,
+          isRecurring: true,
+          recurrenceRule: "FREQ=WEEKLY;BYDAY=TU",
+        }
+      )
+    ).toEqual({ contentChanged: true, colorChanged: false });
+  });
 });

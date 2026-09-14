@@ -34,4 +34,27 @@ describe("calendar task styling", () => {
       })
     ).toEqual(["calendar-task", "calendar-task-color-1"]);
   });
+
+  it("uses an explicitly selected task palette slot", () => {
+    expect(
+      getCalendarItemClassNames({
+        isTask: true,
+        taskId: "task-1",
+        colorSlot: "task-5",
+        color: "#C6DCEB",
+        durationMs: 60 * 60 * 1000,
+      })
+    ).toEqual(["calendar-task", "calendar-task-color-5"]);
+  });
+
+  it("lets a fixed custom color remain inline instead of overriding it", () => {
+    expect(
+      getCalendarItemClassNames({
+        isTask: true,
+        taskId: "task-1",
+        color: "#123456",
+        durationMs: 60 * 60 * 1000,
+      })
+    ).toEqual(["calendar-task", "calendar-task-custom-color"]);
+  });
 });

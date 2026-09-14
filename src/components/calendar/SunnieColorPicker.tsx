@@ -7,6 +7,7 @@ import { Check, Plus } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 
+import { ThemeLinkedPaletteName } from "@/lib/color-themes";
 import { MAX_RECENT_COLORS, addRecentColor } from "@/lib/recent-colors";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ interface SunnieColorPickerProps {
   allowDefault?: boolean;
   defaultLabel?: string;
   className?: string;
+  paletteName?: Extract<ThemeLinkedPaletteName, "events" | "tasks">;
 }
 
 export function SunnieColorPicker({
@@ -32,19 +34,20 @@ export function SunnieColorPicker({
   allowDefault = false,
   defaultLabel = "Use calendar color",
   className,
+  paletteName = "events",
 }: SunnieColorPickerProps) {
   const { colorTheme } = useTheme();
-  const eventColors = colorTheme.palettes.events;
+  const paletteColors = colorTheme.palettes[paletteName];
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  const displayedColor = value || fallbackColor || eventColors[0].value;
+  const displayedColor = value || fallbackColor || paletteColors[0].value;
   const [customColor, setCustomColor] = useState(displayedColor);
   const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
   const isPreset =
     !!valueSlot ||
-    eventColors.some(
+    paletteColors.some(
       (color) => color.value.toLowerCase() === value?.toLowerCase()
     );
-  const presetValues = eventColors.map((color) => color.value);
+  const presetValues = paletteColors.map((color) => color.value);
 
   useEffect(() => {
     try {
@@ -104,16 +107,26 @@ export function SunnieColorPicker({
     <div className={cn("space-y-3", className)}>
       <div
         className="rounded-2xl border border-black/[0.06] bg-white/65 p-3"
-        aria-label="Event color presets"
+        aria-label={`${paletteName === "tasks" ? "Task" : "Event"} color presets`}
       >
         <p className="text-sm font-semibold text-foreground">
-          {colorTheme.paletteNames.events}
+          {colorTheme.paletteNames[paletteName]}
         </p>
-        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+        {paletteName === "tasks" && (
+          <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+            Task colors are independent of tags and priority.
+          </p>
+        )}
+        <p
+          className={cn(
+            "mb-3 text-xs leading-relaxed text-muted-foreground",
+            paletteName === "tasks" && "hidden"
+          )}
+        >
           Event colors · pick a mood. Task colors stay separate.
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {eventColors.map((color) => {
+          {paletteColors.map((color) => {
             const selected = valueSlot
               ? color.id === valueSlot
               : color.value.toLowerCase() === value?.toLowerCase();

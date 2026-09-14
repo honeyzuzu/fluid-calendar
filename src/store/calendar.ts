@@ -5,7 +5,6 @@ import { persist } from "zustand/middleware";
 
 import { prepareCalendarEventDeletion } from "@/lib/calendar-event-deletion";
 import { newDate, normalizeAllDayDate } from "@/lib/date-utils";
-import { DEFAULT_TASK_COLOR } from "@/lib/task-utils";
 
 import { useTaskStore } from "@/store/task";
 
@@ -904,7 +903,8 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
             isRecurring: task.isRecurring,
             isMaster: false,
             allDay: false,
-            color: task.tags[0]?.color || DEFAULT_TASK_COLOR,
+            color: task.color ?? null,
+            colorSlot: task.colorSlot ?? null,
             extendedProps: {
               isTask: true,
               taskId: task.id,
@@ -945,7 +945,8 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
             isRecurring: false,
             isMaster: false,
             allDay: true,
-            color: task.tags[0]?.color || DEFAULT_TASK_COLOR,
+            color: task.color ?? null,
+            colorSlot: task.colorSlot ?? null,
             extendedProps: {
               isTask: true,
               taskId: task.id,

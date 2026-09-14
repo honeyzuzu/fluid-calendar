@@ -1,4 +1,5 @@
 import type { ColorThemeId } from "@/lib/color-themes";
+import type { CalendarStyleId } from "@/lib/planner-themes";
 
 export type TimeFormat = "12h" | "24h";
 export type WeekStartDay = "monday" | "sunday";
@@ -9,6 +10,7 @@ export interface UserSettings {
   onboardingVersion?: number;
   theme: ThemeMode;
   colorTheme?: ColorThemeId;
+  calendarStyle: CalendarStyleId;
   defaultView: CalendarView;
   timeZone: string;
   weekStartDay: WeekStartDay;

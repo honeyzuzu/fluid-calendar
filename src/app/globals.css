@@ -13,6 +13,32 @@
   }
 }
 
+.sunnie-rise-surface {
+  background-image: linear-gradient(
+    135deg,
+    var(--sunnie-rise-from, var(--sunnie-surface)),
+    var(--sunnie-rise-via, var(--sunnie-accent)),
+    var(--sunnie-rise-to, var(--sunnie-warm-glow))
+  );
+}
+
+.sunnie-unwind-surface {
+  background-image: linear-gradient(
+    135deg,
+    var(--sunnie-unwind-from, var(--sunnie-surface-raised)),
+    var(--sunnie-unwind-via, var(--sunnie-surface-muted)),
+    var(--sunnie-unwind-to, var(--sunnie-cool-glow))
+  );
+}
+
+.sunnie-plan-progress {
+  background-image: linear-gradient(
+    90deg,
+    var(--sunnie-progress-from, var(--sunnie-accent)),
+    var(--sunnie-progress-to, var(--sunnie-primary))
+  );
+}
+
 @keyframes sunnie-overlay-fade {
   from {
     opacity: 0;
@@ -548,6 +574,132 @@
       transparent
     );
   }
+}
+
+/* Calendar presentation primitives. Theme definitions select these semantic
+   variants through data attributes; this CSS never needs to know a theme id. */
+html[data-calendar-style="bujo"] .sunnie-calendar-frame {
+  border-color: color-mix(
+    in srgb,
+    var(--sunnie-border, #dfe2c8) 82%,
+    var(--sunnie-ink-soft, #5f6848)
+  );
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--sunnie-ink, #3f432e) 8%, transparent),
+    0 12px 30px color-mix(in srgb, var(--sunnie-ink, #3f432e) 9%, transparent);
+}
+
+html[data-calendar-border="hand-drawn"]
+  .sunnie-calendar-frame
+  .fc-theme-standard
+  td,
+html[data-calendar-border="hand-drawn"]
+  .sunnie-calendar-frame
+  .fc-theme-standard
+  th {
+  border-style: dashed;
+}
+
+html[data-calendar-grid="dot-grid"] .sunnie-calendar-frame .fc,
+html[data-calendar-grid="graph-paper"] .sunnie-calendar-frame .fc,
+html[data-calendar-grid="lined-paper"] .sunnie-calendar-frame .fc {
+  background-color: var(--sunnie-surface, #fffdf5);
+  background-attachment: local;
+}
+
+html[data-calendar-grid="dot-grid"] .sunnie-calendar-frame .fc {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--sunnie-ink-soft, #5f6848) 24%, transparent) 0.8px,
+    transparent 0.9px
+  );
+  background-size: 18px 18px;
+}
+
+html[data-calendar-grid="lined-paper"] .sunnie-calendar-frame .fc {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 34px,
+    color-mix(in srgb, var(--sunnie-border, #dfe2c8) 48%, transparent) 35px
+  );
+}
+
+html[data-calendar-grid="graph-paper"] .sunnie-calendar-frame .fc {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--sunnie-border, #dfe2c8) 32%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sunnie-border, #dfe2c8) 32%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 20px 20px;
+}
+
+html[data-calendar-style="bujo"] .sunnie-calendar-frame .fc-scrollgrid,
+html[data-calendar-style="bujo"] .sunnie-calendar-frame .fc-scrollgrid table,
+html[data-calendar-style="bujo"] .sunnie-calendar-frame .fc-daygrid-day,
+html[data-calendar-style="bujo"] .sunnie-calendar-frame .fc-timegrid-col {
+  background-color: transparent;
+}
+
+html[data-calendar-typography="handwritten-accent"]
+  .sunnie-calendar-frame
+  .fc-col-header-cell-cushion,
+html[data-calendar-typography="handwritten-accent"]
+  .sunnie-calendar-frame
+  .fc-daygrid-day-number {
+  font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: none;
+}
+
+html[data-calendar-event-appearance="marker"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event:not(.calendar-task) {
+  border-radius: 0.3rem !important;
+  box-shadow: inset 0 -0.32em 0 rgba(255, 255, 255, 0.2) !important;
+  opacity: 0.9;
+}
+
+html[data-calendar-event-appearance="washi"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event:not(.calendar-task) {
+  border-radius: 0.15rem !important;
+  clip-path: polygon(1% 5%, 99% 0, 97% 96%, 2% 100%);
+  box-shadow: none !important;
+  opacity: 0.88;
+}
+
+html[data-calendar-event-appearance="outline"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event:not(.calendar-task) {
+  border: 1.5px solid currentColor !important;
+  border-radius: 0.4rem !important;
+  box-shadow: none !important;
+  opacity: 0.84;
+}
+
+html[data-calendar-task-appearance="sticky-note"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-task {
+  border-radius: 0.25rem 0.6rem 0.35rem 0.5rem !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    2px 3px 0 color-mix(in srgb, var(--sunnie-ink, #3f432e) 12%, transparent) !important;
+}
+
+html[data-calendar-task-appearance="washi"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-task {
+  border-radius: 0.15rem !important;
+  clip-path: polygon(1% 3%, 99% 0, 98% 97%, 2% 100%);
+  box-shadow: none !important;
+  opacity: 0.9;
 }
 
 /* Dark mode styles for FullCalendar */

@@ -8,6 +8,10 @@ owner-supplied seasonal themes: **Spring — Fresh Air**, **Summer — Sun-Kisse
 the same stable roles and palette-slot IDs, so changing themes immediately
 recolors every theme-linked item without changing what that item means.
 
+Colorways are now the color layer inside Sunnie's broader visual-theme engine.
+The higher-level registry in `src/lib/planner-themes.ts` gives each theme
+declarative presentation choices without changing the 44-color contract below.
+
 ## Exact color count
 
 Each theme needs exactly **44 hex colors**:
@@ -216,6 +220,8 @@ Provide:
 5. Six task hexes and optional names.
 6. Six friend hexes and optional names.
 7. Four semantic status hexes.
+8. A declarative visual definition covering surfaces, borders, typography,
+   Classic/Bujo calendar presentation, optional assets, and optional motion.
 
 Names can be decided after the colors. Every foreground/background pair will
 be contrast-checked before a theme is made available.
@@ -231,11 +237,17 @@ The theme registry and global CSS-variable application are now centralized in
 `src/lib/color-themes.ts`. The database stores the selected planner colorway on
 `UserSettings.colorTheme`. `CalendarFeed`, `CalendarEvent`, and `Project` store
 explicit palette-slot identities separately from custom hexes. Friend slot IDs
-remain browser-local, and scheduled tasks derive a stable aesthetic slot from
-their ID. Provider feeds receive a stable event slot automatically, while an
+remain browser-local. Tasks can store a theme-linked task slot or a fixed custom
+hex independently of tags; tasks without a choice derive a stable aesthetic slot
+from their ID. Provider feeds receive a stable event slot automatically, while an
 explicit custom feed, event, or project color clears the link and stays fixed.
 Google, CalDAV, and Outlook refreshes preserve Sunnie-only event color slots and
 custom overrides without editing the provider event.
+
+Color-only edits on recurring events also stay local. Series changes update all
+related local occurrences together, and equivalent provider recurrence-rule
+formats are normalized so a cosmetic edit cannot accidentally trigger a
+provider series rewrite or create duplicate occurrences.
 
 Settings and the event, feed, project, and friend pickers show both the
 collection name and each swatch name. The seasonal collection names are April
@@ -243,6 +255,28 @@ Showers / Garden Party / First Bloom / Picnic Basket for Spring; Strawberry
 Picking / Farmers Market / Seaside Holiday / Summer in Bloom for Summer; Apple
 Picking / Pumpkin Patch / Falling Leaves / Fireside Chats for Autumn; and Snow
 Day / Gingerbread House / Sugar Plum / Hot Cocoa for Winter.
+
+## Visual themes and calendar styles
+
+The first visual-theme foundation keeps color and calendar presentation
+composable. `colorTheme` chooses the visual world, while the independently
+persisted `calendarStyle` chooses **Classic** or **Bujo**.
+
+- **Classic** preserves the clean, softly rounded Sunnie calendar.
+- **Bujo** uses a theme-selected paper grid, selectively handwritten decorative
+  headings, hand-drawn grid borders, and marker, washi, outline, or sticky-note
+  item treatments.
+
+Themes declare semantic variants such as `dot-grid`, `lined-paper`,
+`graph-paper`, `marker`, `washi`, and `sticky-note`. Components and styles
+consume those names through shared presentation attributes; they do not check
+for individual theme IDs. This lets future packs change their design language
+without adding theme-specific calendar logic.
+
+This first version does not add sticker persistence, custom theme assets, or
+ambient activation animation. The registry includes explicit asset and motion
+contracts so those can be added later. Future draggable stickers should be
+anchored relative to calendar dates or cells rather than raw screen pixels.
 
 ## Calendar visual direction
 
@@ -256,3 +290,5 @@ continue with:
 - Finish replacing inherited hardcoded Base colors on secondary screens.
 - Refine the recent-custom-color management around the new compact `+` control.
 - Mobile-specific density and event-card typography checks.
+- Add a date-relative sticker canvas and themed sticker packs after the Bujo
+  presentation foundation has been tested across calendar views.

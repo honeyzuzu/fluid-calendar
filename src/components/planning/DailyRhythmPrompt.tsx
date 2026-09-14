@@ -167,11 +167,7 @@ export function DailyRhythmPrompt() {
         role="status"
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[55] overflow-hidden rounded-2xl border p-4 shadow-[0_18px_55px_rgba(63,67,46,0.2)] lg:bottom-5 lg:left-auto lg:right-5 lg:w-[360px] ${
-          isRise
-            ? "border-[#efd28a] bg-gradient-to-br from-[#fff8d9] to-[#ffd998]"
-            : "border-[#cfc5e1] bg-gradient-to-br from-[#f7e8d5] to-[#d9d0eb]"
-        }`}
+        className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[55] overflow-hidden rounded-2xl border border-border p-4 text-foreground shadow-[0_18px_55px_rgba(63,67,46,0.2)] lg:bottom-5 lg:left-auto lg:right-5 lg:w-[360px] ${isRise ? "sunnie-rise-surface" : "sunnie-unwind-surface"}`}
       >
         <button
           aria-label="Not now"
@@ -196,7 +192,7 @@ export function DailyRhythmPrompt() {
             {isRise ? "🐣" : "🌙"}
           </motion.span>
           <div>
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-[#4d4935]">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               {isRise ? (
                 <Sunrise className="h-4 w-4" />
               ) : (
@@ -213,7 +209,7 @@ export function DailyRhythmPrompt() {
             </p>
             <a
               href={`/plan?date=${dateKey}&ritual=${kind}`}
-              className="mt-3 inline-flex rounded-xl bg-[#596d43] px-3 py-2 text-xs font-semibold text-white shadow-sm"
+              className="mt-3 inline-flex rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-sm"
             >
               {isRise ? "Begin my Rise" : "Begin my Unwind"}
             </a>
