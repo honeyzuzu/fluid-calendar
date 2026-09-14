@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { getReadableTextColor } from "@/lib/color-contrast";
+import { getHarmonizedTextColor } from "@/lib/color-contrast";
 import { getColorThemeCssVariables } from "@/lib/color-themes";
 import {
   BORDER_STYLES,
@@ -29,6 +29,7 @@ import {
   TYPOGRAPHY_STYLES,
   ThemeLabThemeId,
   VISUAL_TEST_THEME,
+  WASHI_PACKS,
   getCalendarPresentation,
   getPlannerThemeCssVariables,
   getThemeDomAttributes,
@@ -280,7 +281,7 @@ export function ThemeLab() {
 
           <div className="grid gap-5 p-3 sm:p-5 xl:grid-cols-[minmax(0,1fr)_230px]">
             <FakeCalendar theme={selectedTheme} presentation={presentation} />
-            <aside className="space-y-4 rounded-2xl border border-[var(--sunnie-border)] bg-[var(--sunnie-surface-raised)] p-4">
+            <aside className="sunnie-theme-surface-pattern space-y-4 rounded-2xl border border-[var(--sunnie-border)] bg-[var(--sunnie-surface-raised)] p-4">
               <div className="flex items-center gap-2">
                 <Eye className="h-4 w-4 text-[var(--sunnie-primary)]" />
                 <h3 className="font-bold">Pack details</h3>
@@ -338,6 +339,17 @@ export function ThemeLab() {
                     ))}
                   </div>
                 )}
+                {selectedTheme.visual.assets.washiPack && (
+                  <p className="mt-3 border-t border-[var(--sunnie-border)] pt-3">
+                    Washi:{" "}
+                    {WASHI_PACKS[selectedTheme.visual.assets.washiPack].join(
+                      " · "
+                    )}
+                  </p>
+                )}
+              </div>
+              <div className="sunnie-theme-accent-edge rounded-xl bg-[var(--sunnie-accent)] px-3 py-2 text-xs font-semibold text-[var(--sunnie-on-accent)]">
+                {selectedTheme.visual.signatureDetails.join(" · ")}
               </div>
             </aside>
           </div>
@@ -357,6 +369,18 @@ function FakeCalendar({
   const event = theme.palettes.events[1].value;
   const allDay = theme.palettes.events[5].value;
   const task = theme.palettes.tasks[2].value;
+  const itemTextColor = (
+    itemColor: string,
+    appearance: CalendarPresentation["eventAppearance"]
+  ) =>
+    getHarmonizedTextColor(
+      appearance === "outline" ? theme.core.surfaceRaised : itemColor,
+      {
+        tintColor: itemColor,
+        darkColor: theme.core.ink,
+        lightColor: theme.core.surfaceRaised,
+      }
+    );
 
   return (
     <div className="sunnie-calendar-frame min-h-[520px] overflow-hidden rounded-2xl border border-[var(--sunnie-border)] bg-[var(--sunnie-surface)] shadow-lg">
@@ -392,10 +416,7 @@ function FakeCalendar({
               style={{
                 backgroundColor: allDay,
                 borderColor: allDay,
-                color:
-                  presentation.allDayAppearance === "outline"
-                    ? allDay
-                    : getReadableTextColor(allDay),
+                color: itemTextColor(allDay, presentation.allDayAppearance),
               }}
             >
               <div className="fc-event-main">Garden picnic</div>
@@ -432,10 +453,7 @@ function FakeCalendar({
               gridRow: "2 / span 2",
               backgroundColor: event,
               borderColor: event,
-              color:
-                presentation.eventAppearance === "outline"
-                  ? event
-                  : getReadableTextColor(event),
+              color: itemTextColor(event, presentation.eventAppearance),
             }}
           >
             <div className="fc-event-main">Coffee with Maya</div>
@@ -452,10 +470,7 @@ function FakeCalendar({
             <div
               className="fc-event-main"
               style={{
-                color:
-                  presentation.taskAppearance === "outline"
-                    ? task
-                    : getReadableTextColor(task),
+                color: itemTextColor(task, presentation.taskAppearance),
               }}
             >
               Plan the weekend

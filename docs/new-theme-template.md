@@ -111,19 +111,29 @@ Choose one value per row. If none feels right, describe the desired appearance
 in the Notes column and a reusable primitive can be designed before the theme is
 added.
 
-| Area                   | Available choices                                                      | Choice | Notes |
-| ---------------------- | ---------------------------------------------------------------------- | ------ | ----- |
-| App background         | `ambient`, `paper`                                                     |        |       |
-| Main surfaces          | `clean`, `paper`, `soft`, `patterned`, `glass`                         |        |       |
-| App pattern            | `none`, `gingham`, `dot-grid`, `lined-paper`, `checker`, `stripes`     |        |       |
-| Surface pattern        | same as app pattern                                                    |        |       |
-| Sidebar pattern        | same as app pattern                                                    |        |       |
-| Border                 | `solid`, `dashed`, `hand-drawn`                                        |        |       |
-| Corner shape           | `soft`, `round`, `irregular`                                           |        |       |
-| Typography             | `normal`, `soft`, `handwritten-accent`                                 |        |       |
-| Activation motion      | `none`, `sprout`, `petals`, `leaves`, `sun-shimmer`, `snow`, `sparkle` |        |       |
-| Sticker-pack idea      | Optional; describe the sticker subjects and style                      |        |       |
-| Illustration-pack idea | Optional; describe the illustration subjects and style                 |        |       |
+| Area                   | Available choices                                                                          | Choice | Notes |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ------ | ----- |
+| App background         | `ambient`, `paper`                                                                         |        |       |
+| Main surfaces          | `clean`, `paper`, `soft`, `patterned`, `glass`                                             |        |       |
+| App pattern            | `none`, `gingham`, `dot-grid`, `lined-paper`, `checker`, `stripes`, `graph-paper`, `plaid` |        |       |
+| Surface pattern        | same as app pattern                                                                        |        |       |
+| Sidebar pattern        | same as app pattern                                                                        |        |       |
+| Border                 | `solid`, `dashed`, `hand-drawn`                                                            |        |       |
+| Corner shape           | `soft`, `round`, `irregular`                                                               |        |       |
+| Typography             | `normal`, `soft`, `handwritten-accent`                                                     |        |       |
+| Activation motion      | `none`, `sprout`, `petals`, `leaves`, `sun-shimmer`, `snow`, `sparkle`                     |        |       |
+| Sticker-pack idea      | Optional; describe the sticker subjects and style                                          |        |       |
+| Illustration-pack idea | Optional; describe the illustration subjects and style                                     |        |       |
+
+- Signature details (choose two or three):
+- Pattern intensity (`subtle`, `moderate`, or `prominent`):
+- Decorative density (`minimal`, `balanced`, or `maximal`):
+- Decorative accent (`none` or `scalloped`):
+- Washi-pack idea:
+
+`plaid` and `graph-paper` are also available as reusable patterns. Use
+`scalloped` only as a small decorative edge or cap, not as the corner treatment
+for every card.
 
 Motion is decorative and must remain subtle, one-shot where appropriate, and
 fully respect reduced-motion preferences.
@@ -133,14 +143,14 @@ fully respect reduced-motion preferences.
 Classic and Bujo are independent user choices. Define how this theme should
 look in both modes rather than creating separate theme IDs.
 
-| Calendar role  | Available choices                                                                 | Classic  | Bujo |
-| -------------- | --------------------------------------------------------------------------------- | -------- | ---- |
-| Grid           | `soft`, `gingham`, `dot-grid`, `lined-paper`, `checker`, `stripes`, `graph-paper` | `soft`   |      |
-| Events         | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                   | `soft`   |      |
-| Tasks          | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                   | `soft`   |      |
-| All-day events | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                   | `soft`   |      |
-| Grid border    | `solid`, `dashed`, `hand-drawn`                                                   | `solid`  |      |
-| Calendar type  | `normal`, `soft`, `handwritten-accent`                                            | `normal` |      |
+| Calendar role  | Available choices                                                                          | Classic  | Bujo |
+| -------------- | ------------------------------------------------------------------------------------------ | -------- | ---- |
+| Grid           | `soft`, `gingham`, `dot-grid`, `lined-paper`, `checker`, `stripes`, `graph-paper`, `plaid` | `soft`   |      |
+| Events         | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                            | `soft`   |      |
+| Tasks          | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                            | `soft`   |      |
+| All-day events | `solid`, `soft`, `highlight`, `outline`, `washi`, `sticky-note`                            | `soft`   |      |
+| Grid border    | `solid`, `dashed`, `hand-drawn`                                                            | `solid`  |      |
+| Calendar type  | `normal`, `soft`, `handwritten-accent`                                                     | `normal` |      |
 
 ## 10. Planning surfaces
 

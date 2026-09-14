@@ -194,7 +194,7 @@ export function ProjectSidebar() {
         </button>
         <aside
           className={cn(
-            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
+            "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >

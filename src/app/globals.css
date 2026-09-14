@@ -940,6 +940,100 @@ html[data-calendar-grid="stripes"] .sunnie-calendar-frame .fc-daygrid-body {
   );
 }
 
+html[data-calendar-grid="plaid"] .sunnie-calendar-frame .fc,
+html[data-calendar-grid="plaid"] .sunnie-calendar-frame .fc-timegrid-body,
+html[data-calendar-grid="plaid"] .sunnie-calendar-frame .fc-daygrid-body {
+  background-color: var(--sunnie-surface, #fffdf5);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 19px,
+      color-mix(in srgb, var(--sunnie-primary, #64734a) 13%, transparent) 19px
+        21px,
+      transparent 21px 47px,
+      color-mix(in srgb, var(--sunnie-accent, #f8e4a1) 20%, transparent) 47px
+        54px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 19px,
+      color-mix(in srgb, var(--sunnie-primary, #64734a) 13%, transparent) 19px
+        21px,
+      transparent 21px 47px,
+      color-mix(in srgb, var(--sunnie-accent, #f8e4a1) 20%, transparent) 47px
+        54px
+    );
+}
+
+/* Reusable stationery patterns for selected panels and sidebars. Themes opt
+   into these through generic presentation attributes. */
+html[data-theme-surface-pattern="lined-paper"] .sunnie-theme-surface-pattern {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    color-mix(in srgb, var(--sunnie-border) 42%, transparent) 28px
+  );
+}
+
+html[data-theme-surface-pattern="gingham"] .sunnie-theme-surface-pattern {
+  background-image:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sunnie-accent) 10%, transparent) 50%,
+      transparent 50%
+    ),
+    linear-gradient(
+      color-mix(in srgb, var(--sunnie-accent) 10%, transparent) 50%,
+      transparent 50%
+    );
+  background-size: 24px 24px;
+}
+
+html[data-theme-surface-pattern="dot-grid"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="dot-grid"] .sunnie-theme-sidebar-pattern {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--sunnie-ink-soft) 15%, transparent) 0.7px,
+    transparent 0.8px
+  );
+  background-size: 18px 18px;
+}
+
+html[data-theme-surface-pattern="graph-paper"] .sunnie-theme-surface-pattern {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--sunnie-ink-soft) 10%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sunnie-ink-soft) 10%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 20px 20px;
+}
+
+.sunnie-theme-accent-edge {
+  position: relative;
+}
+
+html[data-theme-decorative-accent="scalloped"]
+  .sunnie-theme-accent-edge::after {
+  position: absolute;
+  right: 0.25rem;
+  bottom: -0.38rem;
+  left: 0.25rem;
+  height: 0.55rem;
+  background: radial-gradient(
+      circle at 50% 0,
+      var(--sunnie-accent) 55%,
+      transparent 58%
+    )
+    0 0 / 0.8rem 0.55rem repeat-x;
+  content: "";
+  pointer-events: none;
+}
+
 /* Dark mode styles for FullCalendar */
 .dark .fc {
   --fc-small-font-size: 0.85em;

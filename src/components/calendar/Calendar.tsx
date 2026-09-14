@@ -199,7 +199,7 @@ export function Calendar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-border bg-card shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
+          "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-border bg-card shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
           "transform transition-transform duration-300 ease-in-out",
           !isHydrated && "opacity-0 duration-0",
           isSidebarOpen

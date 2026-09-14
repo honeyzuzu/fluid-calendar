@@ -4,12 +4,14 @@ import {
   BORDER_STYLES,
   CALENDAR_ITEM_APPEARANCES,
   CALENDAR_STYLES,
+  DECORATIVE_ACCENTS,
   PATTERN_STYLES,
   STICKER_PACKS,
   SUNNIE_THEMES,
   SURFACE_STYLES,
   TYPOGRAPHY_STYLES,
   VISUAL_TEST_THEME,
+  WASHI_PACKS,
   getCalendarPresentation,
   getCalendarStyle,
   getSunnieTheme,
@@ -27,6 +29,9 @@ describe("planner visual themes", () => {
       expect(theme.visual.calendar.classic).toBeDefined();
       expect(theme.visual.calendar.bujo).toBeDefined();
       expect(theme.visual.motion.activation).toBeTruthy();
+      expect(theme.visual.signatureDetails).toHaveLength(3);
+      expect(theme.visual.assets.stickerPack).toBeTruthy();
+      expect(theme.visual.assets.washiPack).toBeTruthy();
     }
   });
 
@@ -53,6 +58,8 @@ describe("planner visual themes", () => {
         "lined-paper",
         "checker",
         "stripes",
+        "graph-paper",
+        "plaid",
       ])
     );
     expect(SURFACE_STYLES).toEqual(
@@ -75,6 +82,7 @@ describe("planner visual themes", () => {
     expect(AMBIENT_MOTIONS).toEqual(
       expect.arrayContaining(["none", "petals", "leaves", "snow", "sparkle"])
     );
+    expect(DECORATIVE_ACCENTS).toContain("scalloped");
   });
 
   it("compiles an intentionally loud test pack without calendar conditionals", () => {
@@ -88,13 +96,37 @@ describe("planner visual themes", () => {
       calendarTypography: "handwritten-accent",
       themeBorder: "dashed",
       themeRadius: "round",
+      themeDecorativeAccent: "scalloped",
       themeTypography: "handwritten-accent",
       themeSidebarPattern: "dot-grid",
       themeStickerPack: "visual-test-leaves",
       themeMotion: "leaves",
     });
     expect(STICKER_PACKS["visual-test-leaves"].testOnly).toBe(true);
+    expect(WASHI_PACKS["autumn-golden-hour"]).toContain("rust and olive plaid");
     expect(Object.keys(SUNNIE_THEMES)).not.toContain("visual-test-theme");
+  });
+
+  it("encodes the five art-directed planner worlds", () => {
+    expect(SUNNIE_THEMES.base.visual).toMatchObject({
+      backgroundStyle: "paper",
+      surfaceStyle: "soft",
+      patterns: { sidebar: "dot-grid" },
+    });
+    expect(SUNNIE_THEMES["spring-fresh-air"].visual).toMatchObject({
+      decorativeAccent: "scalloped",
+      patterns: { surface: "lined-paper" },
+    });
+    expect(
+      SUNNIE_THEMES["summer-sun-kissed"].visual.calendar.bujo.gridStyle
+    ).toBe("gingham");
+    expect(
+      SUNNIE_THEMES["autumn-golden-hour"].visual.calendar.bujo.taskAppearance
+    ).toBe("highlight");
+    expect(
+      SUNNIE_THEMES["winter-candlelight-snow"].visual.calendar.classic
+        .eventAppearance
+    ).toBe("outline");
   });
 
   it("validates style ids and safely falls back to Classic", () => {

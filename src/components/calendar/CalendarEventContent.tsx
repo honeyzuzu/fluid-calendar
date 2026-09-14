@@ -4,7 +4,7 @@ import type { EventContentArg } from "@fullcalendar/core";
 import { IoCheckmarkCircle, IoRepeat, IoTimeOutline } from "react-icons/io5";
 
 import { getMonthEventDisplay } from "@/lib/calendar-event-display";
-import { getReadableTextColor } from "@/lib/color-contrast";
+import { getHarmonizedTextColor } from "@/lib/color-contrast";
 import { getCalendarPresentation, getSunnieTheme } from "@/lib/planner-themes";
 import { isTaskOverdue } from "@/lib/task-utils";
 import { cn } from "@/lib/utils";
@@ -67,8 +67,9 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     eventInfo.event.backgroundColor ||
     eventInfo.event.borderColor ||
     DEFAULT_EVENT_COLOR;
+  const theme = getSunnieTheme(userSettings.colorTheme);
   const presentation = getCalendarPresentation(
-    getSunnieTheme(userSettings.colorTheme),
+    theme,
     userSettings.calendarStyle
   );
   const effectiveEventAppearance = isTask
@@ -76,10 +77,16 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     : eventInfo.event.allDay
       ? presentation.allDayAppearance
       : presentation.eventAppearance;
-  const textColor =
+  const textColor = getHarmonizedTextColor(
     effectiveEventAppearance === "outline"
-      ? eventColor
-      : getReadableTextColor(eventColor);
+      ? theme.core.surfaceRaised
+      : eventColor,
+    {
+      tintColor: eventColor,
+      darkColor: theme.core.ink,
+      lightColor: theme.core.surfaceRaised,
+    }
+  );
 
   return (
     <div

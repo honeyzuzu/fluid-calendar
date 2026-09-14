@@ -1,4 +1,5 @@
 import {
+  getHarmonizedTextColor,
   getReadableTextColor,
   hasReadableContrast,
 } from "@/lib/color-contrast";
@@ -619,7 +620,10 @@ export function getColorThemeCssVariables(
       [`--sunnie-task-${index + 1}`, swatch.value],
       [
         `--sunnie-task-${index + 1}-foreground`,
-        getReadableTextColor(swatch.value),
+        getHarmonizedTextColor(swatch.value, {
+          darkColor: theme.core.ink,
+          lightColor: theme.core.surfaceRaised,
+        }),
       ],
     ])
   );

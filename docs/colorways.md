@@ -236,6 +236,14 @@ immediately and updates the interface without a page reload. For example, an
 event using `event-3` displays the active theme's `event-3` hex. A custom hex is
 intentionally fixed and does not change.
 
+Filled event and task text is derived from the displayed item swatch. Sunnie
+lightens or darkens that hue toward the active theme's paper cream or ink until
+it reaches WCAG AA normal-text contrast. This keeps labels coordinated with the
+theme instead of using the same generic white or black everywhere. Outline
+items similarly darken their palette hue against the theme's raised-paper
+surface. Malformed custom colors fall back to Sunnie's warm cream or soft black;
+the small middle-luminance range where neither passes uses true black.
+
 The theme registry and global CSS-variable application are now centralized in
 `src/lib/color-themes.ts`. The database stores the selected planner colorway on
 `UserSettings.colorTheme`. `CalendarFeed`, `CalendarEvent`, and `Project` store
@@ -288,10 +296,28 @@ and remix it in Settings → Theme Lab. It proves that a new pack can change the
 calendar grid, events, tasks, all-day items, borders, typography, decoration,
 and motion without adding a theme-name branch to Calendar.
 
-This first version does not add sticker persistence, custom theme assets, or
-ambient activation animation. The registry includes explicit asset and motion
-contracts so those can be added later. Future draggable stickers should be
-anchored relative to calendar dates or cells rather than raw screen pixels.
+The five built-in packs are art-directed as distinct stationery worlds:
+
+| Theme  | Signature details                         | Surface treatment    | Bujo calendar                                       |
+| ------ | ----------------------------------------- | -------------------- | --------------------------------------------------- |
+| Base   | Daisies, soft paper, tiny checks          | Soft; dotted sidebar | Dot grid, highlighted events, sticky-note tasks     |
+| Spring | Tiny florals, scallops, notebook paper    | Lined blush paper    | Lined grid, highlighted events, washi tasks         |
+| Summer | Gingham, fruit, sunny checks              | Soft gingham paper   | Gingham grid, highlighted events, sticky-note tasks |
+| Autumn | Kraft paper, plaid accents, washi tape    | Dotted warm paper    | Dot grid, washi events, highlighted tasks           |
+| Winter | Graph paper, outlined notes, frosted edge | Cool graph paper     | Graph grid, outlined events, sticky-note tasks      |
+
+Each pack also declares a future sticker pack, washi pack, illustration pack,
+pattern intensity, decorative density, and one-shot activation motion. These
+asset declarations are design contracts and Theme Lab previews, not sticker
+placement or persistence. `plaid` is a reusable pattern primitive, while
+`scalloped` is a small decorative accent intended mainly for Spring rather than
+a general card shape.
+
+This first version does not add sticker persistence, final custom theme artwork,
+or ambient activation animation. The registry includes explicit sticker,
+washi, illustration, and motion contracts so those can be added later. Future
+draggable stickers should be anchored relative to calendar dates or cells
+rather than raw screen pixels.
 
 ## Calendar visual direction
 

@@ -1,4 +1,8 @@
 import {
+  getHarmonizedTextColor,
+  hasReadableContrast,
+} from "@/lib/color-contrast";
+import {
   AUTUMN_GOLDEN_HOUR_THEME,
   BASE_COLOR_THEME,
   COLOR_THEMES,
@@ -42,6 +46,26 @@ describe("planner colorways", () => {
 
       expect(colors).toHaveLength(COLOR_THEME_HEX_COUNT);
       for (const color of colors) expect(color).toMatch(/^#[0-9A-F]{6}$/i);
+    }
+  });
+
+  it("derives accessible theme-aware text for every event and task swatch", () => {
+    for (const theme of Object.values(COLOR_THEMES)) {
+      for (const swatch of [
+        ...theme.palettes.events,
+        ...theme.palettes.tasks,
+      ]) {
+        const foreground = getHarmonizedTextColor(swatch.value, {
+          darkColor: theme.core.ink,
+          lightColor: theme.core.surfaceRaised,
+        });
+
+        if (!hasReadableContrast(foreground, swatch.value)) {
+          throw new Error(
+            `${theme.id} ${swatch.id}: ${foreground} is not readable on ${swatch.value}`
+          );
+        }
+      }
     }
   });
 
