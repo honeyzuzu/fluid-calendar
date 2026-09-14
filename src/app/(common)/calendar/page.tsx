@@ -4,6 +4,10 @@ import { NextRequest } from "next/server";
 
 import { Calendar } from "@/components/calendar/Calendar";
 
+import {
+  calendarRangeWhere,
+  getInitialCalendarRange,
+} from "@/lib/calendar-range";
 import { prisma } from "@/lib/prisma";
 
 import {
@@ -72,9 +76,15 @@ export default async function HomePage() {
       account: feed.account,
     }));
 
-    // Fetch calendar events
+    // Keep the initial payload bounded. FullCalendar requests its exact visible
+    // range after hydration and the client caches subsequent range reads.
+    const initialRange = getInitialCalendarRange();
+    const enabledFeedIds = dbFeeds
+      .filter((feed) => feed.enabled)
+      .map((feed) => feed.id);
     const dbEvents = await prisma.calendarEvent.findMany({
       where: {
+        ...calendarRangeWhere(initialRange, enabledFeedIds),
         feed: {
           userId: userId,
         },
@@ -84,6 +94,8 @@ export default async function HomePage() {
           select: {
             name: true,
             color: true,
+            colorSlot: true,
+            enabled: true,
           },
         },
       },

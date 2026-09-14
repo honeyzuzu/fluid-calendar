@@ -24,14 +24,14 @@ export function DataSettings() {
                   autoBackup: e.target.checked,
                 })
               }
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
             />
             <span className="ml-2 text-sm">Enable automatic backups</span>
           </label>
 
           {data.autoBackup && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Backup Interval (days)
               </label>
               <input
@@ -44,7 +44,7 @@ export function DataSettings() {
                     backupInterval: Number(e.target.value),
                   })
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="mt-1 block w-full rounded-xl border-border bg-card shadow-sm focus:border-primary focus:ring-ring sm:text-sm"
               />
             </div>
           )}
@@ -56,7 +56,7 @@ export function DataSettings() {
         description="Configure how long to keep your calendar data"
       >
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             Retain data for (days)
           </label>
           <input
@@ -69,9 +69,9 @@ export function DataSettings() {
                 retainDataFor: Number(e.target.value),
               })
             }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-xl border-border bg-card shadow-sm focus:border-primary focus:ring-ring sm:text-sm"
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Events older than this will be automatically archived
           </p>
         </div>
@@ -81,13 +81,13 @@ export function DataSettings() {
         <div className="space-y-3">
           <button
             type="button"
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             Export as iCal
           </button>
           <button
             type="button"
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             Export as JSON
           </button>
@@ -97,7 +97,7 @@ export function DataSettings() {
       <SettingRow label="Clear Data" description="Remove all calendar data">
         <button
           type="button"
-          className="inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="inline-flex items-center rounded-xl border border-transparent bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           onClick={() => {
             if (
               window.confirm(

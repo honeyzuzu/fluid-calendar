@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import dynamic from "next/dynamic";
+
 import type {
   DatesSetArg,
   EventClickArg,
@@ -9,6 +11,7 @@ import type { DateSelectArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
+import { toast } from "sonner";
 
 import { TaskModal } from "@/components/tasks/TaskModal";
 
@@ -27,6 +30,7 @@ import { getTaskDisplayColor } from "@/lib/task-colors";
 
 import { useCalendarStore, useCalendarUIStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
+import { useStickerStore } from "@/store/stickers";
 import { useTaskStore } from "@/store/task";
 
 import { CalendarEvent, ExtendedEventProps } from "@/types/calendar";
@@ -35,7 +39,13 @@ import { Task, TaskStatus } from "@/types/task";
 import { CalendarEventContent } from "./CalendarEventContent";
 import { EventModal } from "./EventModal";
 import { EventQuickView } from "./EventQuickView";
+import { StickerBook } from "./StickerBook";
 import { useCalendarDragHandlers } from "./useCalendarDragHandlers";
+
+const StickerOverlay = dynamic(
+  () => import("./StickerOverlay").then((module) => module.StickerOverlay),
+  { ssr: false }
+);
 
 interface MonthViewProps {
   currentDate: Date;
@@ -43,8 +53,13 @@ interface MonthViewProps {
 }
 
 export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
-  const { feeds, getAllCalendarItems, isLoading, removeEvent } =
-    useCalendarStore();
+  const {
+    feeds,
+    getAllCalendarItems,
+    isLoading,
+    loadEventsForRange,
+    removeEvent,
+  } = useCalendarStore();
   const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
   const friendCalendarColors = useCalendarUIStore(
     (state) => state.friendCalendarColors
@@ -53,6 +68,9 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     (state) => state.friendRefreshRevision
   );
   const { user: userSettings } = useSettingsStore();
+  const selectedStickerAsset = useStickerStore((state) => state.selectedAsset);
+  const loadStickersForRange = useStickerStore((state) => state.loadRange);
+  const placeSticker = useStickerStore((state) => state.placeSticker);
   const activeColorTheme = getColorTheme(userSettings.colorTheme);
   const friendFallbackColor = activeColorTheme.palettes.friends[0].value;
   const { updateTask } = useTaskStore();
@@ -91,13 +109,20 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      await Promise.all([
+        loadEventsForRange(arg.start, arg.end),
+        userSettings.calendarStyle === "bujo"
+          ? loadStickersForRange(arg.start, arg.end)
+          : Promise.resolve(),
+      ]);
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
         arg.start,
         arg.end,
         friendCalendarColors,
         friendFallbackColor,
-        activeColorTheme.id
+        activeColorTheme.id,
+        friendRefreshRevision
       );
       const formattedItems = items
         .filter((item) => {
@@ -155,19 +180,15 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
       feeds,
       friendCalendarColors,
       friendFallbackColor,
+      friendRefreshRevision,
       activeColorTheme.id,
       getAllCalendarItems,
       hiddenFriendIds,
+      loadEventsForRange,
+      loadStickersForRange,
+      userSettings.calendarStyle,
     ]
   );
-
-  // Initial data load
-  useEffect(() => {
-    Promise.all([
-      useCalendarStore.getState().loadFromDatabase(),
-      useTaskStore.getState().fetchTasks(),
-    ]);
-  }, []);
 
   // Update items when loading state changes, feeds change, or tasks change
   useEffect(() => {
@@ -238,7 +259,31 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     setIsEventModalOpen(true);
   };
 
-  const handleDateClick = (date: Date, allDay: boolean) => {
+  const handleDateClick = async (date: Date, allDay: boolean) => {
+    if (userSettings.calendarStyle === "bujo" && selectedStickerAsset) {
+      const pad = (value: number) => String(value).padStart(2, "0");
+      const anchorDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      const zIndex =
+        Math.max(
+          0,
+          ...useStickerStore.getState().stickers.map((item) => item.zIndex)
+        ) + 1;
+      try {
+        await placeSticker({
+          packId: selectedStickerAsset.packId,
+          stickerId: selectedStickerAsset.asset.id,
+          view: "month",
+          anchorDate,
+          x: 0.5,
+          y: 0.45,
+          scale: selectedStickerAsset.asset.defaultScale,
+          zIndex,
+        });
+      } catch {
+        toast.error("Sunnie couldn't place that sticker");
+      }
+      return;
+    }
     const range = getTapSelectionRange(date, allDay);
     onDateClick?.(date);
     setSelectedDate(range.start);
@@ -319,7 +364,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   );
 
   return (
-    <div className="h-full">
+    <div className="relative h-full">
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
@@ -334,16 +379,23 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         displayEventEnd={true}
         firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
         height="100%"
-        dateClick={(arg) => handleDateClick(arg.date, arg.allDay)}
+        dateClick={(arg) => void handleDateClick(arg.date, arg.allDay)}
         eventClick={handleEventClick}
         select={handleDateSelect}
-        selectable={true}
+        selectable={!selectedStickerAsset}
         selectMirror={true}
         datesSet={handleDatesSet}
         eventContent={renderEventContent}
         eventDrop={handleEventDrop}
         dragRevertDuration={250}
       />
+
+      {userSettings.calendarStyle === "bujo" && (
+        <>
+          <StickerOverlay />
+          <StickerBook />
+        </>
+      )}
 
       <EventModal
         isOpen={isEventModalOpen || eventModalStore.isOpen}

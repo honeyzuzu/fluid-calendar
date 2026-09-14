@@ -22,7 +22,7 @@ export function FocusedTask({ task }: FocusedTaskProps) {
   const completeCurrentTask = useFocusModeStore(
     (state) => state.completeCurrentTask
   );
-  const { updateTask, fetchTasks, tags, createTag } = useTaskStore();
+  const { updateTask, tags, createTag } = useTaskStore();
 
   if (!task) {
     return (
@@ -34,17 +34,16 @@ export function FocusedTask({ task }: FocusedTaskProps) {
 
   const handleEditTask = async (taskData: NewTask) => {
     await updateTask(task.id, taskData);
-    await fetchTasks();
     setIsEditModalOpen(false);
   };
 
   return (
-    <Card className="mx-auto flex h-full w-full max-w-5xl flex-col border-[#dfdab8] bg-[#fffdf7] p-4 shadow-sm sm:p-6">
+    <Card className="mx-auto flex h-full w-full max-w-5xl flex-col border-border bg-card p-4 shadow-[var(--shadow-paper)] sm:p-6">
       <div className="mb-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a6762a]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
           Current task
         </p>
-        <h2 className="task-title mt-1 text-2xl font-bold text-[#424832] sm:text-3xl">
+        <h2 className="task-title mt-1 text-2xl font-bold text-foreground sm:text-3xl">
           {task.title}
         </h2>
         {task.tags && task.tags.length > 0 && (

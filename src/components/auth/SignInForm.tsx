@@ -135,11 +135,9 @@ export function SignInForm() {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md border-[#dfe2c8] bg-[#fffdf5]/95 shadow-[0_18px_55px_rgba(95,103,64,0.13)]">
+    <Card className="mx-auto w-full max-w-md border-border bg-card/95 shadow-[var(--shadow-raised)]">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          Your cozy corner
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold">Your cozy corner</CardTitle>
         <CardDescription>Sign in to plan a gentler day.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -188,7 +186,7 @@ export function SignInForm() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-[#64734a]" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
@@ -229,7 +227,7 @@ export function SignInForm() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-[#64734a]" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>

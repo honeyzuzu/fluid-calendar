@@ -2,9 +2,13 @@ import { useEffect, useRef, useState } from "react";
 
 // Import missing functions
 import { isThisWeek, isThisYear, isToday, isTomorrow } from "date-fns";
+import {
+  Check as HiCheck,
+  TriangleAlert as HiExclamation,
+  X as HiX,
+} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { HiCheck, HiExclamation, HiX } from "react-icons/hi";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -376,7 +380,7 @@ export function EditableCell({
               });
               setIsEditing(false);
             }}
-            className="h-8 w-8 p-0 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+            className="h-8 w-8 p-0 text-success hover:bg-success/10 hover:text-success"
           >
             <HiCheck className="h-4 w-4" />
           </Button>
@@ -421,7 +425,7 @@ export function EditableCell({
               });
               setIsEditing(false);
             }}
-            className="h-8 w-8 p-0 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+            className="h-8 w-8 p-0 text-success hover:bg-success/10 hover:text-success"
           >
             <HiCheck className="h-4 w-4" />
           </Button>
@@ -489,7 +493,7 @@ export function EditableCell({
             size="sm"
             variant="ghost"
             onClick={handleSave}
-            className="h-8 w-8 p-0 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+            className="h-8 w-8 p-0 text-success hover:bg-success/10 hover:text-success"
           >
             <HiCheck className="h-4 w-4" />
           </Button>

@@ -73,23 +73,25 @@ export function WeekRangeSelect({
       <SelectTrigger
         aria-label={ariaLabel}
         className={cn(
-          "h-11 w-full rounded-xl border-[#dce3c9] bg-[#fffdf5] px-3 text-[#3f432e] shadow-none",
+          "h-11 w-full rounded-xl border-border bg-card px-3 text-foreground shadow-none",
           className
         )}
       >
-        <CalendarRange className="mr-2 h-4 w-4 shrink-0 text-[#718e50]" />
+        <CalendarRange className="mr-2 h-4 w-4 shrink-0 text-primary" />
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="border-[#dce3c9] bg-[#fffdf5]">
+      <SelectContent className="border-border bg-card">
         <SelectGroup>
-          <SelectLabel className="text-[#718e50]">
+          <SelectLabel className="text-primary">
             Current and past weeks
           </SelectLabel>
           {currentAndPast.map(item)}
         </SelectGroup>
-        <SelectSeparator className="bg-[#dce3c9]" />
+        <SelectSeparator className="bg-border" />
         <SelectGroup>
-          <SelectLabel className="text-[#b5784b]">Upcoming weeks</SelectLabel>
+          <SelectLabel className="text-secondary-foreground">
+            Upcoming weeks
+          </SelectLabel>
           {upcoming.map(item)}
         </SelectGroup>
       </SelectContent>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HiOutlineSearch } from "react-icons/hi";
+import { Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -47,7 +47,7 @@ export function CommandPaletteFab() {
       aria-label="Open command palette"
       title="Search or run a command (⌘K)"
     >
-      <HiOutlineSearch className="h-5 w-5" />
+      <Search className="h-5 w-5" />
     </button>
   );
 }

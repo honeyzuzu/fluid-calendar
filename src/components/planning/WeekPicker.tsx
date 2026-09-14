@@ -36,7 +36,7 @@ export function WeekPicker({
         id={id}
         value={selected}
         disabled={disabled}
-        className="h-11 w-full min-w-0 rounded-xl border border-[#dce3c9] bg-[#fffdf5] px-3 text-sm text-[#3f432e]"
+        className="h-11 w-full min-w-0 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
         onChange={(event) => {
           const choosingCustom = event.target.value === "custom";
           setCustom(choosingCustom);

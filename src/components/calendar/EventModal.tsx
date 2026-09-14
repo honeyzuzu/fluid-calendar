@@ -542,7 +542,7 @@ export function EventModal({
               {formError && (
                 <div
                   role="alert"
-                  className="rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-4 py-3 text-sm text-[#8b4934]"
+                  className="rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive"
                 >
                   {formError}
                 </div>
@@ -582,7 +582,7 @@ export function EventModal({
                     className={cn(
                       formError &&
                         !selectedFeedId &&
-                        "border-[#d87857] ring-2 ring-[#f7d2c3]"
+                        "border-destructive ring-2 ring-destructive/25"
                     )}
                   >
                     <SelectValue placeholder="Select a calendar" />
@@ -638,8 +638,8 @@ export function EventModal({
               </div>
 
               {!isAllDay && (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f5eb] px-3 py-2">
-                  <span className="mr-1 text-xs font-medium text-black/45">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl bg-muted px-3 py-2">
+                  <span className="mr-1 text-xs font-medium text-muted-foreground">
                     Quick duration
                   </span>
                   {[30, 60, 90, 120].map((minutes) => (
@@ -894,7 +894,7 @@ function RequiredLabel({
 }) {
   return (
     <Label htmlFor={htmlFor}>
-      {children} <span className="text-[#c65f40]">*</span>
+      {children} <span className="text-destructive">*</span>
     </Label>
   );
 }
@@ -933,7 +933,7 @@ function DateTimeFields({
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium">
-        {label} <span className="text-[#c65f40]">*</span>
+        {label} <span className="text-destructive">*</span>
       </legend>
       <div
         className={cn(
@@ -942,7 +942,7 @@ function DateTimeFields({
         )}
       >
         <label className="relative">
-          <CalendarDays className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35" />
+          <CalendarDays className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="date"
             id={dateId}
@@ -958,7 +958,7 @@ function DateTimeFields({
         </label>
         {!allDay && (
           <label className="relative">
-            <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/35" />
+            <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="time"
               id={timeId}
@@ -972,7 +972,7 @@ function DateTimeFields({
           </label>
         )}
       </div>
-      <p className="text-[11px] text-black/35">
+      <p className="text-[11px] text-muted-foreground">
         {allDay ? "Choose a date" : "Date and time"}
       </p>
     </fieldset>

@@ -103,9 +103,9 @@ export function PresenceDashboard() {
         description="A lightweight view of recent Sunnie activity. No page history is recorded."
       >
         <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe2c8] bg-[#fffaf0] p-4">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#f8e4a1] text-[#8a681e]">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-accent-foreground">
                 <Activity className="h-5 w-5" />
               </span>
               <div>
@@ -133,7 +133,7 @@ export function PresenceDashboard() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -143,19 +143,19 @@ export function PresenceDashboard() {
               icon={UserRoundCheck}
               label="Online now"
               value={summary?.onlineNow}
-              color="bg-[#dcecc8] text-[#59733f]"
+              color="bg-success/10 text-success"
             />
             <SummaryCard
               icon={Clock3}
               label="Active today"
               value={summary?.activeToday}
-              color="bg-[#fff0bf] text-[#8a681e]"
+              color="bg-warning/10 text-warning"
             />
             <SummaryCard
               icon={UsersRound}
               label="Total accounts"
               value={summary?.totalUsers}
-              color="bg-[#e6dcf5] text-[#665080]"
+              color="bg-info/10 text-info"
             />
           </div>
 
@@ -181,7 +181,7 @@ export function PresenceDashboard() {
 
               {loading && !summary ? (
                 <div className="grid min-h-32 place-items-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#d0902f]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : summary?.users.length ? (
                 <div className="divide-y divide-black/[0.055]">
@@ -190,13 +190,13 @@ export function PresenceDashboard() {
                       key={user.id}
                       className="flex items-center gap-3 py-3 first:pt-1 last:pb-1"
                     >
-                      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f3ecd6] text-sm font-semibold text-[#6b6248]">
+                      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-secondary-foreground">
                         {(user.name || user.email || "U")
                           .slice(0, 1)
                           .toUpperCase()}
                         <span
                           className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${
-                            user.online ? "bg-[#7cab58]" : "bg-[#c8c5b8]"
+                            user.online ? "bg-success" : "bg-muted-foreground"
                           }`}
                         />
                       </span>
@@ -212,9 +212,7 @@ export function PresenceDashboard() {
                       </div>
                       <span
                         className={`shrink-0 text-xs font-medium ${
-                          user.online
-                            ? "text-[#638446]"
-                            : "text-muted-foreground"
+                          user.online ? "text-success" : "text-muted-foreground"
                         }`}
                       >
                         {formatLastSeen(user.lastActiveAt, user.online)}
@@ -223,9 +221,9 @@ export function PresenceDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="grid min-h-32 place-items-center rounded-xl border border-dashed border-black/10 text-center">
+                <div className="grid min-h-32 place-items-center rounded-xl border border-dashed border-border text-center">
                   <div>
-                    <UsersRound className="mx-auto h-6 w-6 text-black/20" />
+                    <UsersRound className="mx-auto h-6 w-6 text-muted-foreground/50" />
                     <p className="mt-2 text-sm text-muted-foreground">
                       Nobody has checked in yet today.
                     </p>

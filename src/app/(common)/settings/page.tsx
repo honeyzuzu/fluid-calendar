@@ -20,6 +20,7 @@ import { UserManagement } from "@/components/settings/UserManagement";
 import { UserSettings } from "@/components/settings/UserSettings";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 import { isSaasEnabled } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ const WaitlistPage = dynamic(
       }`
     ),
   {
-    loading: () => <p>Loading...</p>,
+    loading: () => <SettingsContentSkeleton />,
   }
 );
 
@@ -61,13 +62,22 @@ type SettingsTab =
 
 export default function SettingsPage() {
   const [isHydrated, setIsHydrated] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(true);
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const { initializeSettings } = useSettingsStore();
 
   // Always initialize settings on mount
   useEffect(() => {
-    initializeSettings();
-  }, [initializeSettings]);
+    if (!isAdminLoading) {
+      let active = true;
+      void initializeSettings({ includeAdmin: isAdmin }).finally(() => {
+        if (active) setSettingsLoading(false);
+      });
+      return () => {
+        active = false;
+      };
+    }
+  }, [initializeSettings, isAdmin, isAdminLoading]);
 
   const tabs = useMemo(() => {
     const baseTabs = [
@@ -257,7 +267,7 @@ export default function SettingsPage() {
         return <ImportExportSettings />;
       case "waitlist":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<SettingsContentSkeleton />}>
             <WaitlistPage />
           </Suspense>
         );
@@ -283,7 +293,7 @@ export default function SettingsPage() {
       <div className="mb-7 flex items-center gap-4">
         <SunnieSun className="h-12 w-12" />
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
             Make Sunnie yours
           </p>
           <h1 className="text-3xl font-bold tracking-[-0.045em]">Settings</h1>
@@ -301,7 +311,7 @@ export default function SettingsPage() {
                   key={group.label}
                   className="flex shrink-0 gap-1 lg:block lg:space-y-1"
                 >
-                  <p className="hidden px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-black/35 lg:block">
+                  <p className="hidden px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground lg:block">
                     {group.label}
                   </p>
                   {group.tabs.map((tab) => (
@@ -330,12 +340,37 @@ export default function SettingsPage() {
         </aside>
         <div className="mt-6 min-w-0 flex-1 lg:mt-0">
           <div className="space-y-6">
-            <div className={cn("space-y-8", !isHydrated && "opacity-0")}>
-              {renderContent()}
+            <div className="space-y-8">
+              {!isHydrated || settingsLoading ? (
+                <SettingsContentSkeleton />
+              ) : (
+                renderContent()
+              )}
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SettingsContentSkeleton() {
+  return (
+    <div aria-label="Loading settings" className="space-y-6">
+      <div className="space-y-2">
+        <SunnieSkeleton className="h-6 w-48" />
+        <SunnieSkeleton className="h-4 w-80 max-w-full" />
+      </div>
+      {Array.from({ length: 3 }, (_, index) => (
+        <div
+          key={index}
+          className="space-y-4 rounded-[var(--radius-card)] border border-border bg-card/70 p-5 shadow-[var(--shadow-paper)]"
+        >
+          <SunnieSkeleton className="h-5 w-40" />
+          <SunnieSkeleton className="h-11 w-full" />
+          <SunnieSkeleton className="h-11 w-full" />
+        </div>
+      ))}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function UserMenu() {
         role="status"
         aria-live="polite"
       >
-        <Sun className="h-4 w-4 animate-spin text-amber-500" />
+        <Sun className="h-4 w-4 animate-spin text-primary" />
         <span className="hidden sm:inline">Loading account...</span>
       </div>
     );

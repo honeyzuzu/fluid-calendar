@@ -2,17 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes sunnie-rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .sunnie-rise-surface {
   background-image: linear-gradient(
     135deg,
@@ -37,42 +26,6 @@
     var(--sunnie-progress-from, var(--sunnie-accent)),
     var(--sunnie-progress-to, var(--sunnie-primary))
   );
-}
-
-@keyframes sunnie-overlay-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes sunnie-celebration-bloom {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) scale(0.88);
-  }
-  35% {
-    opacity: 1;
-    transform: translateY(0) scale(1.04);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes sunnie-sun-pop {
-  0% {
-    transform: scale(0.92);
-  }
-  45% {
-    transform: scale(1.12) rotate(2deg);
-  }
-  100% {
-    transform: scale(1);
-  }
 }
 
 @layer base {
@@ -241,7 +194,8 @@
     var(--sunnie-primary),
     color-mix(in srgb, var(--sunnie-primary) 72%, var(--sunnie-accent))
   );
-  box-shadow: 0 8px 0 color-mix(in srgb, var(--sunnie-primary) 78%, #111 22%);
+  box-shadow: 0 8px 0
+    color-mix(in srgb, var(--sunnie-primary) 78%, var(--sunnie-ink) 22%);
 }
 
 .sunnie-intention-card-saved {
@@ -270,7 +224,7 @@
 }
 
 .fc .fc-button {
-  @apply rounded-md border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply rounded-md border px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   background-color: var(--sunnie-surface, #fffdf5);
   border-color: var(--sunnie-border, #dfe2c8);
   color: var(--sunnie-ink-soft, #596044);
@@ -278,7 +232,7 @@
 }
 
 .fc .fc-button-primary {
-  @apply border-blue-600 bg-blue-600 text-white hover:bg-blue-700;
+  @apply border-primary bg-primary text-primary-foreground;
   background-color: var(--sunnie-primary, #64734a);
   border-color: var(--sunnie-primary, #64734a);
   color: var(--sunnie-on-primary, #fff9e8);
@@ -293,7 +247,7 @@
 }
 
 .fc .fc-timegrid-slot-label {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-muted-foreground;
 }
 
 .fc .fc-event {
@@ -462,28 +416,27 @@
 }
 
 .fc .fc-timegrid-now-indicator-line {
-  @apply border-red-500;
+  border-color: var(--sunnie-status-danger);
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
-  @apply border-red-500;
+  border-color: var(--sunnie-status-danger);
 }
 
 .fc .fc-day-today {
-  @apply bg-blue-50/30;
   background-color: var(--fc-today-bg-color) !important;
 }
 
 .fc .fc-day-header {
-  @apply border-b border-gray-200 py-2;
+  @apply border-b border-border py-2;
 }
 
 .fc .fc-scrollgrid {
-  @apply border-gray-200;
+  @apply border-border;
 }
 
 .fc .fc-col-header-cell {
-  @apply border-b border-gray-200 bg-white;
+  @apply border-b border-border;
   background-color: var(--sunnie-surface, #fffdf5);
   border-color: var(--sunnie-border, #dfe2c8);
 }
@@ -587,6 +540,28 @@ html[data-calendar-style="bujo"] .sunnie-calendar-frame {
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--sunnie-ink, #3f432e) 8%, transparent),
     0 12px 30px color-mix(in srgb, var(--sunnie-ink, #3f432e) 9%, transparent);
+}
+
+/* React Moveable is used only for persisted Bujo stickers. Keep its generic
+   controls aligned with the active Sunnie colorway instead of library blue. */
+.sunnie-calendar-frame .moveable-control,
+html[data-calendar-style="bujo"] .moveable-control {
+  border-color: hsl(var(--card));
+  background: hsl(var(--primary)) !important;
+}
+
+html[data-calendar-style="bujo"] .moveable-control.moveable-rotation-control {
+  background: hsl(var(--primary)) !important;
+}
+
+.sunnie-calendar-frame .moveable-line,
+html[data-calendar-style="bujo"] .moveable-line {
+  background: hsl(var(--primary)) !important;
+}
+
+.sunnie-calendar-frame .moveable-rotation-line,
+html[data-calendar-style="bujo"] .moveable-rotation-line {
+  background: hsl(var(--secondary-foreground)) !important;
 }
 
 html[data-calendar-border="hand-drawn"]
@@ -1065,50 +1040,204 @@ html[data-calendar-grid="plaid"] .sunnie-calendar-frame .fc-daygrid-body {
 
 /* Reusable stationery patterns for selected panels and sidebars. Themes opt
    into these through generic presentation attributes. */
-html[data-theme-surface-pattern="lined-paper"] .sunnie-theme-surface-pattern {
+.sunnie-theme-app-pattern {
+  --sunnie-pattern-scale: var(--sunnie-app-pattern-scale, 1);
+  --sunnie-pattern-opacity: var(--sunnie-app-pattern-opacity, 14%);
+  --sunnie-pattern-rotation: var(--sunnie-app-pattern-rotation, 0deg);
+  --sunnie-pattern-primary: var(--sunnie-app-pattern-primary);
+  --sunnie-pattern-secondary: var(--sunnie-app-pattern-secondary);
+  --sunnie-pattern-line: var(--sunnie-app-pattern-line, 1px);
+}
+
+.sunnie-theme-surface-pattern {
+  --sunnie-pattern-scale: var(--sunnie-surface-pattern-scale, 1);
+  --sunnie-pattern-opacity: var(--sunnie-surface-pattern-opacity, 14%);
+  --sunnie-pattern-rotation: var(--sunnie-surface-pattern-rotation, 0deg);
+  --sunnie-pattern-primary: var(--sunnie-surface-pattern-primary);
+  --sunnie-pattern-secondary: var(--sunnie-surface-pattern-secondary);
+  --sunnie-pattern-line: var(--sunnie-surface-pattern-line, 1px);
+}
+
+.sunnie-theme-sidebar-pattern {
+  --sunnie-pattern-scale: var(--sunnie-sidebar-pattern-scale, 1);
+  --sunnie-pattern-opacity: var(--sunnie-sidebar-pattern-opacity, 14%);
+  --sunnie-pattern-rotation: var(--sunnie-sidebar-pattern-rotation, 0deg);
+  --sunnie-pattern-primary: var(--sunnie-sidebar-pattern-primary);
+  --sunnie-pattern-secondary: var(--sunnie-sidebar-pattern-secondary);
+  --sunnie-pattern-line: var(--sunnie-sidebar-pattern-line, 1px);
+}
+
+html[data-theme-app-pattern="lined-paper"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="lined-paper"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="lined-paper"] .sunnie-theme-sidebar-pattern {
   background-image: repeating-linear-gradient(
     to bottom,
-    transparent 0 27px,
-    color-mix(in srgb, var(--sunnie-border) 42%, transparent) 28px
+    transparent 0 calc(27px * var(--sunnie-pattern-scale)),
+    color-mix(
+        in srgb,
+        var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+        transparent
+      )
+      calc(27px * var(--sunnie-pattern-scale))
+      calc(27px * var(--sunnie-pattern-scale) + var(--sunnie-pattern-line))
   );
 }
 
-html[data-theme-surface-pattern="gingham"] .sunnie-theme-surface-pattern {
+html[data-theme-app-pattern="gingham"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="gingham"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="gingham"] .sunnie-theme-sidebar-pattern {
   background-image:
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--sunnie-accent) 10%, transparent) 50%,
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        50%,
       transparent 50%
     ),
     linear-gradient(
-      color-mix(in srgb, var(--sunnie-accent) 10%, transparent) 50%,
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-secondary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        50%,
       transparent 50%
     );
-  background-size: 24px 24px;
+  background-size: calc(24px * var(--sunnie-pattern-scale))
+    calc(24px * var(--sunnie-pattern-scale));
 }
 
+html[data-theme-app-pattern="dot-grid"] .sunnie-theme-app-pattern,
 html[data-theme-surface-pattern="dot-grid"] .sunnie-theme-surface-pattern,
 html[data-theme-sidebar-pattern="dot-grid"] .sunnie-theme-sidebar-pattern {
   background-image: radial-gradient(
     circle,
-    color-mix(in srgb, var(--sunnie-ink-soft) 15%, transparent) 0.7px,
-    transparent 0.8px
+    color-mix(
+        in srgb,
+        var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+        transparent
+      )
+      var(--sunnie-pattern-line),
+    transparent calc(var(--sunnie-pattern-line) + 0.1px)
   );
-  background-size: 18px 18px;
+  background-size: calc(18px * var(--sunnie-pattern-scale))
+    calc(18px * var(--sunnie-pattern-scale));
 }
 
-html[data-theme-surface-pattern="graph-paper"] .sunnie-theme-surface-pattern {
+html[data-theme-app-pattern="graph-paper"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="graph-paper"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="graph-paper"] .sunnie-theme-sidebar-pattern {
   background-image:
     linear-gradient(
-      color-mix(in srgb, var(--sunnie-ink-soft) 10%, transparent) 1px,
-      transparent 1px
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        var(--sunnie-pattern-line),
+      transparent var(--sunnie-pattern-line)
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--sunnie-ink-soft) 10%, transparent) 1px,
-      transparent 1px
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-secondary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        var(--sunnie-pattern-line),
+      transparent var(--sunnie-pattern-line)
     );
-  background-size: 20px 20px;
+  background-size: calc(20px * var(--sunnie-pattern-scale))
+    calc(20px * var(--sunnie-pattern-scale));
+}
+
+html[data-theme-app-pattern="checker"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="checker"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="checker"] .sunnie-theme-sidebar-pattern {
+  background-image: conic-gradient(
+    from calc(90deg + var(--sunnie-pattern-rotation)),
+    color-mix(
+        in srgb,
+        var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+        transparent
+      )
+      25%,
+    transparent 0 50%,
+    color-mix(
+        in srgb,
+        var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+        transparent
+      )
+      0 75%,
+    transparent 0
+  );
+  background-size: calc(24px * var(--sunnie-pattern-scale))
+    calc(24px * var(--sunnie-pattern-scale));
+}
+
+html[data-theme-app-pattern="stripes"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="stripes"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="stripes"] .sunnie-theme-sidebar-pattern {
+  background-image: repeating-linear-gradient(
+    calc(135deg + var(--sunnie-pattern-rotation)),
+    transparent 0 calc(10px * var(--sunnie-pattern-scale)),
+    color-mix(
+        in srgb,
+        var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+        transparent
+      )
+      calc(10px * var(--sunnie-pattern-scale))
+      calc(20px * var(--sunnie-pattern-scale))
+  );
+}
+
+html[data-theme-app-pattern="plaid"] .sunnie-theme-app-pattern,
+html[data-theme-surface-pattern="plaid"] .sunnie-theme-surface-pattern,
+html[data-theme-sidebar-pattern="plaid"] .sunnie-theme-sidebar-pattern {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(19px * var(--sunnie-pattern-scale)),
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        calc(19px * var(--sunnie-pattern-scale))
+        calc(21px * var(--sunnie-pattern-scale)),
+      transparent calc(21px * var(--sunnie-pattern-scale))
+        calc(47px * var(--sunnie-pattern-scale)),
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-secondary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        calc(47px * var(--sunnie-pattern-scale))
+        calc(54px * var(--sunnie-pattern-scale))
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 calc(19px * var(--sunnie-pattern-scale)),
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-primary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        calc(19px * var(--sunnie-pattern-scale))
+        calc(21px * var(--sunnie-pattern-scale)),
+      transparent calc(21px * var(--sunnie-pattern-scale))
+        calc(47px * var(--sunnie-pattern-scale)),
+      color-mix(
+          in srgb,
+          var(--sunnie-pattern-secondary) var(--sunnie-pattern-opacity),
+          transparent
+        )
+        calc(47px * var(--sunnie-pattern-scale))
+        calc(54px * var(--sunnie-pattern-scale))
+    );
 }
 
 .sunnie-theme-accent-edge {

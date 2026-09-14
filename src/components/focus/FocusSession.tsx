@@ -525,14 +525,14 @@ export function FocusSession({
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a6762a]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
               Focus companion
             </p>
             <span
               key={sunDrops}
-              className="inline-flex animate-[sunnie-sun-pop_900ms_cubic-bezier(0.2,0.75,0.25,1)] items-center gap-1 rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold text-[#8c6a27] motion-reduce:animate-none"
+              className="inline-flex animate-[sunnie-sun-pop_900ms_cubic-bezier(0.2,0.75,0.25,1)] items-center gap-1 rounded-full bg-card/70 px-2 py-1 text-[10px] font-bold text-primary motion-reduce:animate-none"
             >
-              <Sun className="h-3 w-3 fill-[#f4c85b] text-[#d29a30]" />
+              <Sun className="h-3 w-3 fill-[var(--sunnie-warm-glow)] text-primary" />
               {sunDrops} sun {sunDrops === 1 ? "drop" : "drops"}
             </span>
           </div>
@@ -546,7 +546,7 @@ export function FocusSession({
         <button
           type="button"
           onClick={() => setSoundEnabled((current) => !current)}
-          className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-white/65 px-3 py-2 text-xs font-semibold text-[#68684f] hover:bg-white"
+          className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-card/65 px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-card"
           title={soundEnabled ? "Timer chimes are on" : "Timer chimes are off"}
         >
           {soundEnabled ? (
@@ -558,26 +558,26 @@ export function FocusSession({
         </button>
       </div>
 
-      <div className="border-b border-[#e7e0c5] bg-[#fffdf7] px-4 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#68634d]">
-          <span className="rounded-full bg-[#eef3df] px-2.5 py-1">
+      <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-secondary-foreground">
+          <span className="rounded-full bg-muted px-2.5 py-1">
             Energy: {friendlyValue(taskEnergy)}
           </span>
-          <span className="rounded-full bg-[#fff0c8] px-2.5 py-1">
+          <span className="rounded-full bg-accent px-2.5 py-1">
             Urgency: {friendlyValue(taskPriority)}
           </span>
           {estimatedMinutes && (
-            <span className="rounded-full bg-[#eee8f6] px-2.5 py-1">
+            <span className="rounded-full bg-secondary px-2.5 py-1">
               Estimate: {estimatedMinutes} min
             </span>
           )}
         </div>
         {taskDescription && (
-          <div className="mt-3 rounded-2xl border border-[#e5dfc7] bg-white/70 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9a8b66]">
+          <div className="mt-3 rounded-2xl border border-border bg-background/70 px-3 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
               Task note
             </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#66634f]">
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-secondary-foreground">
               {taskDescription}
             </p>
           </div>
@@ -589,16 +589,16 @@ export function FocusSession({
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b17b2b]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
                   Plan your whole round
                 </p>
-                <h3 className="mt-1 text-lg font-bold text-[#4e533e]">
+                <h3 className="mt-1 text-lg font-bold text-foreground">
                   Setup first, then Sunnie starts focus automatically
                 </h3>
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-[#ead9a9] bg-[#fff4cf] px-3 py-2.5 text-center text-xs font-bold text-[#755c2c]">
+            <div className="mt-4 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground">
               {setupMinutes} min setup → {focusMinutes} min focus →{" "}
               {breakMinutes} min break
             </div>
@@ -640,16 +640,16 @@ export function FocusSession({
                     className={cn(
                       "flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left text-xs font-semibold transition",
                       checked
-                        ? "border-[#bacc99] bg-[#eff4e2] text-[#586447]"
-                        : "border-[#e4dec5] bg-white/70 text-[#777158]"
+                        ? "border-primary/45 bg-muted text-secondary-foreground"
+                        : "border-border bg-card/70 text-muted-foreground"
                     )}
                   >
                     <span
                       className={cn(
                         "grid h-5 w-5 shrink-0 place-items-center rounded-full border",
                         checked
-                          ? "border-[#8ea76b] bg-[#9fb878] text-white"
-                          : "border-[#cfc8aa]"
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border"
                       )}
                     >
                       {checked && <Check className="h-3 w-3" />}
@@ -660,21 +660,21 @@ export function FocusSession({
               })}
             </div>
 
-            <label className="mt-3 block text-xs font-bold text-[#66634d]">
+            <label className="mt-3 block text-xs font-bold text-secondary-foreground">
               Tiny subtask outline
               <textarea
                 value={subtaskPlan}
                 onChange={(event) => setSubtaskPlan(event.target.value)}
                 placeholder="What are the next 2–3 concrete steps?"
                 rows={2}
-                className="mt-1.5 w-full resize-none rounded-2xl border border-[#ded8bd] bg-white/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-[#aaa58d] focus:border-[#a9bb82]"
+                className="mt-1.5 w-full resize-none rounded-2xl border border-border bg-card/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/35"
               />
             </label>
 
             <button
               type="button"
               onClick={() => startTimer("setup")}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#607249] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#465536] hover:bg-[#53643e] sm:w-auto"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] hover:brightness-95 sm:w-auto"
             >
               <Sparkles className="h-4 w-4" /> Start setup, then focus
             </button>
@@ -711,13 +711,13 @@ export function FocusSession({
 
         {phase === "break-ready" && (
           <div className="text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fff0b8] text-[#c88a25]">
-              <Sun className="h-7 w-7 fill-[#f4c85b]" />
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent text-primary">
+              <Sun className="h-7 w-7 fill-[var(--sunnie-warm-glow)]" />
             </span>
-            <h3 className="mt-3 text-xl font-bold text-[#4e533e]">
+            <h3 className="mt-3 text-xl font-bold text-foreground">
               Focus round complete!
             </h3>
-            <p className="mt-1 text-sm text-[#747057]">
+            <p className="mt-1 text-sm text-muted-foreground">
               You earned a sun drop. If the task is done, finish it here; if
               your plan changed, update it before the next round.
             </p>
@@ -736,14 +736,14 @@ export function FocusSession({
               <button
                 type="button"
                 onClick={() => startTimer("break")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#708654] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#51663b]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)]"
               >
                 <Coffee className="h-4 w-4" /> Start {breakMinutes}-minute break
               </button>
               <button
                 type="button"
                 onClick={() => setPhase("complete")}
-                className="rounded-2xl border border-[#dad3b7] px-4 py-3 text-sm font-semibold text-[#716b50]"
+                className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-secondary-foreground"
               >
                 Skip this break
               </button>
@@ -766,13 +766,13 @@ export function FocusSession({
 
         {phase === "complete" && (
           <div className="text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#e8f0d6] text-[#607249]">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-muted text-primary">
               <Check className="h-7 w-7" />
             </span>
-            <h3 className="mt-3 text-xl font-bold text-[#4e533e]">
+            <h3 className="mt-3 text-xl font-bold text-foreground">
               Nice work protecting that time
             </h3>
-            <p className="mt-1 text-sm text-[#747057]">
+            <p className="mt-1 text-sm text-muted-foreground">
               Finish the task, edit what changed, or continue with another
               round.
             </p>
@@ -784,14 +784,14 @@ export function FocusSession({
               <button
                 type="button"
                 onClick={startAnotherRound}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#607249] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_#465536]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)]"
               >
                 <Play className="h-4 w-4 fill-current" /> Another focus round
               </button>
               <button
                 type="button"
                 onClick={startFreshSetup}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dad3b7] px-4 py-3 text-sm font-semibold text-[#716b50]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-secondary-foreground"
               >
                 <RotateCcw className="h-4 w-4" /> New setup
               </button>
@@ -799,8 +799,8 @@ export function FocusSession({
           </div>
         )}
 
-        <details className="group mt-5 border-t border-[#e7e0c5] pt-4">
-          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl text-xs font-bold text-[#716b50]">
+        <details className="group mt-5 border-t border-border pt-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl text-xs font-bold text-secondary-foreground">
             Choose your focus companion
             <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
           </summary>
@@ -813,8 +813,8 @@ export function FocusSession({
                 className={cn(
                   "rounded-2xl border p-2 text-center transition",
                   petId === pet.id
-                    ? "border-[#9fb878] bg-[#eff4e2] shadow-sm"
-                    : "border-[#e3ddc4] bg-white/60 hover:bg-white"
+                    ? "border-primary bg-muted shadow-sm"
+                    : "border-border bg-card/60 hover:bg-card"
                 )}
               >
                 <span className="block text-2xl" aria-hidden="true">
@@ -829,11 +829,11 @@ export function FocusSession({
               className={cn(
                 "cursor-pointer rounded-2xl border p-2 text-center transition",
                 petId === "custom"
-                  ? "border-[#9fb878] bg-[#eff4e2] shadow-sm"
-                  : "border-[#e3ddc4] bg-white/60 hover:bg-white"
+                  ? "border-primary bg-muted shadow-sm"
+                  : "border-border bg-card/60 hover:bg-card"
               )}
             >
-              <ImagePlus className="mx-auto h-6 w-6 text-[#8b8364]" />
+              <ImagePlus className="mx-auto h-6 w-6 text-muted-foreground" />
               <span className="mt-1 block text-[10px] font-bold">My photo</span>
               <input
                 type="file"
@@ -844,31 +844,31 @@ export function FocusSession({
             </label>
           </div>
           {usesCustomPet && (
-            <label className="mt-3 block text-xs font-semibold text-[#6f6a52]">
+            <label className="mt-3 block text-xs font-semibold text-secondary-foreground">
               Buddy name
               <input
                 value={customPetName}
                 onChange={(event) => setCustomPetName(event.target.value)}
                 maxLength={40}
-                className="mt-1 w-full rounded-xl border border-[#ddd6ba] bg-white/80 px-3 py-2 text-sm outline-none focus:border-[#a9bb82]"
+                className="mt-1 w-full rounded-xl border border-border bg-card/80 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/35"
               />
             </label>
           )}
-          <p className="mt-2 text-[10px] leading-relaxed text-[#8a846b]">
+          <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
             Custom photos stay in this browser and are never uploaded to Sunnie.
             Maximum size: 750 KB.
           </p>
           {imageError && (
-            <p className="mt-2 text-xs text-red-700">{imageError}</p>
+            <p className="mt-2 text-xs text-destructive">{imageError}</p>
           )}
         </details>
 
-        <details className="group mt-4 border-t border-[#e7e0c5] pt-4">
-          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl text-xs font-bold text-[#716b50]">
+        <details className="group mt-4 border-t border-border pt-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl text-xs font-bold text-secondary-foreground">
             Choose your timer chime
             <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
           </summary>
-          <p className="mt-2 text-xs leading-relaxed text-[#8a846b]">
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sunnie plays your chime when setup, focus, and break timers finish.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -880,8 +880,8 @@ export function FocusSession({
                   className={cn(
                     "flex items-center gap-2 rounded-2xl border p-2 transition",
                     selected
-                      ? "border-[#9fb878] bg-[#eff4e2] shadow-sm"
-                      : "border-[#e3ddc4] bg-white/60"
+                      ? "border-primary bg-muted shadow-sm"
+                      : "border-border bg-card/60"
                   )}
                 >
                   <button
@@ -893,10 +893,10 @@ export function FocusSession({
                     className="min-w-0 flex-1 rounded-xl px-1 py-1.5 text-left"
                     aria-pressed={selected}
                   >
-                    <span className="block text-xs font-bold text-[#585b45]">
+                    <span className="block text-xs font-bold text-foreground">
                       {option.name}
                     </span>
-                    <span className="mt-0.5 block text-[10px] text-[#858069]">
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
                       {option.description}
                     </span>
                   </button>
@@ -905,7 +905,7 @@ export function FocusSession({
                     onClick={() => void playGentleChime(option.id)}
                     aria-label={`Preview ${option.name}`}
                     title={`Hear ${option.name}`}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-[#607249] shadow-sm transition hover:scale-105 motion-reduce:transform-none"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-card text-primary shadow-sm transition hover:scale-105 motion-reduce:transform-none"
                   >
                     <Volume2 className="h-4 w-4" />
                   </button>
@@ -938,14 +938,14 @@ function RoundTaskActions({
       <button
         type="button"
         onClick={onCompleteTask}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f4c85b] px-4 py-3 text-sm font-bold text-[#56431b] shadow-[0_3px_0_#d6a43e]"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground shadow-[var(--shadow-pressed)]"
       >
         <Check className="h-4 w-4" /> Complete task
       </button>
       <button
         type="button"
         onClick={onEditTask}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dad3b7] bg-white/70 px-4 py-3 text-sm font-semibold text-[#716b50]"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/70 px-4 py-3 text-sm font-semibold text-secondary-foreground"
       >
         <Pencil className="h-4 w-4" /> Edit task
       </button>
@@ -968,7 +968,9 @@ function DurationPicker({
 }) {
   return (
     <div className={cn("mt-4", centered && "text-center")}>
-      <p className="mb-2 text-xs font-bold text-[#716b50]">{label}</p>
+      <p className="mb-2 text-xs font-bold text-secondary-foreground">
+        {label}
+      </p>
       <div className={cn("flex flex-wrap gap-2", centered && "justify-center")}>
         {values.map((minutes) => (
           <button
@@ -978,8 +980,8 @@ function DurationPicker({
             className={cn(
               "rounded-xl border px-3 py-2 text-xs font-bold transition",
               value === minutes
-                ? "border-[#9fb878] bg-[#eff4e2] text-[#566344] shadow-sm"
-                : "border-[#ded8bd] bg-white/70 text-[#777158]"
+                ? "border-primary bg-muted text-secondary-foreground shadow-sm"
+                : "border-border bg-card/70 text-muted-foreground"
             )}
           >
             {minutes} min
@@ -1015,21 +1017,21 @@ function TimerControls({
 }) {
   return (
     <div className="py-2 text-center">
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b17b2b]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
         {isBreak ? "Break timer" : "Gentle timer"}
       </p>
-      <h3 className="mx-auto mt-1 max-w-lg text-base font-bold text-[#4e533e]">
+      <h3 className="mx-auto mt-1 max-w-lg text-base font-bold text-foreground">
         {phaseLabel}
       </h3>
       {nextLabel && (
-        <p className="mt-1 text-xs font-semibold text-[#9a762f]">{nextLabel}</p>
+        <p className="mt-1 text-xs font-semibold text-primary">{nextLabel}</p>
       )}
       {subtaskPlan?.trim() && (
-        <div className="mx-auto mt-4 max-w-xl rounded-2xl border border-[#e2dbc0] bg-white/70 px-4 py-3 text-left">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#998b68]">
+        <div className="mx-auto mt-4 max-w-xl rounded-2xl border border-border bg-card/70 px-4 py-3 text-left">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
             Your focus steps
           </p>
-          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#605f4d]">
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-secondary-foreground">
             {subtaskPlan}
           </p>
         </div>
@@ -1037,11 +1039,11 @@ function TimerControls({
       <div
         className="mx-auto mt-4 grid h-40 w-40 place-items-center rounded-full p-2 shadow-inner"
         style={{
-          background: `conic-gradient(${isBreak ? "#9fbc80" : "#e0ad43"} ${progress * 360}deg, #ece7d1 0deg)`,
+          background: `conic-gradient(${isBreak ? "var(--sunnie-status-success)" : "var(--sunnie-primary)"} ${progress * 360}deg, var(--sunnie-surface-muted) 0deg)`,
         }}
       >
-        <div className="grid h-full w-full place-items-center rounded-full bg-[#fffdf7]">
-          <span className="font-mono text-4xl font-bold tracking-tight text-[#4e533e]">
+        <div className="grid h-full w-full place-items-center rounded-full bg-card">
+          <span className="font-mono text-4xl font-bold tracking-tight text-foreground">
             {formatFocusTime(remainingSeconds)}
           </span>
         </div>
@@ -1051,7 +1053,7 @@ function TimerControls({
           type="button"
           onClick={isRunning ? onPause : onResume}
           disabled={!isRunning && remainingSeconds === 0}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#607249] px-4 py-2.5 text-sm font-bold text-white shadow-[0_3px_0_#465536] disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] disabled:opacity-50"
         >
           {isRunning ? (
             <Pause className="h-4 w-4 fill-current" />
@@ -1063,7 +1065,7 @@ function TimerControls({
         <button
           type="button"
           onClick={onEnd}
-          className="inline-flex items-center gap-2 rounded-2xl border border-[#dad3b7] px-4 py-2.5 text-sm font-semibold text-[#716b50]"
+          className="inline-flex items-center gap-2 rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold text-secondary-foreground"
         >
           <Square className="h-3.5 w-3.5 fill-current" /> End early
         </button>

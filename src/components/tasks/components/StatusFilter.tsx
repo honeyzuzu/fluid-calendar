@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { HiChevronDown } from "react-icons/hi";
+import { ChevronDown as HiChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

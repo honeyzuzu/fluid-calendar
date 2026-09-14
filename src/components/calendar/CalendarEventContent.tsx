@@ -1,7 +1,11 @@
 import { memo } from "react";
 
 import type { EventContentArg } from "@fullcalendar/core";
-import { IoCheckmarkCircle, IoRepeat, IoTimeOutline } from "react-icons/io5";
+import {
+  CheckCircle2 as IoCheckmarkCircle,
+  Repeat2 as IoRepeat,
+  Clock3 as IoTimeOutline,
+} from "lucide-react";
 
 import { getMonthEventDisplay } from "@/lib/calendar-event-display";
 import { getHarmonizedTextColor } from "@/lib/color-contrast";
@@ -12,8 +16,6 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settings";
 
 import { TaskStatus } from "@/types/task";
-
-const DEFAULT_EVENT_COLOR = "#3b82f6";
 
 interface CalendarEventContentProps {
   eventInfo: EventContentArg;
@@ -63,11 +65,11 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     timeFormat: userSettings.timeFormat,
     timeZone: calendarTimeZone,
   });
+  const theme = getSunnieTheme(userSettings.colorTheme);
   const eventColor =
     eventInfo.event.backgroundColor ||
     eventInfo.event.borderColor ||
-    DEFAULT_EVENT_COLOR;
-  const theme = getSunnieTheme(userSettings.colorTheme);
+    theme.palettes.events[0].value;
   const presentation = getCalendarPresentation(
     theme,
     userSettings.calendarStyle

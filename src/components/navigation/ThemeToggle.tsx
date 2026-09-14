@@ -1,6 +1,10 @@
 "use client";
 
-import { HiDesktopComputer, HiMoon, HiSun } from "react-icons/hi";
+import {
+  Monitor as HiDesktopComputer,
+  Moon as HiMoon,
+  Sun as HiSun,
+} from "lucide-react";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";

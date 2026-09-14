@@ -38,9 +38,9 @@ export function LogTable({
       case "error":
         return "text-destructive font-medium";
       case "warn":
-        return "text-yellow-600 dark:text-yellow-500 font-medium";
+        return "font-medium text-warning";
       case "info":
-        return "text-blue-600 dark:text-blue-400 font-medium";
+        return "font-medium text-primary";
       case "debug":
         return "text-muted-foreground font-medium";
       default:

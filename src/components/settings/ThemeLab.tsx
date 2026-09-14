@@ -529,7 +529,7 @@ function SwatchRow({ label, colors }: { label: string; colors: string[] }) {
         {colors.map((color) => (
           <span
             key={color}
-            className="h-6 w-6 rounded-full border border-black/10 shadow-sm"
+            className="h-6 w-6 rounded-full border border-border shadow-sm"
             style={{ backgroundColor: color }}
             title={color}
           />

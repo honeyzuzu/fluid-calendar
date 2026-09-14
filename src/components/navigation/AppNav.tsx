@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { MoreHorizontal } from "lucide-react";
-import { BsCalendar, BsListTask } from "react-icons/bs";
 import {
-  HiOutlineLightBulb,
-  HiOutlineSearch,
-  HiOutlineSparkles,
-  HiOutlineUserGroup,
-} from "react-icons/hi";
-import { RiKeyboardLine } from "react-icons/ri";
+  CalendarDays,
+  Keyboard,
+  Lightbulb,
+  ListTodo,
+  MoreHorizontal,
+  Search,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
 import {
@@ -54,32 +55,31 @@ export function AppNav({ className }: AppNavProps) {
       href: "/plan",
       label: "Plan",
       mobileLabel: "Plan",
-      icon: HiOutlineSparkles,
+      icon: Sparkles,
     },
     {
       href: "/calendar",
       label: "Calendar",
       mobileLabel: "Calendar",
-      icon: BsCalendar,
+      icon: CalendarDays,
     },
-    { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: BsListTask },
+    { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: ListTodo },
     {
       href: "/focus",
       label: "Focus",
       mobileLabel: "Focus",
-      icon: HiOutlineLightBulb,
+      icon: Lightbulb,
     },
   ];
-  const moreLinks = [
-    { href: "/friends", label: "Friends", icon: HiOutlineUserGroup },
-  ];
+  const moreLinks = [{ href: "/friends", label: "Friends", icon: UsersRound }];
   const moreIsActive = moreLinks.some((link) => pathname === link.href);
 
   return (
     <>
       <nav
+        aria-label="Primary navigation"
         className={cn(
-          "relative z-10 min-h-16 flex-none border-b border-border bg-background/95 shadow-sm backdrop-blur-md",
+          "relative z-10 min-h-16 flex-none border-b border-border bg-card/90 shadow-[var(--shadow-paper)] backdrop-blur-md",
           className
         )}
       >
@@ -111,11 +111,12 @@ export function AppNav({ className }: AppNavProps) {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
+                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold transition-[background-color,color,box-shadow,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:px-3.5",
                         isActive
                           ? "bg-accent text-accent-foreground shadow-sm"
                           : "text-secondary-foreground hover:bg-muted hover:text-foreground"
                       )}
+                      aria-current={isActive ? "page" : undefined}
                     >
                       <span className="relative">
                         <Icon className="h-4 w-4" />
@@ -134,8 +135,10 @@ export function AppNav({ className }: AppNavProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
+                      type="button"
+                      aria-label="Open more destinations"
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold xl:px-3.5",
+                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-2.5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:px-3.5",
                         moreIsActive
                           ? "bg-accent text-accent-foreground shadow-sm"
                           : "text-secondary-foreground hover:bg-muted hover:text-foreground"
@@ -171,22 +174,26 @@ export function AppNav({ className }: AppNavProps) {
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <button
+                type="button"
+                aria-label="Search or run a command"
                 onClick={openCommandPalette}
-                className="hidden items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground xl:flex"
+                className="hidden min-h-10 items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:flex"
                 title="Search or run a command (⌘K)"
               >
-                <HiOutlineSearch className="h-4 w-4" />
-                <span className="hidden sm:inline">Search</span>
+                <Search className="h-4 w-4" />
+                <span className="hidden xl:inline">Search</span>
                 <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
                   ⌘K
                 </kbd>
               </button>
               <button
+                type="button"
+                aria-label="View keyboard shortcuts"
                 onClick={() => setShortcutsOpen(true)}
-                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="flex min-h-10 min-w-10 items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 title="View Keyboard Shortcuts (Press ?)"
               >
-                <RiKeyboardLine className="h-4 w-4" />
+                <Keyboard className="h-4 w-4" />
                 <span className="hidden xl:inline">Shortcuts</span>
                 <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
                   ?
@@ -210,11 +217,12 @@ export function AppNav({ className }: AppNavProps) {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
+                "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 isActive
                   ? "text-accent-foreground"
                   : "text-muted-foreground hover:bg-muted"
               )}
+              aria-current={isActive ? "page" : undefined}
             >
               <span
                 className={cn(
@@ -239,6 +247,8 @@ export function AppNav({ className }: AppNavProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
+              type="button"
+              aria-label="Open more destinations"
               className={cn(
                 "flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-1 text-[11px] font-semibold",
                 moreIsActive

@@ -2,9 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { BsArrowRepeat } from "react-icons/bs";
-import { HiFolderOpen, HiPencil, HiPlus } from "react-icons/hi";
+import {
+  RefreshCw as BsArrowRepeat,
+  ChevronLeft,
+  ChevronRight,
+  FolderOpen as HiFolderOpen,
+  Pencil as HiPencil,
+  Plus as HiPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -194,7 +199,7 @@ export function ProjectSidebar() {
         </button>
         <aside
           className={cn(
-            "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
+            "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[var(--shadow-raised)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -203,6 +208,7 @@ export function ProjectSidebar() {
               <h2 className="text-lg font-semibold">Projects</h2>
               <Button
                 size="icon"
+                aria-label="Add project"
                 onClick={() => {
                   setSelectedProject(undefined);
                   setIsModalOpen(true);
@@ -335,13 +341,13 @@ export function MobileProjectPicker() {
   ).length;
 
   return (
-    <div className="mt-3 border-t border-black/[0.055] pt-3 md:hidden">
+    <div className="mt-3 border-t border-border/70 pt-3 md:hidden">
       <div className="mb-2 flex items-center justify-between">
         <button
           type="button"
           onClick={() => setIsExpanded((current) => !current)}
           aria-expanded={isExpanded}
-          className="inline-flex items-center gap-1.5 rounded-lg py-1 pr-2 text-[10px] font-bold uppercase tracking-[0.12em] text-black/50"
+          className="inline-flex items-center gap-1.5 rounded-lg py-1 pr-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground"
         >
           {isExpanded ? (
             <ChevronLeft className="h-4 w-4" />
@@ -406,9 +412,9 @@ export function MobileProjectPicker() {
                 type="button"
                 onClick={() => setActiveProject(project)}
                 className={cn(
-                  "shrink-0 snap-start rounded-xl border border-black/10 px-3 py-2 text-xs font-semibold shadow-sm",
+                  "shrink-0 snap-start rounded-xl border border-border/80 px-3 py-2 text-xs font-semibold shadow-sm",
                   activeProject?.id === project.id &&
-                    "ring-2 ring-[#596741] ring-offset-2"
+                    "ring-2 ring-primary ring-offset-2"
                 )}
                 style={{ backgroundColor: tileColor, color: textColor }}
               >
@@ -469,10 +475,10 @@ function ProjectItem({
     <div
       {...droppableProps}
       className={cn(
-        "group flex min-h-11 w-full cursor-pointer items-center space-x-2 rounded-xl border border-black/10 px-3 py-2.5 shadow-[0_1px_2px_rgba(65,69,48,0.06)] transition hover:-translate-y-0.5 hover:brightness-[1.02] hover:shadow-sm motion-reduce:transform-none",
-        isActive && "ring-2 ring-[#596741] ring-offset-2 ring-offset-[#fffdf5]",
+        "group flex min-h-11 w-full cursor-pointer items-center space-x-2 rounded-xl border border-border/70 px-3 py-2.5 shadow-[var(--shadow-paper)] transition hover:-translate-y-0.5 hover:brightness-[1.02] hover:shadow-sm motion-reduce:transform-none",
+        isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background",
         isOver &&
-          "z-10 scale-[1.03] ring-2 ring-[#d0912e] ring-offset-2 ring-offset-[#fffdf5]"
+          "z-10 scale-[1.03] ring-2 ring-accent ring-offset-2 ring-offset-background"
       )}
       style={{ backgroundColor: tileColor, color: textColor }}
       onClick={() => setActiveProject(project)}
@@ -487,7 +493,8 @@ function ProjectItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-white/25 group-hover:opacity-100"
+          aria-label={`Sync ${project.name}`}
+          className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-card/25 group-hover:opacity-100"
           disabled={isSyncing}
           onClick={(e) => {
             e.stopPropagation();
@@ -503,7 +510,8 @@ function ProjectItem({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-white/25 group-hover:opacity-100"
+        aria-label={`Edit ${project.name}`}
+        className="h-6 w-6 p-0.5 text-current opacity-0 transition-opacity hover:bg-card/25 group-hover:opacity-100"
         onClick={(e) => {
           e.stopPropagation();
           onEdit(project);

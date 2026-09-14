@@ -43,8 +43,13 @@ interface WeekViewProps {
 }
 
 export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
-  const { feeds, getAllCalendarItems, isLoading, removeEvent } =
-    useCalendarStore();
+  const {
+    feeds,
+    getAllCalendarItems,
+    isLoading,
+    loadEventsForRange,
+    removeEvent,
+  } = useCalendarStore();
   const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
   const friendCalendarColors = useCalendarUIStore(
     (state) => state.friendCalendarColors
@@ -91,6 +96,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      await loadEventsForRange(arg.start, arg.end);
       // Get all calendar items with current task data
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
@@ -98,7 +104,8 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
         arg.end,
         friendCalendarColors,
         friendFallbackColor,
-        activeColorTheme.id
+        activeColorTheme.id,
+        friendRefreshRevision
       );
       const formattedItems = items
         .filter((item) => {
@@ -160,19 +167,13 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       feeds,
       friendCalendarColors,
       friendFallbackColor,
+      friendRefreshRevision,
       activeColorTheme.id,
       getAllCalendarItems,
       hiddenFriendIds,
+      loadEventsForRange,
     ]
   );
-
-  // Initial data load
-  useEffect(() => {
-    Promise.all([
-      useCalendarStore.getState().loadFromDatabase(),
-      useTaskStore.getState().fetchTasks(),
-    ]);
-  }, []);
 
   // Update items when loading state changes, feeds change, or tasks change
   useEffect(() => {

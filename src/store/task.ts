@@ -45,6 +45,44 @@ interface TaskState {
   triggerScheduleAllTasks: () => Promise<void>;
 }
 
+const taskMutationVersions = new Map<string, number>();
+let taskRescheduleTimer: ReturnType<typeof setTimeout> | undefined;
+
+function beginTaskMutation(taskId: string) {
+  const version = (taskMutationVersions.get(taskId) ?? 0) + 1;
+  taskMutationVersions.set(taskId, version);
+  return version;
+}
+
+function isLatestTaskMutation(taskId: string, version: number) {
+  return taskMutationVersions.get(taskId) === version;
+}
+
+function queueTaskReschedule(getState: () => TaskState) {
+  if (taskRescheduleTimer) clearTimeout(taskRescheduleTimer);
+  taskRescheduleTimer = setTimeout(() => {
+    taskRescheduleTimer = undefined;
+    void getState()
+      .triggerScheduleAllTasks()
+      .catch(() => undefined);
+  }, 200);
+}
+
+function applyOptimisticTaskUpdate(
+  task: Task,
+  updates: UpdateTask,
+  tags: Tag[]
+): Task {
+  const { tagIds, ...taskUpdates } = updates;
+
+  return {
+    ...task,
+    ...taskUpdates,
+    tags: tagIds ? tags.filter((tag) => tagIds.includes(tag.id)) : task.tags,
+    updatedAt: new Date(),
+  };
+}
+
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
@@ -96,7 +134,7 @@ export const useTaskStore = create<TaskState>()(
       },
 
       createTask: async (task: NewTask) => {
-        set({ loading: true, error: null });
+        set({ error: null });
         try {
           const response = await fetch("/api/tasks", {
             method: "POST",
@@ -106,25 +144,32 @@ export const useTaskStore = create<TaskState>()(
           if (!response.ok) throw new Error("Failed to create task");
           const newTask = await response.json();
           set((state) => ({ tasks: [...state.tasks, newTask] }));
-          await get().triggerScheduleAllTasks();
+          queueTaskReschedule(get);
           return newTask;
         } catch (error) {
           set({ error: error as Error });
           throw error;
-        } finally {
-          set({ loading: false });
         }
       },
 
       updateTask: async (id: string, updates: UpdateTask) => {
-        const previousStatus = get().tasks.find(
-          (task) => task.id === id
-        )?.status;
+        const previousTask = get().tasks.find((task) => task.id === id);
+        const previousStatus = previousTask?.status;
         const earnsSunDrop = completionEarnsSunDrop(
           previousStatus,
           updates.status
         );
-        set({ loading: true, error: null });
+        const mutationVersion = beginTaskMutation(id);
+
+        set((state) => ({
+          error: null,
+          tasks: state.tasks.map((task) =>
+            task.id === id
+              ? applyOptimisticTaskUpdate(task, updates, state.tags)
+              : task
+          ),
+        }));
+
         try {
           const response = await fetch(`/api/tasks/${id}`, {
             method: "PUT",
@@ -138,38 +183,54 @@ export const useTaskStore = create<TaskState>()(
           }
 
           const updatedTask = await response.json();
-          set((state) => ({
-            tasks: state.tasks.map((task) =>
-              task.id === id ? updatedTask : task
-            ),
-          }));
-          if (earnsSunDrop) void awardSunDrops(1);
-          await get().triggerScheduleAllTasks();
+          if (isLatestTaskMutation(id, mutationVersion)) {
+            set((state) => ({
+              tasks: state.tasks.map((task) =>
+                task.id === id ? updatedTask : task
+              ),
+            }));
+            if (earnsSunDrop) void awardSunDrops(1);
+          }
+          queueTaskReschedule(get);
           return updatedTask;
         } catch (error) {
-          set({ error: error as Error });
+          set((state) => ({
+            error: error as Error,
+            tasks:
+              previousTask && isLatestTaskMutation(id, mutationVersion)
+                ? state.tasks.map((task) =>
+                    task.id === id ? previousTask : task
+                  )
+                : state.tasks,
+          }));
           throw error;
-        } finally {
-          set({ loading: false });
         }
       },
 
       deleteTask: async (id: string) => {
-        set({ loading: true, error: null });
+        const previousTasks = get().tasks;
+        const previousTask = previousTasks.find((task) => task.id === id);
+        const previousIndex = previousTasks.findIndex((task) => task.id === id);
+        set((state) => ({
+          error: null,
+          tasks: state.tasks.filter((task) => task.id !== id),
+        }));
         try {
           const response = await fetch(`/api/tasks/${id}`, {
             method: "DELETE",
           });
           if (!response.ok) throw new Error("Failed to delete task");
-          set((state) => ({
-            tasks: state.tasks.filter((task) => task.id !== id),
-          }));
-          await get().triggerScheduleAllTasks();
+          queueTaskReschedule(get);
         } catch (error) {
-          set({ error: error as Error });
+          set((state) => {
+            if (!previousTask || state.tasks.some((task) => task.id === id)) {
+              return { error: error as Error };
+            }
+            const tasks = [...state.tasks];
+            tasks.splice(Math.max(0, previousIndex), 0, previousTask);
+            return { error: error as Error, tasks };
+          });
           throw error;
-        } finally {
-          set({ loading: false });
         }
       },
 
@@ -255,50 +316,55 @@ export const useTaskStore = create<TaskState>()(
       },
 
       assignToProject: async (taskId: string, projectId: string | null) => {
-        set({ loading: true, error: null });
-        try {
-          const response = await fetch(`/api/tasks/${taskId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ projectId }),
-          });
-          if (!response.ok) throw new Error("Failed to assign task to project");
-          const updatedTask = await response.json();
-          set((state) => ({
-            tasks: state.tasks.map((t) => (t.id === taskId ? updatedTask : t)),
-          }));
-          await get().triggerScheduleAllTasks();
-          return updatedTask;
-        } catch (error) {
-          set({ error: error as Error });
-          throw error;
-        } finally {
-          set({ loading: false });
-        }
+        return get().updateTask(taskId, { projectId });
       },
 
       bulkAssignToProject: async (
         taskIds: string[],
         projectId: string | null
       ) => {
-        set({ loading: true, error: null });
+        const taskIdSet = new Set(taskIds);
+        const previousTasks = get().tasks;
+        set((state) => ({
+          error: null,
+          tasks: state.tasks.map((task) =>
+            taskIdSet.has(task.id) ? { ...task, projectId } : task
+          ),
+        }));
         try {
-          await Promise.all(
-            taskIds.map((taskId) =>
-              fetch(`/api/tasks/${taskId}`, {
+          const responses = await Promise.all(
+            taskIds.map(async (taskId) => {
+              const response = await fetch(`/api/tasks/${taskId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ projectId }),
-              })
-            )
+              });
+              if (!response.ok) {
+                throw new Error("Failed to assign one or more tasks");
+              }
+              return (await response.json()) as Task;
+            })
           );
-          await get().fetchTasks(); // Refresh task list
-          await get().triggerScheduleAllTasks();
+
+          const updatedById = new Map(
+            responses.map((task) => [task.id, task] as const)
+          );
+          set((state) => ({
+            tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
+          }));
+          queueTaskReschedule(get);
         } catch (error) {
-          set({ error: error as Error });
+          const previousById = new Map(
+            previousTasks
+              .filter((task) => taskIdSet.has(task.id))
+              .map((task) => [task.id, task] as const)
+          );
+          set((state) => ({
+            error: error as Error,
+            tasks: state.tasks.map((task) => previousById.get(task.id) ?? task),
+          }));
+          void get().fetchTasks();
           throw error;
-        } finally {
-          set({ loading: false });
         }
       },
 

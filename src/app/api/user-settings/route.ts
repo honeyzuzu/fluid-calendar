@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { isColorThemeId } from "@/lib/color-themes";
+import { isMotionPreference } from "@/lib/display-preferences";
 import { logger } from "@/lib/logger";
 import { isCalendarStyleId } from "@/lib/planner-themes";
 import { prisma } from "@/lib/prisma";
@@ -58,6 +59,7 @@ export async function PATCH(request: NextRequest) {
       "theme",
       "colorTheme",
       "calendarStyle",
+      "motionPreference",
       "defaultView",
       "timeZone",
       "weekStartDay",
@@ -91,6 +93,15 @@ export async function PATCH(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Choose a valid calendar style" },
+        { status: 400 }
+      );
+    }
+    if (
+      updates.motionPreference !== undefined &&
+      !isMotionPreference(updates.motionPreference)
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid motion preference" },
         { status: 400 }
       );
     }

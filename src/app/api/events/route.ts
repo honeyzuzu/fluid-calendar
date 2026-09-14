@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { calendarRangeWhere, parseCalendarRange } from "@/lib/calendar-range";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
 const LOG_SOURCE = "events-route";
 
-// List all calendar events
+// List calendar events overlapping a bounded visible range.
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request, LOG_SOURCE);
@@ -16,12 +17,26 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = auth.userId;
+    const range = parseCalendarRange(
+      request.nextUrl.searchParams.get("start"),
+      request.nextUrl.searchParams.get("end")
+    );
+    if (!range) {
+      return NextResponse.json(
+        { error: "A valid calendar start and end range is required" },
+        { status: 400 }
+      );
+    }
+    const feedIds = request.nextUrl.searchParams
+      .getAll("feedId")
+      .filter(Boolean);
 
     logger.debug("Fetching events from database...", {}, LOG_SOURCE);
 
     // Get events from feeds that belong to the current user
     const events = await prisma.calendarEvent.findMany({
       where: {
+        ...calendarRangeWhere(range, feedIds.length ? feedIds : undefined),
         feed: {
           userId,
         },

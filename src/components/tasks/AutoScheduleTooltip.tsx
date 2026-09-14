@@ -14,7 +14,7 @@ export function AutoScheduleTooltip({
       id={id}
       role="tooltip"
       className={cn(
-        "pointer-events-none absolute top-full z-[100] mt-2 w-80 max-w-[calc(100vw-2rem)] whitespace-normal rounded-xl border border-[#d5d9bd] bg-[#fffdf5] p-4 text-left text-sm leading-6 text-[#4d513b] opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
+        "pointer-events-none absolute top-full z-[100] mt-2 w-80 max-w-[calc(100vw-2rem)] whitespace-normal rounded-xl border border-border bg-card p-4 text-left text-sm leading-6 text-foreground opacity-0 shadow-[var(--shadow-raised)] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
         align === "right" ? "right-0" : "left-0"
       )}
     >

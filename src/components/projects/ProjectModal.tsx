@@ -150,7 +150,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                         setColorSlot(preset.id);
                       }}
                       className={cn(
-                        "h-11 rounded-xl border border-black/10 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transform-none",
+                        "h-11 rounded-xl border border-border/80 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transform-none",
                         isSelected &&
                           "ring-2 ring-primary ring-offset-2 ring-offset-background"
                       )}

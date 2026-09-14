@@ -44,8 +44,13 @@ export function MultiMonthView({
   currentDate,
   onDateClick,
 }: MultiMonthViewProps) {
-  const { feeds, getAllCalendarItems, isLoading, removeEvent } =
-    useCalendarStore();
+  const {
+    feeds,
+    getAllCalendarItems,
+    isLoading,
+    loadEventsForRange,
+    removeEvent,
+  } = useCalendarStore();
   const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
   const friendCalendarColors = useCalendarUIStore(
     (state) => state.friendCalendarColors
@@ -89,13 +94,15 @@ export function MultiMonthView({
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      await loadEventsForRange(arg.start, arg.end);
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
         arg.start,
         arg.end,
         friendCalendarColors,
         friendFallbackColor,
-        activeColorTheme.id
+        activeColorTheme.id,
+        friendRefreshRevision
       );
       const formattedItems = items
         .filter((item) => {
@@ -150,19 +157,13 @@ export function MultiMonthView({
       feeds,
       friendCalendarColors,
       friendFallbackColor,
+      friendRefreshRevision,
       activeColorTheme.id,
       getAllCalendarItems,
       hiddenFriendIds,
+      loadEventsForRange,
     ]
   );
-
-  // Initial data load
-  useEffect(() => {
-    Promise.all([
-      useCalendarStore.getState().loadFromDatabase(),
-      useTaskStore.getState().fetchTasks(),
-    ]);
-  }, []);
 
   // Update items when loading state changes, feeds change, or tasks change
   useEffect(() => {

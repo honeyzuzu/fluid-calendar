@@ -1,13 +1,13 @@
 import {
-  HiCheck,
-  HiClock,
-  HiCloud,
-  HiLockClosed,
-  HiMenuAlt4,
-  HiPencil,
-  HiRefresh,
-  HiTrash,
-} from "react-icons/hi";
+  Check as HiCheck,
+  Clock3 as HiClock,
+  Cloud as HiCloud,
+  LockKeyhole as HiLockClosed,
+  GripVertical as HiMenuAlt4,
+  Pencil as HiPencil,
+  RefreshCw as HiRefresh,
+  Trash2 as HiTrash,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -119,8 +119,8 @@ export function TaskRow({
             className={cn(
               "h-8 w-8 p-1",
               task.status === TaskStatus.COMPLETED
-                ? "bg-green-500/20 text-green-700 hover:bg-green-500/30 dark:text-green-400"
-                : "text-muted-foreground hover:bg-muted hover:text-green-600"
+                ? "bg-success/15 text-success hover:bg-success/25"
+                : "text-muted-foreground hover:bg-muted hover:text-success"
             )}
             onClick={(e) => {
               e.stopPropagation();
@@ -158,26 +158,26 @@ export function TaskRow({
 
           {task.isRecurring && (
             <HiRefresh
-              className="h-4 w-4 shrink-0 text-blue-500"
-              title="Recurring task"
+              className="h-4 w-4 shrink-0 text-primary"
+              aria-label="Recurring task"
             />
           )}
           {task.isAutoScheduled && (
             <HiClock
-              className="h-4 w-4 shrink-0 text-purple-500"
-              title="Auto-scheduled"
+              className="h-4 w-4 shrink-0 text-accent-foreground"
+              aria-label="Auto-scheduled"
             />
           )}
           {task.scheduleLocked && (
             <HiLockClosed
-              className="h-4 w-4 shrink-0 text-amber-500"
-              title="Schedule locked"
+              className="h-4 w-4 shrink-0 text-warning"
+              aria-label="Schedule locked"
             />
           )}
           {task.externalTaskId && (
             <HiCloud
-              className="h-4 w-4 shrink-0 text-sky-500"
-              title={`Synced from ${task.source}`}
+              className="h-4 w-4 shrink-0 text-secondary-foreground"
+              aria-label={`Synced from ${task.source}`}
             />
           )}
         </div>
@@ -236,12 +236,12 @@ export function TaskRow({
             <div className="flex items-center gap-1">
               <HiClock
                 className="h-4 w-4 text-primary"
-                title="Auto-scheduled"
+                aria-label="Auto-scheduled"
               />
               {task.scheduleLocked && (
                 <HiLockClosed
                   className="h-3 w-3 text-primary"
-                  title="Schedule locked"
+                  aria-label="Schedule locked"
                 />
               )}
               {task.scheduledStart && task.scheduledEnd && (

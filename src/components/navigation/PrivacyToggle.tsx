@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import { Eye as RiEyeLine, EyeOff as RiEyeOffLine } from "lucide-react";
 
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 

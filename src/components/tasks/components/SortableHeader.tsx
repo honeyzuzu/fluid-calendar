@@ -1,4 +1,7 @@
-import { HiChevronDown, HiChevronUp } from "react-icons/hi";
+import {
+  ChevronDown as HiChevronDown,
+  ChevronUp as HiChevronUp,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 

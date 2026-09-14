@@ -1,6 +1,6 @@
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-import { IconType } from "react-icons";
+import type { LucideIcon } from "lucide-react";
 
 export interface CommandContext {
   requiredPath: string; // The path where this command should work
@@ -11,7 +11,7 @@ export interface Command {
   id: string;
   title: string;
   keywords: string[];
-  icon?: IconType;
+  icon?: LucideIcon;
   section:
     | "navigation"
     | "calendar"

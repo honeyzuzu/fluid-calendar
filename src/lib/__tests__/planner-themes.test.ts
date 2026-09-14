@@ -111,11 +111,22 @@ describe("planner visual themes", () => {
     expect(SUNNIE_THEMES.base.visual).toMatchObject({
       backgroundStyle: "paper",
       surfaceStyle: "soft",
-      patterns: { sidebar: "dot-grid" },
+      patterns: {
+        sidebar: {
+          kind: "dot-grid",
+          scale: 0.85,
+          primaryRole: "inkSoft",
+        },
+      },
     });
     expect(SUNNIE_THEMES["spring-fresh-air"].visual).toMatchObject({
       decorativeAccent: "scalloped",
-      patterns: { surface: "lined-paper" },
+      patterns: {
+        surface: {
+          kind: "lined-paper",
+          primaryRole: "border",
+        },
+      },
     });
     expect(
       SUNNIE_THEMES["summer-sun-kissed"].visual.calendar.bujo.gridStyle

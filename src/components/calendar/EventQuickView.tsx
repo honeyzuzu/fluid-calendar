@@ -1,16 +1,18 @@
 import { useState } from "react";
 
-import { HiCheck, HiPencil, HiTrash } from "react-icons/hi";
 import {
-  IoCalendarOutline,
-  IoFlagOutline,
-  IoFolderOutline,
-  IoLocationOutline,
-  IoLockClosedOutline,
-  IoPeopleOutline,
-  IoRepeat,
-  IoTimeOutline,
-} from "react-icons/io5";
+  Check as HiCheck,
+  Pencil as HiPencil,
+  Trash2 as HiTrash,
+  CalendarDays as IoCalendarOutline,
+  Flag as IoFlagOutline,
+  Folder as IoFolderOutline,
+  MapPin as IoLocationOutline,
+  LockKeyhole as IoLockClosedOutline,
+  Users as IoPeopleOutline,
+  Repeat2 as IoRepeat,
+  Clock3 as IoTimeOutline,
+} from "lucide-react";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import {
@@ -80,7 +82,7 @@ export function EventQuickView({
     switch (status?.toUpperCase()) {
       case "ACCEPTED":
       case TaskStatus.COMPLETED:
-        return "text-green-600 dark:text-green-400";
+        return "text-success";
       case "TENTATIVE":
       case TaskStatus.IN_PROGRESS:
         return "text-warning dark:text-warning";
@@ -140,13 +142,13 @@ export function EventQuickView({
                     {taskItem?.isRecurring && (
                       <IoRepeat
                         className="h-4 w-4 text-primary"
-                        title="Recurring task"
+                        aria-label="Recurring task"
                       />
                     )}
                     {taskItem?.scheduleLocked && (
                       <IoLockClosedOutline
                         className="h-4 w-4 text-warning"
-                        title="Schedule locked"
+                        aria-label="Schedule locked"
                       />
                     )}
                   </>
@@ -154,7 +156,7 @@ export function EventQuickView({
                   eventItem?.isRecurring && (
                     <IoRepeat
                       className="h-4 w-4 text-primary"
-                      title="Recurring event"
+                      aria-label="Recurring event"
                     />
                   )
                 )}
@@ -173,8 +175,8 @@ export function EventQuickView({
                     className={cn(
                       "rounded-md p-1.5",
                       taskItem.status === TaskStatus.COMPLETED
-                        ? "bg-green-500/20 text-green-700 hover:bg-green-500/30 dark:text-green-400"
-                        : "text-muted-foreground hover:bg-muted hover:text-green-600"
+                        ? "bg-success/15 text-success hover:bg-success/25"
+                        : "text-muted-foreground hover:bg-muted hover:text-success"
                     )}
                     title={
                       taskItem.status === TaskStatus.COMPLETED
@@ -263,8 +265,7 @@ export function EventQuickView({
                     {taskItem.dueDate ? (
                       <span
                         className={cn(
-                          isOverdue &&
-                            "text-destructive dark:text-destructive font-medium",
+                          isOverdue && "font-medium text-destructive",
                           isFutureDate(taskItem.dueDate) &&
                             "text-primary font-medium"
                         )}
@@ -279,7 +280,7 @@ export function EventQuickView({
                   </div>
                   <span
                     className={cn("rounded-full px-2 py-0.5 text-xs", {
-                      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100":
+                      "bg-success/15 text-success":
                         taskItem.status === TaskStatus.COMPLETED,
                       "bg-warning/10 text-warning":
                         taskItem.status === TaskStatus.IN_PROGRESS,

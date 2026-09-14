@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { HiX } from "react-icons/hi";
+import { X as HiX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -179,7 +179,7 @@ export function TaskList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#e3dfc8] bg-[#fffdf7]/80 p-3 shadow-sm xl:flex xl:items-center xl:gap-3">
+      <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card/80 p-3 shadow-[var(--shadow-paper)] xl:flex xl:items-center xl:gap-3">
         <StatusFilter
           value={status || []}
           onChange={(value) => setFilters({ status: value })}
@@ -284,7 +284,7 @@ export function TaskList({
         )}
       </div>
 
-      <div className="hidden flex-1 overflow-hidden rounded-2xl border border-[#e3dfc8] bg-[#fffdf7] shadow-sm min-[1800px]:block">
+      <div className="hidden flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-paper)] min-[1800px]:block">
         <div
           className="overflow-auto"
           style={{ maxHeight: "calc(100vh - 250px)" }}

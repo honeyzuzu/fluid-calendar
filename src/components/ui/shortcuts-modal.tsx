@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { IoClose } from "react-icons/io5";
+import { X } from "lucide-react";
 
 import { commandRegistry } from "@/lib/commands/registry";
 import { Command } from "@/lib/commands/types";
@@ -35,7 +35,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
               Keyboard Shortcuts
             </Dialog.Title>
             <Dialog.Close className="rounded-full p-1.5 hover:bg-muted">
-              <IoClose className="h-5 w-5 text-foreground" />
+              <X className="h-5 w-5 text-foreground" />
             </Dialog.Close>
           </div>
 

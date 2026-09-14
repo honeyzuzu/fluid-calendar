@@ -1,0 +1,40 @@
+:root {
+  --font-sunnie-ui: "Nunito Sans", ui-rounded, system-ui, sans-serif;
+  --font-sunnie-hand: "Kalam", "Segoe Print", cursive;
+  --radius-control: 0.75rem;
+  --radius-card: 1.125rem;
+  --radius-dialog: 1.5rem;
+  --radius-hero: 1.75rem;
+  --shadow-paper:
+    0 2px 0 color-mix(in srgb, var(--sunnie-border) 72%, transparent),
+    0 9px 24px color-mix(in srgb, var(--sunnie-ink-soft) 8%, transparent);
+  --shadow-raised: 0 16px 45px
+    color-mix(in srgb, var(--sunnie-ink) 14%, transparent);
+  --shadow-pressed: 0 3px 0
+    color-mix(in srgb, var(--sunnie-primary) 76%, var(--sunnie-ink) 24%);
+  /* Mood Garden has its own observational palette. It is intentionally
+     independent from task/event success and warning colors. */
+  --mood-1: 215 28% 56%;
+  --mood-2: 187 30% 46%;
+  --mood-3: 108 28% 43%;
+  --mood-4: 43 72% 48%;
+  --mood-5: 24 72% 53%;
+}
+
+html {
+  font-family: var(--font-sunnie-ui);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+time,
+[data-tabular-nums="true"],
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

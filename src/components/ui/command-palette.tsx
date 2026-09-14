@@ -4,14 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
-import { HiOutlineSearch, HiX } from "react-icons/hi";
 import {
-  HiOutlineCalendar,
-  HiOutlineClipboardList,
-  HiOutlineCog,
-  HiOutlineCollection,
-  HiOutlineLightningBolt,
-} from "react-icons/hi";
+  CalendarDays,
+  LayoutGrid,
+  ListTodo,
+  Search,
+  Settings,
+  X,
+  Zap,
+} from "lucide-react";
 
 import { cn, formatShortcut } from "@/lib/utils";
 
@@ -60,8 +61,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-[20%] z-50 w-full max-w-[640px] -translate-x-1/2">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-[20%] z-50 w-[calc(100vw-1.5rem)] max-w-[640px] -translate-x-1/2">
           <Dialog.Title className="sr-only">Command Menu</Dialog.Title>
           <Dialog.Description className="sr-only">
             Search commands and navigate the application
@@ -69,7 +70,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
           <Command
             className={cn(
-              "overflow-hidden rounded-lg border bg-white shadow-lg",
+              "overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-[var(--shadow-raised)]",
               "transform transition-all",
               "data-[state=open]:animate-in data-[state=closed]:animate-out",
               "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -77,95 +78,99 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             )}
           >
             <div className="flex items-center border-b px-3">
-              <HiOutlineSearch className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-muted-foreground" />
               <Command.Input
                 placeholder="Type a command or search..."
-                className="h-12 flex-1 px-3 text-base outline-none placeholder:text-gray-400"
+                className="h-12 flex-1 bg-transparent px-3 text-base outline-none placeholder:text-muted-foreground"
                 value={search}
                 onValueChange={setSearch}
               />
               {search && (
                 <button
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-muted-foreground hover:text-foreground"
                   onClick={() => setSearch("")}
                   aria-label="Clear search"
                 >
-                  <HiX className="h-5 w-5" />
+                  <X className="h-5 w-5" />
                 </button>
               )}
               {!search && (
-                <kbd className="hidden items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-400 sm:flex">
+                <kbd className="hidden items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground sm:flex">
                   <span className="text-xs">⌘</span>
                   <span>K</span>
                 </kbd>
               )}
               <Dialog.Close
-                className="ml-2 p-2 text-gray-400 hover:text-gray-600"
+                className="ml-2 p-2 text-muted-foreground hover:text-foreground"
                 aria-label="Close command menu"
               >
-                <HiX className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </Dialog.Close>
             </div>
 
             <Command.List className="max-h-[300px] overflow-y-auto p-2">
               {!search && !showAllCommands && (
-                <div className="px-2 py-3 text-sm text-gray-500">
+                <div className="px-2 py-3 text-sm text-muted-foreground">
                   <p className="mb-2">
                     Start typing to search commands or try these:
                   </p>
                   <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <div
-                      className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-100"
+                    <button
+                      type="button"
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-xl p-2 text-left hover:bg-muted"
                       onClick={() => {
                         executeCommand("navigation.calendar");
                         onOpenChange(false);
                       }}
                     >
-                      <HiOutlineCalendar className="h-4 w-4 text-gray-500" />
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Go to Calendar</span>
-                      <kbd className="ml-auto rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+                      <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-xs">
                         gc
                       </kbd>
-                    </div>
-                    <div
-                      className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-100"
+                    </button>
+                    <button
+                      type="button"
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-xl p-2 text-left hover:bg-muted"
                       onClick={() => {
                         executeCommand("navigation.tasks");
                         onOpenChange(false);
                       }}
                     >
-                      <HiOutlineClipboardList className="h-4 w-4 text-gray-500" />
+                      <ListTodo className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Go to Tasks</span>
-                      <kbd className="ml-auto rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+                      <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-xs">
                         gt
                       </kbd>
-                    </div>
-                    <div
-                      className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-100"
+                    </button>
+                    <button
+                      type="button"
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-xl p-2 text-left hover:bg-muted"
                       onClick={() => {
                         executeCommand("navigation.focus");
                         onOpenChange(false);
                       }}
                     >
-                      <HiOutlineLightningBolt className="h-4 w-4 text-gray-500" />
+                      <Zap className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Go to Focus</span>
-                      <kbd className="ml-auto rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+                      <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-xs">
                         gf
                       </kbd>
-                    </div>
-                    <div
-                      className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-100"
+                    </button>
+                    <button
+                      type="button"
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-xl p-2 text-left hover:bg-muted"
                       onClick={() => {
                         executeCommand("navigation.settings");
                         onOpenChange(false);
                       }}
                     >
-                      <HiOutlineCog className="h-4 w-4 text-gray-500" />
+                      <Settings className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Go to Settings</span>
-                      <kbd className="ml-auto rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+                      <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-xs">
                         gs
                       </kbd>
-                    </div>
+                    </button>
                   </div>
 
                   <div className="mt-4 flex justify-center">
@@ -173,14 +178,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                       onClick={() => setShowAllCommands(true)}
                       className="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
                     >
-                      <HiOutlineCollection className="h-4 w-4" />
+                      <LayoutGrid className="h-4 w-4" />
                       Show all commands
                     </button>
                   </div>
                 </div>
               )}
 
-              <Command.Empty className="py-6 text-center text-sm text-gray-500">
+              <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
                 No results found. Try a different search term.
               </Command.Empty>
 
@@ -198,7 +203,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                         return (
                           <Command.Item
                             key={command.id}
-                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm aria-selected:bg-blue-50 aria-selected:text-blue-700"
+                            className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-2 text-sm aria-selected:bg-accent/35 aria-selected:text-accent-foreground"
                             onSelect={() => {
                               executeCommand(command.id);
                               onOpenChange(false);
@@ -207,7 +212,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                             {Icon && <Icon className="h-4 w-4" />}
                             <span>{command.title}</span>
                             {command.shortcut && (
-                              <kbd className="ml-auto text-xs text-gray-400">
+                              <kbd className="ml-auto text-xs text-muted-foreground">
                                 {formatShortcut(command.shortcut)}
                               </kbd>
                             )}

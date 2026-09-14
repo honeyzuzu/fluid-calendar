@@ -24,7 +24,7 @@ export default function AccessDeniedMessage({
 }: AccessDeniedMessageProps) {
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold text-red-500">{title}</h2>
+      <h2 className="text-xl font-bold text-destructive">{title}</h2>
       <p className="mt-2">{message}</p>
     </div>
   );

@@ -106,29 +106,27 @@ export const formatEnumValue = (value: string) => {
 };
 
 export const statusColors = {
-  [TaskStatus.TODO]: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400",
-  [TaskStatus.IN_PROGRESS]: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
-  [TaskStatus.COMPLETED]: "bg-green-500/20 text-green-700 dark:text-green-400",
+  [TaskStatus.TODO]: "bg-accent/25 text-accent-foreground",
+  [TaskStatus.IN_PROGRESS]: "bg-primary/15 text-primary",
+  [TaskStatus.COMPLETED]: "bg-success/15 text-success",
 };
 
 export const energyLevelColors = {
-  high: "bg-red-500/20 text-red-700 dark:text-red-400",
-  medium: "bg-orange-500/20 text-orange-700 dark:text-orange-400",
-  low: "bg-green-500/20 text-green-700 dark:text-green-400",
+  high: "bg-destructive/15 text-destructive",
+  medium: "bg-warning/15 text-warning",
+  low: "bg-success/15 text-success",
 };
 
 export const timePreferenceColors = {
-  [TimePreference.MORNING]: "bg-sky-500/20 text-sky-700 dark:text-sky-400",
-  [TimePreference.AFTERNOON]:
-    "bg-amber-500/20 text-amber-700 dark:text-amber-400",
-  [TimePreference.EVENING]:
-    "bg-indigo-500/20 text-indigo-700 dark:text-indigo-400",
+  [TimePreference.MORNING]: "bg-secondary text-secondary-foreground",
+  [TimePreference.AFTERNOON]: "bg-accent/30 text-accent-foreground",
+  [TimePreference.EVENING]: "bg-primary/15 text-primary",
 };
 
 export const priorityColors = {
-  [Priority.HIGH]: "bg-red-500/20 text-red-700 dark:text-red-400",
-  [Priority.MEDIUM]: "bg-orange-500/20 text-orange-700 dark:text-orange-400",
-  [Priority.LOW]: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
+  [Priority.HIGH]: "bg-destructive/15 text-destructive",
+  [Priority.MEDIUM]: "bg-warning/15 text-warning",
+  [Priority.LOW]: "bg-secondary text-secondary-foreground",
   [Priority.NONE]: "bg-muted text-muted-foreground",
 };
 

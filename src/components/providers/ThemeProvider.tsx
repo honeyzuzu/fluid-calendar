@@ -9,6 +9,10 @@ import React, {
 
 import { ColorThemeId, getColorThemeCssVariables } from "@/lib/color-themes";
 import {
+  MotionPreference,
+  persistDisplayPreferences,
+} from "@/lib/display-preferences";
+import {
   CalendarStyleId,
   SunnieTheme,
   getCalendarPresentation,
@@ -29,6 +33,8 @@ type ThemeContextType = {
   setColorTheme: (theme: ColorThemeId) => void;
   calendarStyle: CalendarStyleId;
   setCalendarStyle: (style: CalendarStyleId) => void;
+  motionPreference: MotionPreference;
+  setMotionPreference: (motion: MotionPreference) => void;
 };
 
 type ThemeProviderProps = {
@@ -130,7 +136,18 @@ export function ThemeProvider({
     })) {
       root.style.setProperty(property, value);
     }
-  }, [calendarPresentation, currentCalendarStyle, currentColorTheme]);
+    persistDisplayPreferences({
+      colorTheme: currentColorTheme.id,
+      calendarStyle: currentCalendarStyle,
+      motionPreference: user.motionPreference,
+    });
+    root.dataset.sunnieMotion = user.motionPreference;
+  }, [
+    calendarPresentation,
+    currentCalendarStyle,
+    currentColorTheme,
+    user.motionPreference,
+  ]);
 
   // Listen for system theme changes if system preference is enabled
   useEffect(() => {
@@ -170,6 +187,10 @@ export function ThemeProvider({
     updateUserSettings({ calendarStyle: style });
   };
 
+  const setMotionPreference = (motionPreference: MotionPreference) => {
+    updateUserSettings({ motionPreference });
+  };
+
   return (
     <ThemeContext.Provider
       value={{
@@ -179,6 +200,8 @@ export function ThemeProvider({
         setColorTheme,
         calendarStyle: currentCalendarStyle,
         setCalendarStyle,
+        motionPreference: user.motionPreference,
+        setMotionPreference,
       }}
     >
       {children}

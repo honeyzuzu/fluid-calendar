@@ -32,20 +32,53 @@ export type FriendCalendarItem = {
   extendedProps: ExtendedEventProps;
 };
 
-export async function getFriendCalendarItems(
+const friendRangeRequests = new Map<string, Promise<FriendCalendarBlock[]>>();
+
+async function getFriendCalendarBlocks(
   start: Date,
   end: Date,
-  friendColors: Record<string, string> = {},
-  fallbackColor?: string,
-  themeId: ColorThemeId = "base"
+  refreshRevision: number
 ) {
-  try {
+  const key = `${start.toISOString()}:${end.toISOString()}:${refreshRevision}`;
+  const pending = friendRangeRequests.get(key);
+  if (pending) return pending;
+
+  const request = (async () => {
     const response = await fetch(
       `/api/friends/events?start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(end.toISOString())}`,
       { cache: "no-store" }
     );
     if (!response.ok) return [];
-    const blocks = (await response.json()) as FriendCalendarBlock[];
+    return (await response.json()) as FriendCalendarBlock[];
+  })();
+  friendRangeRequests.set(key, request);
+  while (friendRangeRequests.size > 12) {
+    const oldest = friendRangeRequests.keys().next().value;
+    if (oldest) friendRangeRequests.delete(oldest);
+    else break;
+  }
+  try {
+    return await request;
+  } finally {
+    // Only dedupe concurrent work. Retaining friend data after the request
+    // settles could leak one signed-in user's blocks into a later session in
+    // the same browser tab.
+    if (friendRangeRequests.get(key) === request) {
+      friendRangeRequests.delete(key);
+    }
+  }
+}
+
+export async function getFriendCalendarItems(
+  start: Date,
+  end: Date,
+  friendColors: Record<string, string> = {},
+  fallbackColor?: string,
+  themeId: ColorThemeId = "base",
+  refreshRevision = 0
+) {
+  try {
+    const blocks = await getFriendCalendarBlocks(start, end, refreshRevision);
     const friendLanes = new Map(
       [...new Set(blocks.map((block) => block.ownerId))]
         .sort()

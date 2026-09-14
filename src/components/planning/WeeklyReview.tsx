@@ -269,21 +269,21 @@ export function WeeklyReview({
   return (
     <section
       id="weekly-review"
-      className="relative mt-8 min-w-0 scroll-mt-6 overflow-hidden rounded-[2rem] border border-[#dce3c9] bg-gradient-to-br from-[#fffdf7] via-white/90 to-[#eef4df] p-4 text-[#3f432e] shadow-[0_18px_50px_rgba(101,118,77,0.09)] sm:p-6"
+      className="relative mt-8 min-w-0 scroll-mt-6 overflow-hidden rounded-[2rem] border border-border bg-gradient-to-br from-card via-card/90 to-muted p-4 text-foreground shadow-[var(--shadow-raised)] sm:p-6"
     >
-      <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#f8d77c]/25 blur-2xl" />
-      <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[#b9d4ad]/20 blur-2xl" />
+      <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[var(--sunnie-warm-glow)] opacity-25 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[var(--sunnie-cool-glow)] opacity-20 blur-2xl" />
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-xl">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#718e50]">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
             <BookOpen className="h-4 w-4" /> History & reflection
           </p>
           <h2 className="mt-2 text-2xl font-semibold">Your weekly review</h2>
-          <p className="mt-1 text-sm text-black/55">
+          <p className="mt-1 text-sm text-muted-foreground">
             Look back kindly, then make room for what’s next.
           </p>
         </div>
-        <div className="flex w-full max-w-full items-center gap-1 rounded-2xl border border-white/80 bg-white/65 p-1.5 shadow-sm backdrop-blur-sm sm:w-[400px] sm:gap-2">
+        <div className="flex w-full max-w-full items-center gap-1 rounded-2xl border border-border bg-card/65 p-1.5 shadow-sm backdrop-blur-sm sm:w-[400px] sm:gap-2">
           <button
             className={button}
             aria-label="Previous review week"
@@ -309,29 +309,29 @@ export function WeeklyReview({
           </button>
         </div>
       </div>
-      <p className="relative mt-3 text-xs text-black/50">
+      <p className="relative mt-3 text-xs text-muted-foreground">
         Sunday–Saturday · {weekRangeLabel(week)} · Reflections stay private to
         your account.
       </p>
       {draft?.completedAt && (
         <div
           role="status"
-          className="relative mt-4 flex items-center gap-3 rounded-2xl border border-[#c8d8aa] bg-[#edf4df] px-4 py-3 text-sm text-[#52683d] shadow-sm"
+          className="relative mt-4 flex items-center gap-3 rounded-2xl border border-success/35 bg-success/10 px-4 py-3 text-sm text-secondary-foreground shadow-sm"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#7f9b5d] text-white">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-success text-success-foreground">
             <CheckCircle2 className="h-5 w-5" />
           </span>
           <span>
             <span className="block font-semibold">
               {justFinished ? "Week wrapped up!" : "Review finished"}
             </span>
-            <span className="text-xs text-black/50">
+            <span className="text-xs text-muted-foreground">
               Your reflection is saved. Editing anything will reopen it.
             </span>
           </span>
         </div>
       )}
-      <div className="relative my-5 grid grid-cols-2 gap-2 rounded-2xl bg-[#f4f5e9]/80 p-1.5 lg:grid-cols-4">
+      <div className="relative my-5 grid grid-cols-2 gap-2 rounded-2xl bg-muted/80 p-1.5 lg:grid-cols-4">
         {steps.map((label, index) => (
           <button
             key={label}
@@ -341,13 +341,14 @@ export function WeeklyReview({
             className={cn(
               button,
               "flex items-center gap-2 border-transparent bg-transparent text-left shadow-none transition-colors",
-              step === index && "border-white bg-white text-[#52683d] shadow-sm"
+              step === index &&
+                "border-card bg-card text-secondary-foreground shadow-sm"
             )}
           >
             <span
               className={cn(
-                "grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/80 text-xs",
-                step === index && "bg-[#f4c85b] text-[#4b452b]"
+                "grid h-6 w-6 shrink-0 place-items-center rounded-full bg-card/80 text-xs",
+                step === index && "bg-accent text-accent-foreground"
               )}
             >
               {index + 1}
@@ -359,7 +360,7 @@ export function WeeklyReview({
       {error && (
         <p
           role="alert"
-          className="my-3 rounded-xl bg-[#fff0e7] p-3 text-sm text-[#984c36]"
+          className="my-3 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
         >
           {error}{" "}
           {!dirty && (
@@ -370,7 +371,7 @@ export function WeeklyReview({
         </p>
       )}
       {message && (
-        <p role="status" className="my-3 rounded-xl bg-[#edf3df] p-3 text-sm">
+        <p role="status" className="my-3 rounded-xl bg-success/10 p-3 text-sm">
           {message}
         </p>
       )}
@@ -384,13 +385,13 @@ export function WeeklyReview({
           <>
             {step === 0 && (
               <div className="grid min-w-0 gap-5 lg:grid-cols-2">
-                <div className="min-w-0 rounded-2xl bg-[#f3f6e9] p-4">
+                <div className="min-w-0 rounded-2xl bg-muted p-4">
                   <h3 className="font-semibold">Completed tasks</h3>
-                  <p className="mt-1 text-xs text-black/50">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Grouped by when you finished them.
                   </p>
                   {!data.completed.length && (
-                    <p className="py-5 text-sm text-black/55">
+                    <p className="py-5 text-sm text-muted-foreground">
                       No completed tasks recorded this week. Your week still
                       mattered.
                     </p>
@@ -399,12 +400,12 @@ export function WeeklyReview({
                     {data.completed.map((task) => (
                       <li
                         key={task.id}
-                        className="flex items-start gap-2 rounded-xl bg-white/80 p-3 text-sm"
+                        className="flex items-start gap-2 rounded-xl bg-card/80 p-3 text-sm"
                       >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#718e50]" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <div className="min-w-0 flex-1">
                           <p className="break-words">{task.title}</p>
-                          <p className="mt-1 text-xs text-black/50">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             {task.completedAt && displayDate(task.completedAt)}
                           </p>
                         </div>
@@ -471,12 +472,12 @@ export function WeeklyReview({
                     </button>
                   )}
                 </div>
-                <div className="min-w-0 rounded-2xl bg-[#fff4db] p-4">
+                <div className="min-w-0 rounded-2xl bg-accent/55 p-4">
                   <h3 className="flex items-center gap-2 font-semibold">
-                    <CalendarDays className="h-4 w-4 text-[#b57a45]" /> Calendar
+                    <CalendarDays className="h-4 w-4 text-primary" /> Calendar
                     moments
                   </h3>
-                  <p className="mt-1 text-xs text-black/55">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     A read-only glance at where your time was planned. Use it as
                     a memory cue while you reflect—it is not an attendance log.
                   </p>
@@ -492,7 +493,7 @@ export function WeeklyReview({
                         >
                           <input
                             type="checkbox"
-                            className="accent-[#718e50]"
+                            className="accent-primary"
                             disabled={busy}
                             checked={draft.calendarIds.includes(calendar.id)}
                             onChange={(e) =>
@@ -516,7 +517,7 @@ export function WeeklyReview({
                       return (
                         <li
                           key={event.id}
-                          className="flex items-start gap-3 rounded-xl border border-white/80 bg-white/75 p-3 text-sm shadow-[0_4px_14px_rgba(126,105,65,0.05)]"
+                          className="flex items-start gap-3 rounded-xl border border-border bg-card/75 p-3 text-sm shadow-[var(--shadow-paper)]"
                         >
                           <span
                             aria-hidden="true"
@@ -534,14 +535,14 @@ export function WeeklyReview({
                             <span className="block break-words">
                               {event.title}
                             </span>
-                            <span className="mt-1 block text-xs text-black/50">
+                            <span className="mt-1 block text-xs text-muted-foreground">
                               {displayDate(event.start)} ·{" "}
                               {event.allDay
                                 ? "All day"
                                 : `${Math.round((new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000)} min scheduled`}
                             </span>
                             {calendar && (
-                              <span className="mt-1 block text-[11px] text-black/40">
+                              <span className="mt-1 block text-[11px] text-muted-foreground">
                                 {calendar.name}
                               </span>
                             )}
@@ -551,7 +552,7 @@ export function WeeklyReview({
                     })}
                   </ul>
                   {!visibleEvents.length && (
-                    <p className="py-4 text-sm text-black/55">
+                    <p className="py-4 text-sm text-muted-foreground">
                       No past events from the selected calendars.
                     </p>
                   )}
@@ -568,7 +569,7 @@ export function WeeklyReview({
                 ).map(([key, label]) => (
                   <label key={key} className="text-sm font-medium">
                     {label}
-                    <span className="ml-2 text-xs font-normal text-black/45">
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
                       Optional
                     </span>
                     <textarea
@@ -585,7 +586,7 @@ export function WeeklyReview({
             )}
             {step === 2 && (
               <div>
-                <p className="mb-4 text-sm text-black/55">
+                <p className="mb-4 text-sm text-muted-foreground">
                   These tasks were planned, dated, or scheduled in this week and
                   are still open. Sunnie carries older weekly tasks forward
                   automatically; choose what should happen next. Deadlines and
@@ -604,8 +605,8 @@ export function WeeklyReview({
                   ))}
                 </div>
                 {!data.unfinished.length && (
-                  <div className="rounded-2xl bg-[#eef3e3] px-4 py-6 text-center text-sm">
-                    <Sparkles className="mx-auto mb-2 h-5 w-5 text-[#718e50]" />
+                  <div className="rounded-2xl bg-muted px-4 py-6 text-center text-sm">
+                    <Sparkles className="mx-auto mb-2 h-5 w-5 text-primary" />
                     Nothing from this week is waiting for a decision.
                   </div>
                 )}
@@ -613,10 +614,10 @@ export function WeeklyReview({
             )}
             {step === 3 && (
               <div className="max-w-2xl">
-                <Leaf className="mb-3 h-7 w-7 text-[#718e50]" />
+                <Leaf className="mb-3 h-7 w-7 text-primary" />
                 <label className="text-sm font-medium">
                   A few priorities for next week{" "}
-                  <span className="text-xs font-normal text-black/45">
+                  <span className="text-xs font-normal text-muted-foreground">
                     Optional
                   </span>
                   <textarea
@@ -629,7 +630,7 @@ export function WeeklyReview({
                     placeholder="What would you like to make space for?"
                   />
                 </label>
-                <p className="mt-2 text-xs text-black/50">
+                <p className="mt-2 text-xs text-muted-foreground">
                   Saved as a note, so you can revisit it without creating more
                   tasks.
                 </p>
@@ -646,8 +647,8 @@ export function WeeklyReview({
                 </Link>
               </div>
             )}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#e3e6d5] pt-4">
-              <p className="text-xs text-black/50">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              <p className="text-xs text-muted-foreground">
                 {dirty
                   ? "Unsaved changes"
                   : draft.completedAt
@@ -665,7 +666,7 @@ export function WeeklyReview({
                 </button>
                 {step < 3 ? (
                   <button
-                    className={cn(button, "bg-[#f4c85b]")}
+                    className={cn(button, "bg-accent text-accent-foreground")}
                     disabled={busy}
                     onClick={() => setStep(step + 1)}
                   >
@@ -674,7 +675,7 @@ export function WeeklyReview({
                 ) : (
                   <button
                     type="button"
-                    className={cn(button, "bg-[#eaf0d9]")}
+                    className={cn(button, "bg-muted text-secondary-foreground")}
                     disabled={busy || !!draft.completedAt}
                     onClick={() => void save(true)}
                   >
@@ -733,16 +734,16 @@ function UnfinishedTask({
     task.plannedWeekStart?.slice(0, 10) ?? ""
   );
   return (
-    <div className="min-w-0 rounded-2xl border border-[#e3e6d5] p-4">
+    <div className="min-w-0 rounded-2xl border border-border p-4">
       <h4 className="break-words font-medium">{task.title}</h4>
       {task.rolloverCount >= 3 && (
-        <p className="mt-2 rounded-lg bg-[#fff4db] p-2 text-xs">
+        <p className="mt-2 rounded-lg bg-accent/55 p-2 text-xs">
           Carried forward {task.rolloverCount} weeks. Still something you want
           to make space for?
         </p>
       )}
       {task.scheduleLocked && (
-        <p className="mt-2 text-xs text-black/50">
+        <p className="mt-2 text-xs text-muted-foreground">
           Calendar placement is locked. Changing the week won’t move it.
         </p>
       )}
@@ -772,7 +773,7 @@ function UnfinishedTask({
           Backlog
         </button>
         <button
-          className={`${button} text-[#984c36]`}
+          className={`${button} text-destructive`}
           disabled={disabled}
           onClick={onDelete}
         >

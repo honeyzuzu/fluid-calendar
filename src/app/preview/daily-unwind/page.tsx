@@ -14,7 +14,7 @@ export default function DailyUnwindPreview() {
     },
   ]);
   return (
-    <main data-discord-preview-ready className="min-h-screen bg-[#f4eadf]">
+    <main data-discord-preview-ready className="min-h-screen bg-background">
       <DailyUnwind
         open
         onOpenChange={() => undefined}
@@ -51,6 +51,7 @@ export default function DailyUnwindPreview() {
         ]}
         timeZone="America/New_York"
         initialVibe="soft"
+        initialMood={null}
         initialReflection=""
         earliestTaskDate="2026-09-13"
         busy={false}

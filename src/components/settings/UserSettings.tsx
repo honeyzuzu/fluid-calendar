@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { BookOpen, MoonStar, Palette, Sunrise } from "lucide-react";
+import { BookOpen, Check, MoonStar, Sunrise } from "lucide-react";
 
 import { ThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,10 @@ import {
   ColorThemeId,
   getThemeColorSlot,
 } from "@/lib/color-themes";
+import {
+  MOTION_PREFERENCES,
+  MotionPreference,
+} from "@/lib/display-preferences";
 import {
   CalendarStyleId,
   getCalendarStyle,
@@ -58,6 +62,7 @@ export function UserSettings() {
   }, [user.calendarStyle]);
 
   const applyColorTheme = async (nextTheme: ColorThemeId) => {
+    if (isApplyingColorTheme || nextTheme === selectedColorTheme) return;
     const previousTheme = user.colorTheme || "base";
     setSelectedColorTheme(nextTheme);
     setIsApplyingColorTheme(true);
@@ -110,6 +115,7 @@ export function UserSettings() {
   };
 
   const applyCalendarStyle = async (nextStyle: CalendarStyleId) => {
+    if (isApplyingCalendarStyle || nextStyle === selectedCalendarStyle) return;
     const previousStyle = getCalendarStyle(user.calendarStyle);
     setSelectedCalendarStyle(nextStyle);
     setIsApplyingCalendarStyle(true);
@@ -267,26 +273,70 @@ export function UserSettings() {
         label="Planner colorway"
         description="Changes Sunnie's overall theme and its coordinated seasonal item palettes."
       >
-        <div className="space-y-2">
-          <Select
-            value={selectedColorTheme}
-            onValueChange={(value) =>
-              void applyColorTheme(value as ColorThemeId)
-            }
-            disabled={isApplyingColorTheme}
+        <div className="space-y-3">
+          <div
+            role="radiogroup"
+            aria-label="Planner colorway"
+            className="grid max-w-2xl gap-3 sm:grid-cols-2"
           >
-            <SelectTrigger aria-label="Planner colorway">
-              <Palette className="mr-2 h-4 w-4" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(COLOR_THEMES).map((theme) => (
-                <SelectItem key={theme.id} value={theme.id}>
-                  {theme.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {Object.values(COLOR_THEMES).map((theme) => {
+              const selected = selectedColorTheme === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-disabled={isApplyingColorTheme}
+                  onClick={() => void applyColorTheme(theme.id)}
+                  className={`relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    selected
+                      ? "border-primary ring-2 ring-primary/35"
+                      : "border-border hover:-translate-y-0.5 hover:shadow-[var(--shadow-paper)]"
+                  }`}
+                  style={{ backgroundColor: theme.core.surface }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mb-3 block h-14 overflow-hidden rounded-xl border"
+                    style={{
+                      borderColor: theme.core.border,
+                      backgroundColor: theme.core.canvas,
+                    }}
+                  >
+                    <span className="flex h-full items-end gap-1.5 p-2">
+                      {[
+                        theme.core.primary,
+                        theme.core.accent,
+                        theme.core.warmGlow,
+                        theme.core.coolGlow,
+                      ].map((color) => (
+                        <span
+                          key={color}
+                          className="h-7 flex-1 rounded-md"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </span>
+                  </span>
+                  <span
+                    className="flex items-center justify-between gap-2 text-sm font-bold"
+                    style={{ color: theme.core.ink }}
+                  >
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      <ThemeMotifIcon
+                        motif={theme.motif.intentionIcon}
+                        className="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{theme.name}</span>
+                    </span>
+                    {selected && <Check className="h-4 w-4 shrink-0" />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <div className="flex max-w-sm items-start gap-2 text-xs text-muted-foreground">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
               <ThemeMotifIcon
@@ -330,7 +380,7 @@ export function UserSettings() {
                         title={`${swatch.name} ${swatch.value}`}
                       >
                         <span
-                          className="h-4 w-4 rounded-full border border-black/10 shadow-sm"
+                          className="h-4 w-4 rounded-full border border-border shadow-sm"
                           style={{ backgroundColor: swatch.value }}
                         />
                         {swatch.name}
@@ -362,23 +412,49 @@ export function UserSettings() {
         label="Calendar style"
         description="Choose the calendar's presentation independently from its colorway."
       >
-        <div className="space-y-2">
-          <Select
-            value={selectedCalendarStyle}
-            onValueChange={(value) =>
-              void applyCalendarStyle(value as CalendarStyleId)
-            }
-            disabled={isApplyingCalendarStyle}
+        <div className="space-y-3">
+          <div
+            role="radiogroup"
+            aria-label="Calendar style"
+            className="grid max-w-md grid-cols-2 gap-3"
           >
-            <SelectTrigger aria-label="Calendar style">
-              <BookOpen className="mr-2 h-4 w-4" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="classic">Classic</SelectItem>
-              <SelectItem value="bujo">Bujo</SelectItem>
-            </SelectContent>
-          </Select>
+            {(["classic", "bujo"] as const).map((style) => {
+              const selected = selectedCalendarStyle === style;
+              return (
+                <button
+                  key={style}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-disabled={isApplyingCalendarStyle}
+                  onClick={() => void applyCalendarStyle(style)}
+                  className={`rounded-2xl border bg-card p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    selected
+                      ? "border-primary ring-2 ring-primary/35"
+                      : "border-border hover:bg-muted/45"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`mb-2 grid h-16 grid-cols-4 overflow-hidden rounded-lg border border-border ${
+                      style === "bujo" ? "sunnie-theme-surface-pattern" : ""
+                    }`}
+                  >
+                    {Array.from({ length: 8 }, (_, index) => (
+                      <span
+                        key={index}
+                        className="border-b border-r border-border/60"
+                      />
+                    ))}
+                  </span>
+                  <span className="flex items-center gap-2 text-sm font-bold">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    {style === "classic" ? "Classic" : "Bujo"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <p className="max-w-sm text-xs text-muted-foreground">
             {selectedCalendarStyle === "bujo"
               ? `Paper-like ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.gridStyle.replaceAll("-", " ")} with decorative headings and ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.eventAppearance} events.`
@@ -418,6 +494,45 @@ export function UserSettings() {
             ))}
           </SelectContent>
         </Select>
+      </SettingRow>
+
+      <SettingRow
+        label="Motion"
+        description="Choose how much interface movement feels comfortable. Your device's reduced-motion setting is always respected."
+      >
+        <div
+          role="radiogroup"
+          aria-label="Motion preference"
+          className="grid max-w-md grid-cols-3 gap-2"
+        >
+          {MOTION_PREFERENCES.map((preference) => {
+            const selected = user.motionPreference === preference;
+            return (
+              <button
+                key={preference}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() =>
+                  updateUserSettings({
+                    motionPreference: preference as MotionPreference,
+                  })
+                }
+                className={`rounded-xl border px-2 py-3 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  selected
+                    ? "border-primary bg-accent text-accent-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {preference === "full"
+                  ? "Full"
+                  : preference === "reduced"
+                    ? "Reduced"
+                    : "Off"}
+              </button>
+            );
+          })}
+        </div>
       </SettingRow>
 
       <SettingRow
@@ -511,7 +626,7 @@ export function UserSettings() {
         <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
           <label className="flex items-center justify-between gap-4">
             <span className="flex items-center gap-2 text-sm font-medium">
-              <Sunrise className="h-4 w-4 text-[#d99d32]" /> Daily Rise
+              <Sunrise className="h-4 w-4 text-primary" /> Daily Rise
             </span>
             <input
               type="checkbox"
@@ -519,7 +634,7 @@ export function UserSettings() {
               onChange={(event) =>
                 updateUserSettings({ dailyRiseEnabled: event.target.checked })
               }
-              className="h-4 w-4 rounded border-[#cbd5b8] text-[#7f9b5d] focus:ring-[#b6c994]"
+              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
             />
           </label>
           {user.dailyRiseEnabled && (
@@ -532,9 +647,9 @@ export function UserSettings() {
               }
             />
           )}
-          <label className="flex items-center justify-between gap-4 border-t border-black/[0.055] pt-4">
+          <label className="flex items-center justify-between gap-4 border-t border-border/70 pt-4">
             <span className="flex items-center gap-2 text-sm font-medium">
-              <MoonStar className="h-4 w-4 text-[#8069a8]" /> Daily Unwind
+              <MoonStar className="h-4 w-4 text-primary" /> Daily Unwind
             </span>
             <input
               type="checkbox"
@@ -542,7 +657,7 @@ export function UserSettings() {
               onChange={(event) =>
                 updateUserSettings({ dailyUnwindEnabled: event.target.checked })
               }
-              className="h-4 w-4 rounded border-[#cbd5b8] text-[#7f9b5d] focus:ring-[#b6c994]"
+              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
             />
           </label>
           {user.dailyUnwindEnabled && (
@@ -555,7 +670,7 @@ export function UserSettings() {
               }
             />
           )}
-          <div className="border-t border-black/[0.055] pt-4">
+          <div className="border-t border-border/70 pt-4">
             <Label className="text-xs">Prompt me</Label>
             <Select
               value={user.dailyRitualDays}

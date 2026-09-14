@@ -2,8 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import Link from "next/link";
 
-import { UsersRound } from "lucide-react";
-import { BsArrowRepeat, BsGoogle, BsMicrosoft, BsTrash } from "react-icons/bs";
+import {
+  RefreshCw as BsArrowRepeat,
+  Trash2 as BsTrash,
+  UsersRound,
+} from "lucide-react";
+import { BsGoogle, BsMicrosoft } from "react-icons/bs";
 import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -268,7 +272,7 @@ export function FeedManager() {
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="h-5 w-5 shrink-0 rounded-full border-2 border-white shadow-sm ring-1 ring-black/10 transition hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#7c8d61]"
+                        className="h-5 w-5 shrink-0 rounded-full border-2 border-card shadow-sm ring-1 ring-border transition hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
                         style={{ backgroundColor: friendColor }}
                         title={`Change ${connection.friend.name || connection.friend.email || "friend"}'s calendar color`}
                         aria-label={`Change ${connection.friend.name || connection.friend.email || "friend"}'s calendar color`}
@@ -294,14 +298,14 @@ export function FeedManager() {
                               )
                             }
                             className={cn(
-                              "flex flex-col items-center gap-1.5 rounded-xl p-2 text-[10px] text-[#5b5d50] transition hover:bg-black/[0.035]",
+                              "flex flex-col items-center gap-1.5 rounded-xl p-2 text-[10px] text-muted-foreground transition hover:bg-muted",
                               friendColor === color.value &&
-                                "bg-[#eef3df] font-semibold ring-1 ring-[#aebd91]"
+                                "bg-muted font-semibold text-foreground ring-1 ring-primary/45"
                             )}
                             title={color.name}
                           >
                             <span
-                              className="h-7 w-7 rounded-full border border-black/10 shadow-sm"
+                              className="h-7 w-7 rounded-full border border-border shadow-sm"
                               style={{ backgroundColor: color.value }}
                             />
                             <span className="leading-tight">{color.name}</span>
@@ -317,12 +321,12 @@ export function FeedManager() {
                       connection.friend.online ? "Online now" : "Offline"
                     }
                   />
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-[#534763]">
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
                     {connection.friend.name ||
                       connection.friend.email ||
                       "Friend"}
                   </span>
-                  <span className="text-[10px] font-semibold text-[#786a88]">
+                  <span className="text-[10px] font-semibold text-muted-foreground">
                     {connection.theirVisibility === "NONE"
                       ? "Not shared"
                       : hiddenFriendIds.includes(connection.friend.id)
@@ -337,7 +341,7 @@ export function FeedManager() {
               );
             })}
             {!friendShares.length && (
-              <p className="rounded-xl border border-dashed border-black/10 px-3 py-3 text-center text-xs text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground">
                 No accepted friends are sharing yet.
               </p>
             )}

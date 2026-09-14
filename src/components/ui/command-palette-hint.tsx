@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HiOutlineSearch } from "react-icons/hi";
-import { IoClose } from "react-icons/io5";
+import { Search, X } from "lucide-react";
 
 export function CommandPaletteHint() {
   const [isVisible, setIsVisible] = useState(false);
@@ -47,7 +46,7 @@ export function CommandPaletteHint() {
       <div className="max-w-xs rounded-lg border bg-background p-4 shadow-lg">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-2 font-medium text-primary">
-            <HiOutlineSearch className="h-5 w-5" />
+            <Search className="h-5 w-5" />
             <span>Quick Tip</span>
           </div>
           <button
@@ -55,7 +54,7 @@ export function CommandPaletteHint() {
             className="text-muted-foreground hover:text-foreground"
             aria-label="Dismiss hint"
           >
-            <IoClose className="h-5 w-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 

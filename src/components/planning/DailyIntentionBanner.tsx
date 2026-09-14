@@ -82,7 +82,7 @@ export function DailyIntentionBanner() {
     return null;
 
   return (
-    <aside className="relative z-20 flex-none border-b border-border bg-accent/90 px-3 py-2 text-accent-foreground shadow-[0_2px_12px_rgba(50,50,40,0.06)] sm:px-4">
+    <aside className="relative z-20 flex-none border-b border-border bg-accent/90 px-3 py-2 text-accent-foreground shadow-[var(--shadow-paper)] sm:px-4">
       <Link
         href="/plan"
         className="mx-auto flex max-w-[1480px] items-center gap-2.5 rounded-xl px-1 py-0.5 transition hover:text-foreground"

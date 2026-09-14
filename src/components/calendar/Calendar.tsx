@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
-import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 import { DayView } from "@/components/calendar/DayView";
 import { FeedManager } from "@/components/calendar/FeedManager";
@@ -264,7 +263,7 @@ export function Calendar({
                 data-testid="calendar-prev-week"
                 title="Previous period"
               >
-                <IoChevronBack className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={handleNextWeek}
@@ -272,7 +271,7 @@ export function Calendar({
                 data-testid="calendar-next-week"
                 title="Next period"
               >
-                <IoChevronForward className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -308,7 +307,7 @@ export function Calendar({
                 data-testid="calendar-prev-week"
                 title="Previous Week (←)"
               >
-                <IoChevronBack className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={handleNextWeek}
@@ -316,7 +315,7 @@ export function Calendar({
                 data-testid="calendar-next-week"
                 title="Next Week (→)"
               >
-                <IoChevronForward className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
@@ -399,7 +398,7 @@ export function Calendar({
 
         {/* Calendar Grid */}
         <div className="relative z-0 flex-1 overflow-hidden bg-background p-1.5 sm:p-3">
-          <div className="sunnie-calendar-frame h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_10px_30px_rgba(63,67,46,0.07)]">
+          <div className="sunnie-calendar-frame h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[var(--shadow-paper)]">
             {view === "day" ? (
               <DayView currentDate={currentDate} onDateClick={setDate} />
             ) : view === "week" ? (

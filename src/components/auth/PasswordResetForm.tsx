@@ -176,11 +176,11 @@ export function PasswordResetForm() {
                 id="password"
                 type="password"
                 {...registerReset("password")}
-                className={resetErrors.password ? "border-red-500" : ""}
+                className={resetErrors.password ? "border-destructive" : ""}
                 disabled={isLoading}
               />
               {resetErrors.password && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-destructive">
                   {resetErrors.password.message}
                 </p>
               )}
@@ -192,11 +192,13 @@ export function PasswordResetForm() {
                 id="confirmPassword"
                 type="password"
                 {...registerReset("confirmPassword")}
-                className={resetErrors.confirmPassword ? "border-red-500" : ""}
+                className={
+                  resetErrors.confirmPassword ? "border-destructive" : ""
+                }
                 disabled={isLoading}
               />
               {resetErrors.confirmPassword && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-destructive">
                   {resetErrors.confirmPassword.message}
                 </p>
               )}
@@ -218,11 +220,11 @@ export function PasswordResetForm() {
                 type="email"
                 placeholder="name@example.com"
                 {...registerRequest("email")}
-                className={requestErrors.email ? "border-red-500" : ""}
+                className={requestErrors.email ? "border-destructive" : ""}
                 disabled={isLoading}
               />
               {requestErrors.email && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-destructive">
                   {requestErrors.email.message}
                 </p>
               )}

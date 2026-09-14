@@ -57,20 +57,20 @@ export function SunnieDeleteDialog({
       }}
     >
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-[10020] bg-[#3f432e]/25 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=open]:animate-in" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[10021] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-[#e1dcc4] bg-[#fffdf5] p-5 shadow-[0_22px_60px_rgba(63,67,46,0.22)] sm:p-6">
+        <AlertDialog.Overlay className="fixed inset-0 z-[10020] bg-foreground/25 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=open]:animate-in" />
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[10021] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border bg-card p-5 text-foreground shadow-[var(--shadow-raised)] sm:p-6">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#f8ddd2] text-[#9b513f]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-destructive/15 text-destructive">
               <Trash2 className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <AlertDialog.Title className="text-lg font-semibold text-[#414530]">
+              <AlertDialog.Title className="text-lg font-semibold text-foreground">
                 Delete this {itemType}?
               </AlertDialog.Title>
-              <AlertDialog.Description className="mt-1 text-sm leading-relaxed text-black/55">
+              <AlertDialog.Description className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {itemName ? (
                   <>
-                    <span className="font-medium text-[#414530]">
+                    <span className="font-medium text-foreground">
                       “{itemName}”
                     </span>{" "}
                     will be permanently removed
@@ -91,7 +91,7 @@ export function SunnieDeleteDialog({
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-3 py-2 text-sm text-[#8b4934]"
+              className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
             >
               {error}
             </p>

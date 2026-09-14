@@ -1,14 +1,14 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { GripVertical } from "lucide-react";
 import {
-  HiClock,
-  HiFolder,
-  HiLockClosed,
-  HiPencil,
-  HiTrash,
-} from "react-icons/hi";
+  GripVertical,
+  Clock3 as HiClock,
+  Folder as HiFolder,
+  LockKeyhole as HiLockClosed,
+  Pencil as HiPencil,
+  Trash2 as HiTrash,
+} from "lucide-react";
 
 import {
   format,
@@ -31,17 +31,15 @@ interface BoardTaskProps {
 }
 
 const energyLevelColors = {
-  high: "bg-red-500/20 text-red-700 dark:text-red-400",
-  medium: "bg-orange-500/20 text-orange-700 dark:text-orange-400",
-  low: "bg-green-500/20 text-green-700 dark:text-green-400",
+  high: "bg-destructive/15 text-destructive",
+  medium: "bg-warning/15 text-warning",
+  low: "bg-success/15 text-success",
 };
 
 const timePreferenceColors = {
-  [TimePreference.MORNING]: "bg-sky-500/20 text-sky-700 dark:text-sky-400",
-  [TimePreference.AFTERNOON]:
-    "bg-amber-500/20 text-amber-700 dark:text-amber-400",
-  [TimePreference.EVENING]:
-    "bg-indigo-500/20 text-indigo-700 dark:text-indigo-400",
+  [TimePreference.MORNING]: "bg-secondary text-secondary-foreground",
+  [TimePreference.AFTERNOON]: "bg-accent/30 text-accent-foreground",
+  [TimePreference.EVENING]: "bg-primary/15 text-primary",
 };
 
 // Helper function to format enum values for display
@@ -110,7 +108,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
         ref={setNodeRef}
         style={style}
         className={cn(
-          "animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-3.5 shadow-[0_2px_7px_rgba(72,70,48,0.07)] transition hover:-translate-y-0.5 hover:border-[#d4d8b6] hover:shadow-[0_7px_16px_rgba(72,70,48,0.11)] motion-reduce:animate-none motion-reduce:transform-none",
+          "animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-border bg-card p-3.5 shadow-[var(--shadow-paper)] transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[var(--shadow-raised)] motion-reduce:animate-none motion-reduce:transform-none",
           isDragging && "opacity-50"
         )}
       >
@@ -122,7 +120,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
               {...attributes}
               {...listeners}
               aria-label={`Drag ${task.title}`}
-              className="-ml-1 grid h-8 w-8 shrink-0 touch-none place-items-center rounded-lg text-[#8a8d70] hover:bg-[#eef3df] active:cursor-grabbing md:cursor-grab"
+              className="-ml-1 grid h-8 w-8 shrink-0 touch-none place-items-center rounded-lg text-muted-foreground hover:bg-muted active:cursor-grabbing md:cursor-grab"
             >
               <GripVertical className="h-4 w-4" />
             </button>
@@ -134,7 +132,10 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
                 >
                   <HiClock className="h-4 w-4" />
                   {task.scheduleLocked && (
-                    <HiLockClosed className="h-3 w-3" title="Schedule locked" />
+                    <HiLockClosed
+                      className="h-3 w-3"
+                      aria-label="Schedule locked"
+                    />
                   )}
                 </div>
               )}
@@ -206,7 +207,7 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
 
             {task.project && (
               <div className="flex items-center gap-1">
-                <HiFolder className="h-3.5 w-3.5 text-[#8d8d73]" />
+                <HiFolder className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-muted-foreground">
                   {task.project.name}
                 </span>
@@ -248,12 +249,12 @@ export function BoardTask({ task, onEdit, onDelete }: BoardTaskProps) {
 
 export function BoardTaskOverlay({ task }: { task: Task }) {
   return (
-    <div className="w-72 rotate-1 cursor-grabbing rounded-2xl border border-[#d5cfb5] bg-[#fffdf7] p-4 shadow-[0_20px_45px_rgba(63,61,39,0.24)] ring-2 ring-[#f0c965]/60 motion-reduce:rotate-0">
+    <div className="w-72 rotate-1 cursor-grabbing rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-raised)] ring-2 ring-primary/60 motion-reduce:rotate-0">
       <div className="flex items-start gap-2">
         {task.isAutoScheduled && (
           <HiClock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
         )}
-        <p className="text-sm font-semibold text-[#414530]">{task.title}</p>
+        <p className="text-sm font-semibold text-foreground">{task.title}</p>
       </div>
       {task.description && (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">

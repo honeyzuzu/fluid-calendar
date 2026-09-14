@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { WeekPicker } from "@/components/planning/WeekPicker";
+import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 import { needsTaskTuneUp, parseBrainDump } from "@/lib/brain-dump";
 import { cn } from "@/lib/utils";
@@ -212,7 +213,7 @@ export function TaskCaptureWorkspace({
     <main className="min-h-full w-full min-w-0 overflow-x-clip bg-background p-3 pb-24 text-foreground min-[380px]:p-4 sm:p-6 md:pb-6 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-5xl">
         <header className="mb-6">
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#d0902f]">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
             {view === "dump" ? (
               <Brain className="h-4 w-4" />
             ) : (
@@ -223,7 +224,7 @@ export function TaskCaptureWorkspace({
           <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
             {view === "dump" ? "Brain Dump" : "Task Tune-up"}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-black/50">
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             {view === "dump"
               ? "Catch every loose thought and turn each one into a task."
               : "Fill in missing planning details so Sunnie can schedule your tasks well."}
@@ -231,7 +232,7 @@ export function TaskCaptureWorkspace({
         </header>
 
         {showViewTabs && (
-          <div className="mb-5 grid grid-cols-2 rounded-2xl border border-black/[0.06] bg-white/60 p-1.5 shadow-sm sm:inline-grid sm:min-w-[430px]">
+          <div className="mb-5 grid grid-cols-2 rounded-2xl border border-border bg-card/60 p-1.5 shadow-[var(--shadow-paper)] sm:inline-grid sm:min-w-[430px]">
             <TabButton
               active={view === "dump"}
               onClick={() => selectView("dump")}
@@ -250,7 +251,7 @@ export function TaskCaptureWorkspace({
         )}
 
         {taskError && (
-          <div className="mb-5 rounded-xl border border-[#efb7a5] bg-[#fff1e8] px-4 py-3 text-sm text-[#8b4934]">
+          <div className="mb-5 rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {taskError}
           </div>
         )}
@@ -259,14 +260,14 @@ export function TaskCaptureWorkspace({
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(270px,0.65fr)]">
             <form
               onSubmit={createTasks}
-              className="rounded-3xl border border-black/[0.065] bg-white/75 p-4 shadow-sm sm:p-6"
+              className="rounded-3xl border border-border bg-card/75 p-4 shadow-[var(--shadow-paper)] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold">
                     What&apos;s on your mind?
                   </h2>
-                  <p className="mt-1 text-xs leading-5 text-black/45">
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     Put one thought on each line. Bullets and numbered lists are
                     welcome too.
                   </p>
@@ -301,7 +302,7 @@ export function TaskCaptureWorkspace({
               />
 
               <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-black/38">
+                <p className="text-xs text-muted-foreground">
                   Your unsaved draft stays in this browser. Ctrl/⌘ + Enter also
                   creates the tasks.
                 </p>
@@ -324,32 +325,32 @@ export function TaskCaptureWorkspace({
               {createdCount > 0 && (
                 <section className="rounded-2xl border border-border bg-muted p-5 text-secondary-foreground shadow-sm">
                   <div className="flex items-center gap-2 font-semibold">
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-[#84a75e] text-white">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground">
                       <Check className="h-4 w-4" />
                     </span>
                     {createdCount} {createdCount === 1 ? "task" : "tasks"} saved
                   </div>
                   <button
                     onClick={() => selectView("tune-up")}
-                    className="mt-4 inline-flex items-center gap-1 text-sm font-semibold underline decoration-[#9bb57a] underline-offset-4"
+                    className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary underline decoration-primary/60 underline-offset-4"
                   >
                     Add planning details <ArrowRight className="h-4 w-4" />
                   </button>
                 </section>
               )}
 
-              <section className="rounded-2xl border border-black/[0.06] bg-[#fff3cc] p-5 shadow-sm">
+              <section className="rounded-2xl border border-border bg-accent/65 p-5 shadow-[var(--shadow-paper)]">
                 <h2 className="font-semibold">No AI needed yet</h2>
-                <p className="mt-2 text-sm leading-6 text-black/52">
+                <p className="mt-2 text-sm leading-6 text-secondary-foreground">
                   Sunnie turns each line into a task exactly as you wrote it.
                   That keeps this fast, private, and free. Later, optional AI
                   could split a long messy paragraph or suggest details.
                 </p>
               </section>
 
-              <section className="rounded-2xl border border-black/[0.06] bg-white/65 p-5 shadow-sm">
+              <section className="rounded-2xl border border-border bg-card/65 p-5 shadow-[var(--shadow-paper)]">
                 <h2 className="text-sm font-semibold">After you dump</h2>
-                <ol className="mt-3 space-y-3 text-xs leading-5 text-black/48">
+                <ol className="mt-3 space-y-3 text-xs leading-5 text-muted-foreground">
                   <li className="flex gap-2">
                     <StepNumber>1</StepNumber>Each line becomes an
                     auto-schedulable task.
@@ -430,7 +431,7 @@ function TabButton({
 
 function StepNumber({ children }: { children: React.ReactNode }) {
   return (
-    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#f4c85b] text-[10px] font-bold text-[#5a4819]">
+    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
       {children}
     </span>
   );
@@ -485,33 +486,42 @@ function TaskTuneUp({
 }: TuneUpProps) {
   if (loading) {
     return (
-      <div className="grid min-h-[420px] place-items-center rounded-3xl border border-black/[0.06] bg-white/70">
-        <div className="text-center text-sm text-black/45">
-          <Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-[#84a75e]" />
-          Gathering your unfinished tasks…
+      <div
+        aria-label="Gathering your unfinished tasks"
+        className="grid min-h-[420px] gap-5 rounded-3xl border border-border bg-card/70 p-6 lg:grid-cols-[minmax(0,1fr)_260px]"
+      >
+        <div className="space-y-5">
+          <SunnieSkeleton className="h-8 w-3/4" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <SunnieSkeleton key={index} className="h-20 w-full" />
+            ))}
+          </div>
+          <SunnieSkeleton className="h-12 w-40" />
         </div>
+        <SunnieSkeleton className="h-64 w-full rounded-2xl" />
       </div>
     );
   }
 
   if (!currentTask) {
     return (
-      <section className="grid min-h-[420px] place-items-center rounded-3xl border border-[#cddcaf] bg-[#f4f7e9] p-6 text-center shadow-sm">
+      <section className="grid min-h-[420px] place-items-center rounded-3xl border border-border bg-muted p-6 text-center shadow-[var(--shadow-paper)]">
         <div className="max-w-md">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#dfecc6] text-[#607044]">
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent text-accent-foreground">
             <Check className="h-8 w-8" />
           </span>
           <h2 className="mt-5 text-2xl font-semibold">
             Everything is tuned up!
           </h2>
-          <p className="mt-2 text-sm leading-6 text-black/48">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Every active task has a status, duration, due date, priority, and
             energy level.
           </p>
           <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <button
               onClick={onReload}
-              className="rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold"
+              className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold"
             >
               Check again
             </button>
@@ -535,18 +545,18 @@ function TaskTuneUp({
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
       <form
         onSubmit={onSubmit}
-        className="overflow-hidden rounded-3xl border border-black/[0.065] bg-white/80 shadow-[0_14px_50px_rgba(76,79,49,0.09)]"
+        className="overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[var(--shadow-raised)]"
       >
-        <div className="border-b border-black/[0.055] bg-[#fff3cc] px-5 py-4 sm:px-7">
-          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-black/45">
+        <div className="border-b border-border bg-accent/65 px-5 py-4 sm:px-7">
+          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
             <span>
               Task {currentIndex + 1} of {tasks.length}
             </span>
             <span>{tasks.length} need details</span>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/5">
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-[#e9ae43] transition-all"
+              className="h-full rounded-full bg-primary transition-all"
               style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
             />
           </div>
@@ -560,7 +570,7 @@ function TaskTuneUp({
               disabled={saving}
             />
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#84a75e]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
             Tell Sunnie about this task
           </p>
           <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.025em] sm:text-3xl">
@@ -672,15 +682,15 @@ function TaskTuneUp({
       <aside className="space-y-4">
         <section className="rounded-2xl border border-border bg-muted p-5 shadow-sm">
           <h3 className="font-semibold">What counts as untuned?</h3>
-          <p className="mt-2 text-sm leading-6 text-black/50">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Any active task missing a duration, due date, priority, or energy
             level appears here. Status is included on every card so you can
             update it too.
           </p>
         </section>
-        <section className="rounded-2xl border border-black/[0.06] bg-white/65 p-5 shadow-sm">
+        <section className="rounded-2xl border border-border/70 bg-card/65 p-5 shadow-sm">
           <h3 className="font-semibold">All tasks included</h3>
-          <p className="mt-2 text-sm leading-6 text-black/50">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             This cycles through tasks from everywhere in Sunnie—not only tasks
             made in Brain Dump.
           </p>
@@ -700,7 +710,7 @@ function TuneField({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block text-sm font-semibold text-black/62">
+    <label className="block text-sm font-semibold text-foreground/70">
       <span className="mb-2 flex items-center gap-1.5">
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {label}

@@ -43,8 +43,13 @@ interface DayViewProps {
 }
 
 export function DayView({ currentDate, onDateClick }: DayViewProps) {
-  const { feeds, getAllCalendarItems, isLoading, removeEvent } =
-    useCalendarStore();
+  const {
+    feeds,
+    getAllCalendarItems,
+    isLoading,
+    loadEventsForRange,
+    removeEvent,
+  } = useCalendarStore();
   const hiddenFriendIds = useCalendarUIStore((state) => state.hiddenFriendIds);
   const friendCalendarColors = useCalendarUIStore(
     (state) => state.friendCalendarColors
@@ -91,13 +96,15 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      await loadEventsForRange(arg.start, arg.end);
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
         arg.start,
         arg.end,
         friendCalendarColors,
         friendFallbackColor,
-        activeColorTheme.id
+        activeColorTheme.id,
+        friendRefreshRevision
       );
       const formattedItems = items
         .filter((item) => {
@@ -150,27 +157,13 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
       feeds,
       friendCalendarColors,
       friendFallbackColor,
+      friendRefreshRevision,
       activeColorTheme.id,
       getAllCalendarItems,
       hiddenFriendIds,
+      loadEventsForRange,
     ]
   );
-
-  // Initial data load
-  useEffect(() => {
-    // Only load data if the store is empty - the parent component may have
-    // already loaded data from the server
-    const state = useCalendarStore.getState();
-    const taskState = useTaskStore.getState();
-
-    if (state.events.length === 0 || state.feeds.length === 0) {
-      state.loadFromDatabase();
-    }
-
-    if (taskState.tasks.length === 0) {
-      taskState.fetchTasks();
-    }
-  }, []);
 
   // Update items when loading state changes, feeds change, or tasks change
   useEffect(() => {

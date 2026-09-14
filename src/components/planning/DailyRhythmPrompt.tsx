@@ -167,7 +167,7 @@ export function DailyRhythmPrompt() {
         role="status"
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[55] overflow-hidden rounded-2xl border border-border p-4 text-foreground shadow-[0_18px_55px_rgba(63,67,46,0.2)] lg:bottom-5 lg:left-auto lg:right-5 lg:w-[360px] ${isRise ? "sunnie-rise-surface" : "sunnie-unwind-surface"}`}
+        className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[55] overflow-hidden rounded-2xl border border-border p-4 text-foreground shadow-[var(--shadow-raised)] lg:bottom-5 lg:left-auto lg:right-5 lg:w-[360px] ${isRise ? "sunnie-rise-surface" : "sunnie-unwind-surface"}`}
       >
         <button
           aria-label="Not now"
@@ -178,7 +178,7 @@ export function DailyRhythmPrompt() {
             );
             setKind(null);
           }}
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/50 text-black/45 hover:bg-white/75"
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-card/50 text-foreground/60 hover:bg-card/75"
         >
           <X className="h-4 w-4" />
         </button>
@@ -187,7 +187,7 @@ export function DailyRhythmPrompt() {
             aria-hidden="true"
             animate={{ rotate: isRise ? [0, -8, 8, 0] : [0, 5, -5, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 2 }}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/60 text-xl"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-card/60 text-xl"
           >
             {isRise ? "🐣" : "🌙"}
           </motion.span>
@@ -202,7 +202,7 @@ export function DailyRhythmPrompt() {
                 ? "Ready for your Daily Rise?"
                 : "Time for a gentle Unwind?"}
             </p>
-            <p className="mt-1 text-xs leading-5 text-black/55">
+            <p className="mt-1 text-xs leading-5 text-foreground/65">
               {isRise
                 ? "Choose what matters and make a day that really fits."
                 : "Celebrate what moved and leave unfinished work somewhere safe."}

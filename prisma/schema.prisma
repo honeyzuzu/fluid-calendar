@@ -98,7 +98,9 @@ model User {
   TaskChange             TaskChange[]
   PasswordReset          PasswordReset[]
   dailyPlans             DailyPlan[]
+  dailyMoodEntries       DailyMoodEntry[]
   weeklyReviews          WeeklyReview[]
+  calendarStickers       CalendarSticker[]
   friendRequestsSent     FriendConnection[]    @relation("FriendRequester")
   friendRequestsReceived FriendConnection[]    @relation("FriendAddressee")
 
@@ -139,6 +141,22 @@ model DailyPlan {
   @@unique([userId, date])
   @@index([date])
   @@index([userId])
+}
+
+model DailyMoodEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  phase     String
+  mood      Int
+  energy    Int?
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date, phase])
+  @@index([userId, date])
 }
 
 model WeeklyReview {
@@ -418,6 +436,7 @@ model UserSettings {
   theme                String   @default("system") // "light", "dark", "system"
   colorTheme           String   @default("base") // planner colorway id from src/lib/color-themes.ts
   calendarStyle        String   @default("classic") // "classic" or "bujo"
+  motionPreference     String   @default("full") // "full", "reduced", or "off"
   defaultView          String   @default("week") // "day", "week", "month", "agenda"
   timeZone             String
   weekStartDay         String   @default("sunday") // "monday", "sunday"
@@ -426,6 +445,25 @@ model UserSettings {
   updatedAt            DateTime @updatedAt
 
   @@index([userId])
+}
+
+model CalendarSticker {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stickerId  String
+  packId     String
+  view       String   @default("month")
+  anchorDate String
+  x          Float    @default(0.5)
+  y          Float    @default(0.5)
+  scale      Float    @default(1)
+  rotation   Float    @default(0)
+  zIndex     Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, anchorDate])
 }
 
 model CalendarSettings {

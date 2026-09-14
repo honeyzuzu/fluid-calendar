@@ -6,7 +6,7 @@ export function PageHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <section className={cn("grid gap-1", className)} {...props}>
+    <section className={cn("grid min-w-0 gap-1", className)} {...props}>
       {children}
     </section>
   );
@@ -19,7 +19,10 @@ export function PageHeaderHeading({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h1
-      className={cn("text-3xl font-bold tracking-tight", className)}
+      className={cn(
+        "text-2xl font-bold leading-[1.15] tracking-[-0.035em] sm:text-[1.75rem]",
+        className
+      )}
       {...props}
     >
       {children}
@@ -33,7 +36,13 @@ export function PageHeaderDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-muted-foreground", className)} {...props}>
+    <p
+      className={cn(
+        "max-w-2xl text-sm leading-6 text-muted-foreground",
+        className
+      )}
+      {...props}
+    >
       {children}
     </p>
   );

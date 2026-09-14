@@ -17,7 +17,7 @@ import { TaskList } from "@/components/tasks/TaskList";
 import { TaskModal } from "@/components/tasks/TaskModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { SunnieSkeleton } from "@/components/ui/sunnie";
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
 import { useAutoSchedule } from "@/hooks/use-auto-schedule";
@@ -37,7 +37,6 @@ export default function TasksPage() {
   const {
     tasks,
     tags,
-    loading,
     error,
     fetchTasks,
     fetchTags,
@@ -50,6 +49,7 @@ export default function TasksPage() {
   const { isOpen, setOpen } = useTaskModalStore();
 
   const [workspace, setWorkspace] = useState<TasksWorkspace>("tasks");
+  const [initialLoading, setInitialLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [taskPendingDelete, setTaskPendingDelete] = useState<Task>();
   const [initialProjectId, setInitialProjectId] = useState<
@@ -59,9 +59,15 @@ export default function TasksPage() {
 
   // Fetch tasks and tags on mount
   useEffect(() => {
-    fetchTasks();
-    fetchTags();
-    fetchProjects();
+    let active = true;
+    void Promise.all([fetchTasks(), fetchTags(), fetchProjects()]).finally(
+      () => {
+        if (active) setInitialLoading(false);
+      }
+    );
+    return () => {
+      active = false;
+    };
   }, [fetchTasks, fetchTags, fetchProjects]);
 
   useEffect(() => {
@@ -84,15 +90,11 @@ export default function TasksPage() {
 
   const handleCreateTask = async (task: NewTask) => {
     await createTask(task);
-    await fetchTasks();
-    await fetchProjects();
   };
 
   const handleUpdateTask = async (task: NewTask) => {
     if (selectedTask) {
       await updateTask(selectedTask.id, task);
-      await fetchTasks();
-      await fetchProjects();
     }
   };
 
@@ -103,21 +105,29 @@ export default function TasksPage() {
   const confirmDeleteTask = async () => {
     if (!taskPendingDelete) return;
 
-    await deleteTask(taskPendingDelete.id);
-    await Promise.all([fetchTasks(), fetchProjects()]);
-    setTaskPendingDelete(undefined);
+    try {
+      await deleteTask(taskPendingDelete.id);
+      setTaskPendingDelete(undefined);
+    } catch {
+      toast.error("Sunnie couldn't delete that task", {
+        description: "Your task was restored. Please try again.",
+      });
+    }
   };
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
-    await updateTask(taskId, { status });
-    await fetchTasks();
-    await fetchProjects();
+    try {
+      await updateTask(taskId, { status });
+    } catch {
+      toast.error("Sunnie couldn't save that change", {
+        description: "The task was restored to its previous status.",
+      });
+    }
   };
 
   const handleCreateTag = async (name: string, color?: string) => {
     try {
       const newTag = await createTag({ name, color });
-      await fetchTags(); // Refresh tags after creation
       return newTag;
     } catch (error) {
       console.error("Error creating tag:", error);
@@ -131,11 +141,6 @@ export default function TasksPage() {
     console.log("Updating task:", { id, updates });
     try {
       await updateTask(id, updates);
-      await fetchTasks();
-      // If projectId was changed, refresh projects to update task counts
-      if ("projectId" in updates) {
-        await fetchProjects();
-      }
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task", {
@@ -152,7 +157,7 @@ export default function TasksPage() {
           <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 flex-col items-start gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d0902f]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
                   Little things, lovingly planned
                 </p>
                 <h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">
@@ -183,7 +188,7 @@ export default function TasksPage() {
                 )}
               </div>
               <div
-                className="grid w-full grid-cols-3 gap-1 rounded-xl border border-black/[0.06] bg-white/60 p-1 sm:w-auto"
+                className="grid w-full grid-cols-3 gap-1 rounded-xl border border-border/70 bg-card/60 p-1 sm:w-auto"
                 aria-label="Task tools"
               >
                 <WorkspaceButton
@@ -253,7 +258,7 @@ export default function TasksPage() {
 
           {workspace === "tasks" && <MobileProjectPicker />}
           {workspace === "tasks" && (
-            <details className="mx-auto mt-3 w-full max-w-[1480px] rounded-xl border border-[#dce3c9] bg-[#f3f6e9] px-3 py-2 text-sm">
+            <details className="mx-auto mt-3 w-full max-w-[1480px] rounded-xl border border-border bg-muted px-3 py-2 text-sm">
               <summary className="cursor-pointer font-medium">
                 Completed today (
                 {
@@ -317,7 +322,9 @@ export default function TasksPage() {
           }`}
         >
           <div className="mx-auto flex h-full w-full max-w-[1480px] flex-col">
-            {workspace === "tasks" ? (
+            {workspace === "tasks" && initialLoading ? (
+              <TasksPageSkeleton />
+            ) : workspace === "tasks" ? (
               <TaskList
                 tasks={tasks}
                 onEdit={(task) => {
@@ -368,14 +375,30 @@ export default function TasksPage() {
           itemName={taskPendingDelete?.title}
           onConfirm={confirmDeleteTask}
         />
+      </div>
+    </div>
+  );
+}
 
-        {loading && (
-          <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div className="rounded-lg border bg-background p-4 shadow-lg">
-              <LoadingSpinner size="lg" />
+function TasksPageSkeleton() {
+  return (
+    <div aria-label="Loading tasks" className="flex h-full flex-col gap-4">
+      <SunnieSkeleton className="h-16 w-full rounded-2xl" />
+      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {Array.from({ length: 8 }, (_, index) => (
+          <div
+            key={index}
+            className="space-y-4 rounded-2xl border border-border/70 bg-card/70 p-4"
+          >
+            <SunnieSkeleton className="h-5 w-3/4" />
+            <SunnieSkeleton className="h-3 w-full" />
+            <SunnieSkeleton className="h-3 w-2/3" />
+            <div className="flex gap-2 pt-2">
+              <SunnieSkeleton className="h-7 w-20 rounded-full" />
+              <SunnieSkeleton className="h-7 w-16 rounded-full" />
             </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

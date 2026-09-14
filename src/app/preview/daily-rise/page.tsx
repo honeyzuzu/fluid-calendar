@@ -19,12 +19,13 @@ const todayTasks = [
 
 export default function DailyRisePreview() {
   return (
-    <main data-discord-preview-ready className="min-h-screen bg-[#fff9e8]">
+    <main data-discord-preview-ready className="min-h-screen bg-background">
       <DailyRise
         open
         onOpenChange={() => undefined}
         dateLabel="Saturday, September 12"
         initialIntention="Finish the important thing, then leave room for friends."
+        initialMood={null}
         todayTasks={todayTasks}
         carryoverTasks={[]}
         availableTasks={[

@@ -53,76 +53,44 @@ type StickerDefinition = { id: string; preview: string };
 type StickerPackDefinition = {
   label: string;
   stickers: readonly StickerDefinition[];
-  conceptOnly?: boolean;
   testOnly?: boolean;
 };
 
 export const STICKER_PACKS = {
-  "sunnie-sunny-garden": {
+  base: {
     label: "Sunny Garden",
     stickers: [
-      { id: "sprout", preview: "🌱" },
-      { id: "daisy", preview: "🌼" },
-      { id: "sun", preview: "☀️" },
-      { id: "chick", preview: "🐥" },
-      { id: "pencil", preview: "✏️" },
-      { id: "tea", preview: "☕" },
-      { id: "notebook", preview: "📒" },
-      { id: "garden-basket", preview: "🧺" },
-      { id: "butterfly", preview: "🦋" },
-      { id: "heart", preview: "💛" },
-      { id: "rainbow", preview: "🌈" },
-      { id: "flower-pot", preview: "🪴" },
+      { id: "garden-daisy", preview: "🌼" },
+      { id: "happy-sprout", preview: "🌱" },
     ],
-    conceptOnly: true,
   },
   "spring-fresh-air": {
     label: "Fresh Air",
     stickers: [
-      { id: "tulip", preview: "🌷" },
-      { id: "daisy", preview: "🌼" },
-      { id: "strawberry", preview: "🍓" },
-      { id: "umbrella", preview: "☔" },
-      { id: "bee", preview: "🐝" },
-      { id: "bow", preview: "🎀" },
+      { id: "spring-tulip", preview: "🌷" },
+      { id: "spring-bee", preview: "🐝" },
     ],
-    conceptOnly: true,
   },
   "summer-sun-kissed": {
     label: "Sun-Kissed",
     stickers: [
-      { id: "strawberry", preview: "🍓" },
-      { id: "cherries", preview: "🍒" },
-      { id: "lemon", preview: "🍋" },
-      { id: "lemonade", preview: "🥤" },
-      { id: "shell", preview: "🐚" },
-      { id: "ice-cream", preview: "🍦" },
+      { id: "summer-lemon", preview: "🍋" },
+      { id: "summer-cherries", preview: "🍒" },
     ],
-    conceptOnly: true,
   },
   "autumn-golden-hour": {
     label: "Golden Hour",
     stickers: [
-      { id: "apple", preview: "🍎" },
-      { id: "pumpkin", preview: "🎃" },
-      { id: "leaf", preview: "🍂" },
-      { id: "cider", preview: "☕" },
-      { id: "candle", preview: "🕯️" },
-      { id: "books", preview: "📚" },
+      { id: "autumn-leaf", preview: "🍂" },
+      { id: "autumn-apple", preview: "🍎" },
     ],
-    conceptOnly: true,
   },
   "winter-candlelight-snow": {
     label: "Candlelight & Snow",
     stickers: [
-      { id: "snowflake", preview: "❄️" },
-      { id: "cocoa", preview: "☕" },
-      { id: "mittens", preview: "🧤" },
-      { id: "scarf", preview: "🧣" },
-      { id: "gingerbread", preview: "🍪" },
-      { id: "gift", preview: "🎁" },
+      { id: "winter-snowflake", preview: "❄️" },
+      { id: "winter-cocoa", preview: "☕" },
     ],
-    conceptOnly: true,
   },
   "visual-test-leaves": {
     label: "Visual test leaves",
@@ -186,6 +154,15 @@ export type WashiPackId = keyof typeof WASHI_PACKS;
 export type PatternIntensity = "subtle" | "moderate" | "prominent";
 export type DecorativeDensity = "minimal" | "balanced" | "maximal";
 export type ThemeCoreRole = keyof ColorTheme["core"];
+export type PatternSpec = {
+  kind: PatternStyle;
+  scale?: number;
+  opacity?: number;
+  rotation?: number;
+  primaryRole?: ThemeCoreRole;
+  secondaryRole?: ThemeCoreRole;
+  lineWeight?: "hairline" | "soft" | "bold";
+};
 
 export type CalendarPresentation = {
   gridStyle: CalendarGridStyle;
@@ -200,9 +177,9 @@ export type ThemeVisualDefinition = {
   backgroundStyle: AppBackgroundStyle;
   surfaceStyle: SurfaceStyle;
   patterns: {
-    app: PatternStyle;
-    surface: PatternStyle;
-    sidebar: PatternStyle;
+    app: PatternSpec;
+    surface: PatternSpec;
+    sidebar: PatternSpec;
   };
   borderStyle: BorderStyle;
   radiusStyle: RadiusStyle;
@@ -263,6 +240,11 @@ const defaultPlanning: ThemeVisualDefinition["planning"] = {
   progress: ["accent", "primary"],
 };
 
+const pattern = (
+  kind: PatternStyle,
+  options: Omit<PatternSpec, "kind"> = {}
+): PatternSpec => ({ kind, ...options });
+
 /**
  * The higher-level theme registry. Color slots remain owned by color-themes.ts;
  * this layer describes how components present those colors. Components consume
@@ -274,7 +256,16 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     {
       backgroundStyle: "paper",
       surfaceStyle: "soft",
-      patterns: { app: "none", surface: "none", sidebar: "dot-grid" },
+      patterns: {
+        app: pattern("none"),
+        surface: pattern("none"),
+        sidebar: pattern("dot-grid", {
+          scale: 0.85,
+          opacity: 0.14,
+          primaryRole: "inkSoft",
+          lineWeight: "hairline",
+        }),
+      },
       borderStyle: "solid",
       radiusStyle: "round",
       decorativeAccent: "none",
@@ -294,7 +285,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
         },
       },
       assets: {
-        stickerPack: "sunnie-sunny-garden",
+        stickerPack: "base",
         washiPack: "sunnie-sunny-garden",
         illustrationPack: "sunnie-garden-doodles",
       },
@@ -306,7 +297,15 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   "autumn-golden-hour": plannerTheme(COLOR_THEMES["autumn-golden-hour"], {
     backgroundStyle: "paper",
     surfaceStyle: "paper",
-    patterns: { app: "none", surface: "dot-grid", sidebar: "none" },
+    patterns: {
+      app: pattern("none"),
+      surface: pattern("dot-grid", {
+        scale: 1.1,
+        opacity: 0.16,
+        primaryRole: "primary",
+      }),
+      sidebar: pattern("none"),
+    },
     borderStyle: "hand-drawn",
     radiusStyle: "soft",
     decorativeAccent: "none",
@@ -339,7 +338,16 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   "spring-fresh-air": plannerTheme(COLOR_THEMES["spring-fresh-air"], {
     backgroundStyle: "paper",
     surfaceStyle: "paper",
-    patterns: { app: "none", surface: "lined-paper", sidebar: "none" },
+    patterns: {
+      app: pattern("none"),
+      surface: pattern("lined-paper", {
+        scale: 1.05,
+        opacity: 0.22,
+        primaryRole: "border",
+        lineWeight: "hairline",
+      }),
+      sidebar: pattern("none"),
+    },
     borderStyle: "hand-drawn",
     radiusStyle: "soft",
     decorativeAccent: "scalloped",
@@ -376,7 +384,16 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   "summer-sun-kissed": plannerTheme(COLOR_THEMES["summer-sun-kissed"], {
     backgroundStyle: "ambient",
     surfaceStyle: "soft",
-    patterns: { app: "none", surface: "gingham", sidebar: "none" },
+    patterns: {
+      app: pattern("none"),
+      surface: pattern("gingham", {
+        scale: 1.15,
+        opacity: 0.12,
+        primaryRole: "accent",
+        secondaryRole: "primary",
+      }),
+      sidebar: pattern("none"),
+    },
     borderStyle: "solid",
     radiusStyle: "round",
     decorativeAccent: "none",
@@ -412,7 +429,16 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     {
       backgroundStyle: "ambient",
       surfaceStyle: "paper",
-      patterns: { app: "none", surface: "graph-paper", sidebar: "none" },
+      patterns: {
+        app: pattern("none"),
+        surface: pattern("graph-paper", {
+          scale: 0.95,
+          opacity: 0.11,
+          primaryRole: "inkSoft",
+          lineWeight: "hairline",
+        }),
+        sidebar: pattern("none"),
+      },
       borderStyle: "solid",
       radiusStyle: "soft",
       decorativeAccent: "none",
@@ -463,7 +489,24 @@ export const VISUAL_TEST_THEME: SunnieTheme<"visual-test-theme"> = {
   visual: {
     ...SUNNIE_THEMES.base.visual,
     surfaceStyle: "patterned",
-    patterns: { app: "stripes", surface: "checker", sidebar: "dot-grid" },
+    patterns: {
+      app: pattern("stripes", {
+        opacity: 0.18,
+        rotation: 25,
+        primaryRole: "accent",
+      }),
+      surface: pattern("checker", {
+        scale: 1.25,
+        opacity: 0.3,
+        primaryRole: "surfaceMuted",
+      }),
+      sidebar: pattern("dot-grid", {
+        scale: 0.75,
+        opacity: 0.24,
+        primaryRole: "primary",
+        lineWeight: "bold",
+      }),
+    },
     borderStyle: "dashed",
     decorativeAccent: "scalloped",
     signatureDetails: ["primitive coverage", "high contrast", "lab only"],
@@ -549,9 +592,9 @@ export function getThemeDomAttributes(
     themePatternIntensity: theme.visual.patternIntensity,
     themeDecorativeDensity: theme.visual.decorativeDensity,
     themeTypography: theme.visual.typography,
-    themeAppPattern: theme.visual.patterns.app,
-    themeSurfacePattern: theme.visual.patterns.surface,
-    themeSidebarPattern: theme.visual.patterns.sidebar,
+    themeAppPattern: theme.visual.patterns.app.kind,
+    themeSurfacePattern: theme.visual.patterns.surface.kind,
+    themeSidebarPattern: theme.visual.patterns.sidebar.kind,
     themeMotion: theme.visual.motion.activation,
     themeStickerPack: theme.visual.assets.stickerPack ?? "none",
   };
@@ -584,6 +627,26 @@ export function getPlannerThemeCssVariables(
   theme: SunnieTheme
 ): Record<string, string> {
   const resolve = (role: ThemeCoreRole) => theme.core[role];
+  const patternVariables = (
+    target: "app" | "surface" | "sidebar",
+    spec: PatternSpec
+  ) => {
+    const lineWeights = { hairline: 0.75, soft: 1, bold: 1.5 } as const;
+    return {
+      [`--sunnie-${target}-pattern-scale`]: String(spec.scale ?? 1),
+      [`--sunnie-${target}-pattern-opacity`]: `${Math.round(
+        (spec.opacity ?? 0.14) * 100
+      )}%`,
+      [`--sunnie-${target}-pattern-rotation`]: `${spec.rotation ?? 0}deg`,
+      [`--sunnie-${target}-pattern-primary`]: resolve(
+        spec.primaryRole ?? "accent"
+      ),
+      [`--sunnie-${target}-pattern-secondary`]: resolve(
+        spec.secondaryRole ?? "primary"
+      ),
+      [`--sunnie-${target}-pattern-line`]: `${lineWeights[spec.lineWeight ?? "soft"]}px`,
+    };
+  };
   return {
     "--sunnie-rise-from": resolve(theme.visual.planning.rise[0]),
     "--sunnie-rise-via": resolve(theme.visual.planning.rise[1]),
@@ -593,5 +656,8 @@ export function getPlannerThemeCssVariables(
     "--sunnie-unwind-to": resolve(theme.visual.planning.unwind[2]),
     "--sunnie-progress-from": resolve(theme.visual.planning.progress[0]),
     "--sunnie-progress-to": resolve(theme.visual.planning.progress[1]),
+    ...patternVariables("app", theme.visual.patterns.app),
+    ...patternVariables("surface", theme.visual.patterns.surface),
+    ...patternVariables("sidebar", theme.visual.patterns.sidebar),
   };
 }

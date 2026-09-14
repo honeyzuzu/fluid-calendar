@@ -32,15 +32,15 @@ export function CurrentTimeIndicator({ date }: CurrentTimeIndicatorProps) {
     >
       {/* Time label */}
       <div className="absolute -left-16 w-12 -translate-y-1/2 text-right">
-        <span className="text-xs font-medium text-red-500">
+        <span className="text-xs font-medium text-destructive">
           {now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
         </span>
       </div>
 
       {/* Line */}
-      <div className="relative h-px w-full bg-red-500">
+      <div className="relative h-px w-full bg-destructive">
         {/* Circle */}
-        <div className="absolute left-0 h-2 w-2 -translate-y-1/2 rounded-full bg-red-500" />
+        <div className="absolute left-0 h-2 w-2 -translate-y-1/2 rounded-full bg-destructive" />
       </div>
     </div>
   );

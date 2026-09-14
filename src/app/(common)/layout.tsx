@@ -20,14 +20,13 @@ import { ShortcutsModal } from "@/components/ui/shortcuts-modal";
 import { Toaster } from "@/components/ui/sonner";
 
 import { isColorThemeId } from "@/lib/color-themes";
+import { persistDisplayPreferences } from "@/lib/display-preferences";
 import { ONBOARDING_TOUR_ENABLED } from "@/lib/onboarding";
 
 import { usePageTitle } from "@/hooks/use-page-title";
 
 import { useSettingsStore } from "@/store/settings";
 import { useShortcutsStore } from "@/store/shortcuts";
-
-import "../globals.css";
 
 // Dynamically import the NotificationProvider based on SAAS flag
 const NotificationProvider = dynamic<{ children: React.ReactNode }>(
@@ -69,6 +68,7 @@ export default function RootLayout({
       useSettingsStore.setState((state) => ({
         user: { ...state.user, colorTheme: cachedTheme },
       }));
+      persistDisplayPreferences({ colorTheme: cachedTheme });
     }
     const controller = new AbortController();
     void fetch("/api/user-settings", {
@@ -83,6 +83,11 @@ export default function RootLayout({
         if (userSettings.colorTheme) {
           window.localStorage.setItem(themeCacheKey, userSettings.colorTheme);
         }
+        persistDisplayPreferences({
+          colorTheme: userSettings.colorTheme,
+          calendarStyle: userSettings.calendarStyle,
+          motionPreference: userSettings.motionPreference,
+        });
         useSettingsStore.setState((state) => ({
           initialized: true,
           user: { ...state.user, ...userSettings },
@@ -112,7 +117,7 @@ export default function RootLayout({
   }, [setShortcutsOpen]);
 
   return (
-    <div className="sunnie-app relative flex min-h-screen flex-col overflow-x-clip">
+    <div className="sunnie-app sunnie-theme-app-pattern relative flex min-h-screen flex-col overflow-x-clip">
       <SessionProvider>
         <PresenceHeartbeat />
         <PrivacyProvider>

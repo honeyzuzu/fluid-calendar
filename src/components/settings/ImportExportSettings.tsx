@@ -199,7 +199,7 @@ export function ImportExportSettings() {
               <strong>Import:</strong> Imports tasks, projects, and tags from a
               JSON file. Tasks will be associated with your account.
             </p>
-            <p className="text-yellow-600 dark:text-yellow-400">
+            <p className="text-warning">
               Note: Importing will not delete or modify your existing tasks, but
               may create duplicates if tasks with similar titles exist.
             </p>

@@ -49,3 +49,26 @@ it("persists a valid calendar style for the authenticated user", async () => {
     }),
   });
 });
+
+it("rejects an unknown motion preference", async () => {
+  const response = await PATCH(request({ motionPreference: "extra-bouncy" }));
+
+  expect(response).toBeDefined();
+  expect(response!.status).toBe(400);
+  expect(prisma.userSettings.upsert).not.toHaveBeenCalled();
+});
+
+it("persists a valid motion preference for the authenticated user", async () => {
+  const response = await PATCH(request({ motionPreference: "reduced" }));
+
+  expect(response).toBeDefined();
+  expect(response!.status).toBe(200);
+  expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
+    where: { userId: "owner" },
+    update: { motionPreference: "reduced" },
+    create: expect.objectContaining({
+      userId: "owner",
+      motionPreference: "reduced",
+    }),
+  });
+});

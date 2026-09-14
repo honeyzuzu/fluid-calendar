@@ -16,12 +16,48 @@ interface ConnectedAccount {
   calendars: Array<{ id: string; name: string }>;
 }
 
+type CalendarSettingsResponse = {
+  defaultCalendarId?: string;
+  workingHoursEnabled: boolean;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  workingHoursDays: string;
+  defaultDuration: number;
+  defaultColor: string;
+  defaultReminder: number;
+  refreshInterval: number;
+};
+
+type NotificationSettingsResponse = {
+  emailNotifications: boolean;
+  dailyEmailEnabled: boolean;
+  eventInvites: boolean;
+  eventUpdates: boolean;
+  eventCancellations: boolean;
+  eventReminders: boolean;
+  defaultReminderTiming: string;
+};
+
+type IntegrationSettingsResponse = {
+  googleCalendarEnabled: boolean;
+  googleCalendarAutoSync: boolean;
+  googleCalendarInterval: number;
+  outlookCalendarEnabled: boolean;
+  outlookCalendarAutoSync: boolean;
+  outlookCalendarInterval: number;
+};
+
 interface SettingsStore extends Settings {
   accounts: ConnectedAccount[];
   initialized: boolean;
 
   // Actions
-  initializeSettings: () => Promise<void>;
+  initializeSettings: (options?: { includeAdmin?: boolean }) => Promise<void>;
+  hydrateFromServer: (
+    settings: {
+      [Key in keyof Settings]?: Partial<Settings[Key]>;
+    } & { accounts?: ConnectedAccount[] }
+  ) => void;
   updateUserSettings: (settings: Partial<Settings["user"]>) => void;
   updateCalendarSettings: (settings: Partial<Settings["calendar"]>) => void;
   updateNotificationSettings: (
@@ -45,6 +81,7 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
     theme: "system",
     colorTheme: BASE_COLOR_THEME.id,
     calendarStyle: "classic",
+    motionPreference: "full",
     defaultView: "week",
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     weekStartDay: "sunday",
@@ -133,6 +170,27 @@ export const useSettingsStore = create<SettingsStore>()(
     (set, get) => ({
       ...defaultSettings,
       initialized: false,
+      hydrateFromServer: (settings) =>
+        set((state) => ({
+          user: { ...state.user, ...settings.user },
+          calendar: { ...state.calendar, ...settings.calendar },
+          notifications: {
+            ...state.notifications,
+            ...settings.notifications,
+          },
+          integrations: {
+            ...state.integrations,
+            ...settings.integrations,
+          },
+          data: { ...state.data, ...settings.data },
+          autoSchedule: {
+            ...state.autoSchedule,
+            ...settings.autoSchedule,
+          },
+          system: { ...state.system, ...settings.system },
+          accounts: settings.accounts ?? state.accounts,
+          initialized: true,
+        })),
       updateUserSettings: (settings) =>
         set((state) => {
           // Update local state
@@ -392,8 +450,16 @@ export const useSettingsStore = create<SettingsStore>()(
           throw error;
         }
       },
-      initializeSettings: async () => {
+      initializeSettings: async ({ includeAdmin = false } = {}) => {
         try {
+          const readSettings = async <Value>(url: string): Promise<Value> => {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`Failed to load ${url} (${response.status})`);
+            }
+            return response.json() as Promise<Value>;
+          };
+
           // Load all settings from the database
           const [
             userSettings,
@@ -405,113 +471,118 @@ export const useSettingsStore = create<SettingsStore>()(
             systemSettings,
             accounts,
           ] = await Promise.all([
-            fetch("/api/user-settings").then((res) => res.json()),
-            fetch("/api/calendar-settings").then((res) => res.json()),
-            fetch("/api/notification-settings").then((res) => res.json()),
-            fetch("/api/integration-settings").then((res) => res.json()),
-            fetch("/api/data-settings").then((res) => res.json()),
-            fetch("/api/auto-schedule-settings").then((res) => res.json()),
-            fetch("/api/system-settings").then((res) => res.json()),
-            fetch("/api/accounts").then((res) => res.json()),
+            readSettings<Settings["user"]>("/api/user-settings"),
+            readSettings<CalendarSettingsResponse>("/api/calendar-settings"),
+            readSettings<NotificationSettingsResponse>(
+              "/api/notification-settings"
+            ),
+            readSettings<IntegrationSettingsResponse>(
+              "/api/integration-settings"
+            ),
+            readSettings<Settings["data"]>("/api/data-settings"),
+            readSettings<Settings["autoSchedule"]>(
+              "/api/auto-schedule-settings"
+            ),
+            includeAdmin
+              ? readSettings<Settings["system"]>("/api/system-settings")
+              : Promise.resolve(null),
+            readSettings<ConnectedAccount[]>("/api/accounts"),
           ]);
 
-          // Set initialized flag
-          set({ initialized: true, accounts });
-
-          // Update all settings
-          get().updateUserSettings({
-            theme: userSettings.theme,
-            colorTheme: userSettings.colorTheme || BASE_COLOR_THEME.id,
-            calendarStyle: userSettings.calendarStyle || "classic",
-            defaultView: userSettings.defaultView,
-            timeZone: userSettings.timeZone,
-            weekStartDay: userSettings.weekStartDay,
-            timeFormat: userSettings.timeFormat,
-            sleepHoursStart: userSettings.sleepHoursStart,
-            sleepHoursEnd: userSettings.sleepHoursEnd,
-            sleepHoursConfigured: userSettings.sleepHoursConfigured,
-            dailyRiseEnabled: userSettings.dailyRiseEnabled,
-            dailyRiseTime: userSettings.dailyRiseTime,
-            dailyUnwindEnabled: userSettings.dailyUnwindEnabled,
-            dailyUnwindTime: userSettings.dailyUnwindTime,
-            dailyRitualDays: userSettings.dailyRitualDays,
-          });
-
-          // More updates will be added here
-          get().updateCalendarSettings({
-            defaultCalendarId: calendarSettings.defaultCalendarId,
-            workingHours: {
-              enabled: calendarSettings.workingHoursEnabled,
-              start: calendarSettings.workingHoursStart,
-              end: calendarSettings.workingHoursEnd,
-              days: JSON.parse(calendarSettings.workingHoursDays),
+          get().hydrateFromServer({
+            accounts,
+            user: {
+              theme: userSettings.theme,
+              colorTheme: userSettings.colorTheme || BASE_COLOR_THEME.id,
+              calendarStyle: userSettings.calendarStyle || "classic",
+              motionPreference: userSettings.motionPreference || "full",
+              defaultView: userSettings.defaultView,
+              timeZone: userSettings.timeZone,
+              weekStartDay: userSettings.weekStartDay,
+              timeFormat: userSettings.timeFormat,
+              sleepHoursStart: userSettings.sleepHoursStart,
+              sleepHoursEnd: userSettings.sleepHoursEnd,
+              sleepHoursConfigured: userSettings.sleepHoursConfigured,
+              dailyRiseEnabled: userSettings.dailyRiseEnabled,
+              dailyRiseTime: userSettings.dailyRiseTime,
+              dailyUnwindEnabled: userSettings.dailyUnwindEnabled,
+              dailyUnwindTime: userSettings.dailyUnwindTime,
+              dailyRitualDays: userSettings.dailyRitualDays,
             },
-            eventDefaults: {
-              defaultDuration: calendarSettings.defaultDuration,
-              defaultColor: calendarSettings.defaultColor,
-              defaultReminder: calendarSettings.defaultReminder,
+            calendar: {
+              defaultCalendarId: calendarSettings.defaultCalendarId,
+              workingHours: {
+                enabled: calendarSettings.workingHoursEnabled,
+                start: calendarSettings.workingHoursStart,
+                end: calendarSettings.workingHoursEnd,
+                days: JSON.parse(calendarSettings.workingHoursDays),
+              },
+              eventDefaults: {
+                defaultDuration: calendarSettings.defaultDuration,
+                defaultColor: calendarSettings.defaultColor,
+                defaultReminder: calendarSettings.defaultReminder,
+              },
+              refreshInterval: calendarSettings.refreshInterval,
             },
-            refreshInterval: calendarSettings.refreshInterval,
-          });
-
-          get().updateNotificationSettings({
-            emailNotifications: notificationSettings.emailNotifications,
-            dailyEmailEnabled: notificationSettings.dailyEmailEnabled,
-            notifyFor: {
-              eventInvites: notificationSettings.eventInvites,
-              eventUpdates: notificationSettings.eventUpdates,
-              eventCancellations: notificationSettings.eventCancellations,
-              eventReminders: notificationSettings.eventReminders,
+            notifications: {
+              emailNotifications: notificationSettings.emailNotifications,
+              dailyEmailEnabled: notificationSettings.dailyEmailEnabled,
+              notifyFor: {
+                eventInvites: notificationSettings.eventInvites,
+                eventUpdates: notificationSettings.eventUpdates,
+                eventCancellations: notificationSettings.eventCancellations,
+                eventReminders: notificationSettings.eventReminders,
+              },
+              defaultReminderTiming: JSON.parse(
+                notificationSettings.defaultReminderTiming
+              ),
             },
-            defaultReminderTiming: JSON.parse(
-              notificationSettings.defaultReminderTiming
-            ),
-          });
-
-          get().updateIntegrationSettings({
-            googleCalendar: {
-              enabled: integrationSettings.googleCalendarEnabled,
-              autoSync: integrationSettings.googleCalendarAutoSync,
-              syncInterval: integrationSettings.googleCalendarInterval,
+            integrations: {
+              googleCalendar: {
+                enabled: integrationSettings.googleCalendarEnabled,
+                autoSync: integrationSettings.googleCalendarAutoSync,
+                syncInterval: integrationSettings.googleCalendarInterval,
+              },
+              outlookCalendar: {
+                enabled: integrationSettings.outlookCalendarEnabled,
+                autoSync: integrationSettings.outlookCalendarAutoSync,
+                syncInterval: integrationSettings.outlookCalendarInterval,
+              },
             },
-            outlookCalendar: {
-              enabled: integrationSettings.outlookCalendarEnabled,
-              autoSync: integrationSettings.outlookCalendarAutoSync,
-              syncInterval: integrationSettings.outlookCalendarInterval,
+            data: {
+              autoBackup: dataSettings.autoBackup,
+              backupInterval: dataSettings.backupInterval,
+              retainDataFor: dataSettings.retainDataFor,
             },
-          });
-
-          get().updateDataSettings({
-            autoBackup: dataSettings.autoBackup,
-            backupInterval: dataSettings.backupInterval,
-            retainDataFor: dataSettings.retainDataFor,
-          });
-
-          get().updateAutoScheduleSettings({
-            workDays: autoScheduleSettings.workDays,
-            workHourStart: autoScheduleSettings.workHourStart,
-            workHourEnd: autoScheduleSettings.workHourEnd,
-            selectedCalendars: autoScheduleSettings.selectedCalendars,
-            bufferMinutes: autoScheduleSettings.bufferMinutes,
-            highEnergyStart: autoScheduleSettings.highEnergyStart,
-            highEnergyEnd: autoScheduleSettings.highEnergyEnd,
-            mediumEnergyStart: autoScheduleSettings.mediumEnergyStart,
-            mediumEnergyEnd: autoScheduleSettings.mediumEnergyEnd,
-            lowEnergyStart: autoScheduleSettings.lowEnergyStart,
-            lowEnergyEnd: autoScheduleSettings.lowEnergyEnd,
-            groupByProject: autoScheduleSettings.groupByProject,
-          });
-
-          get().updateSystemSettings({
-            googleClientId: systemSettings.googleClientId,
-            googleClientSecret: systemSettings.googleClientSecret,
-            outlookClientId: systemSettings.outlookClientId,
-            outlookClientSecret: systemSettings.outlookClientSecret,
-            outlookTenantId: systemSettings.outlookTenantId,
-            logLevel: systemSettings.logLevel as "none" | "debug",
-            logRetention: systemSettings.logRetention,
-            logDestination: systemSettings.logDestination,
-            disableHomepage: systemSettings.disableHomepage,
+            autoSchedule: {
+              workDays: autoScheduleSettings.workDays,
+              workHourStart: autoScheduleSettings.workHourStart,
+              workHourEnd: autoScheduleSettings.workHourEnd,
+              selectedCalendars: autoScheduleSettings.selectedCalendars,
+              bufferMinutes: autoScheduleSettings.bufferMinutes,
+              highEnergyStart: autoScheduleSettings.highEnergyStart,
+              highEnergyEnd: autoScheduleSettings.highEnergyEnd,
+              mediumEnergyStart: autoScheduleSettings.mediumEnergyStart,
+              mediumEnergyEnd: autoScheduleSettings.mediumEnergyEnd,
+              lowEnergyStart: autoScheduleSettings.lowEnergyStart,
+              lowEnergyEnd: autoScheduleSettings.lowEnergyEnd,
+              groupByProject: autoScheduleSettings.groupByProject,
+              pushTasksToCalendar: autoScheduleSettings.pushTasksToCalendar,
+              pushTasksFeedId: autoScheduleSettings.pushTasksFeedId,
+            },
+            system: systemSettings
+              ? {
+                  googleClientId: systemSettings.googleClientId,
+                  googleClientSecret: systemSettings.googleClientSecret,
+                  outlookClientId: systemSettings.outlookClientId,
+                  outlookClientSecret: systemSettings.outlookClientSecret,
+                  outlookTenantId: systemSettings.outlookTenantId,
+                  logLevel: systemSettings.logLevel as "none" | "debug",
+                  logRetention: systemSettings.logRetention,
+                  logDestination: systemSettings.logDestination,
+                  disableHomepage: systemSettings.disableHomepage,
+                }
+              : undefined,
           });
         } catch (error) {
           logger.error(
@@ -528,8 +599,12 @@ export const useSettingsStore = create<SettingsStore>()(
         const { colorTheme: _colorTheme, ...persistedUser } = state.user;
         void _colorTheme;
         return {
-          ...state,
           user: persistedUser,
+          calendar: state.calendar,
+          notifications: state.notifications,
+          integrations: state.integrations,
+          data: state.data,
+          autoSchedule: state.autoSchedule,
           system: {
             ...state.system,
             googleClientId: undefined,
@@ -545,8 +620,18 @@ export const useSettingsStore = create<SettingsStore>()(
         const saved = persisted as Partial<SettingsStore>;
         return {
           ...current,
-          ...saved,
           user: { ...current.user, ...saved.user },
+          calendar: { ...current.calendar, ...saved.calendar },
+          notifications: {
+            ...current.notifications,
+            ...saved.notifications,
+          },
+          integrations: { ...current.integrations, ...saved.integrations },
+          data: { ...current.data, ...saved.data },
+          autoSchedule: { ...current.autoSchedule, ...saved.autoSchedule },
+          system: { ...current.system, ...saved.system },
+          accounts: [],
+          initialized: false,
         };
       },
     }

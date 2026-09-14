@@ -25,18 +25,18 @@ export default async function SetupPage() {
     <div className="relative flex min-h-[calc(100dvh-6rem)] flex-col items-center justify-center overflow-hidden bg-background p-4">
       <div
         aria-hidden="true"
-        className="absolute -left-20 top-16 h-64 w-64 rounded-full bg-[#f8c95d]/15 blur-3xl"
+        className="absolute -left-20 top-16 h-64 w-64 rounded-full bg-accent/20 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="absolute -right-20 bottom-8 h-72 w-72 rounded-full bg-[#b8d98b]/20 blur-3xl"
+        className="absolute -right-20 bottom-8 h-72 w-72 rounded-full bg-secondary/35 blur-3xl"
       />
       <div className="relative mb-7 text-center">
         <SunnieSun className="mx-auto mb-5 h-20 w-20" face />
         <h1 className="mb-2 text-4xl font-bold tracking-[-0.05em] text-foreground">
           Let&apos;s make it Sunnie.
         </h1>
-        <p className="text-[#73775d]">
+        <p className="text-muted-foreground">
           Create the first admin account for your cozy shared planner.
         </p>
       </div>

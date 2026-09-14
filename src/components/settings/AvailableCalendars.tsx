@@ -162,7 +162,7 @@ export function AvailableCalendars({ accountId, provider }: Props) {
   if (errorMessage) {
     return (
       <div className="space-y-3">
-        <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {errorMessage}
         </div>
         <div className="flex justify-end">

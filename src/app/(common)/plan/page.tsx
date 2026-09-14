@@ -33,11 +33,14 @@ import {
 import {
   DailyRise,
   DailyUnwind,
+  type MoodCheckIn,
   type RhythmTask,
   type UnwindTaskAction,
 } from "@/components/planning/DailyRhythm";
+import { MoodGarden } from "@/components/planning/MoodGarden";
 import { WeeklyReview } from "@/components/planning/WeeklyReview";
 import { getThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
+import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 import { getColorTheme, resolveThemeLinkedColor } from "@/lib/color-themes";
 import {
@@ -54,6 +57,8 @@ import {
 import { cn } from "@/lib/utils";
 
 import { useSettingsStore } from "@/store/settings";
+
+import type { DailyMoodEntry, MoodPhase } from "@/types/mood";
 
 type TaskRecord = {
   id: string;
@@ -197,6 +202,7 @@ export default function PlanPage() {
     useState<DailyCapacitySettings | null>(null);
   const [userTimeZone, setUserTimeZone] = useState<string | null>(null);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
+  const [moodEntries, setMoodEntries] = useState<DailyMoodEntry[]>([]);
   const [previousPlan, setPreviousPlan] = useState<DailyPlanRecord | null>(
     null
   );
@@ -227,6 +233,13 @@ export default function PlanPage() {
       const previousDate = new Date(selectedDate);
       previousDate.setDate(previousDate.getDate() - 1);
       const previousKey = localDateKey(previousDate);
+      const eventRangeStart = new Date(previousDate);
+      eventRangeStart.setHours(0, 0, 0, 0);
+      const eventRangeEnd = new Date(weekEnd);
+      const eventRangeQuery = new URLSearchParams({
+        start: eventRangeStart.toISOString(),
+        end: eventRangeEnd.toISOString(),
+      });
       const [
         taskData,
         eventData,
@@ -234,11 +247,12 @@ export default function PlanPage() {
         previousPlanData,
         settingsData,
         userSettingsData,
+        moodData,
       ] = await Promise.all([
         fetch("/api/tasks").then((response) =>
           expectJson<TaskRecord[]>(response)
         ),
-        fetch("/api/events").then((response) =>
+        fetch(`/api/events?${eventRangeQuery}`).then((response) =>
           expectJson<EventRecord[]>(response)
         ),
         fetch(`/api/daily-plan?date=${selectedKey}`).then((response) =>
@@ -253,11 +267,15 @@ export default function PlanPage() {
         fetch("/api/user-settings").then((response) =>
           expectJson<UserSettingsRecord>(response)
         ),
+        fetch(`/api/moods?date=${selectedKey}`).then((response) =>
+          expectJson<DailyMoodEntry[]>(response)
+        ),
       ]);
       setTasks(taskData);
       setEvents(eventData);
       setPlan(planData);
       setPreviousPlan(previousPlanData);
+      setMoodEntries(moodData);
       setUserTimeZone(userSettingsData.timeZone);
       if (settingsData) {
         setWorkingHours({
@@ -276,7 +294,7 @@ export default function PlanPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedKey]);
+  }, [selectedDate, selectedKey, weekEnd]);
 
   useEffect(() => {
     if (urlReady) void load();
@@ -530,7 +548,19 @@ export default function PlanPage() {
     }
   };
 
-  const finishRise = async (value: string) => {
+  const saveMood = async (phase: MoodPhase, checkIn: MoodCheckIn) => {
+    const saved = await fetch("/api/moods", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selectedKey, phase, ...checkIn }),
+    }).then((response) => expectJson<DailyMoodEntry | null>(response));
+    setMoodEntries((current) => [
+      ...current.filter((entry) => entry.phase !== phase),
+      ...(saved ? [saved] : []),
+    ]);
+  };
+
+  const finishRise = async (value: string, checkIn: MoodCheckIn) => {
     const tasksMissingEstimates = unfinishedTodayTasks.filter(
       (task) => task.duration == null
     );
@@ -568,11 +598,27 @@ export default function PlanPage() {
     }
     setIntention(value);
     if (await savePlan(true, true, value)) {
-      setRitual(null);
+      setSaving(true);
+      try {
+        await saveMood("rise", checkIn);
+        setRitual(null);
+      } catch (caught) {
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Unable to save your morning check-in"
+        );
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
-  const finishUnwind = async (dayVibe: string | null, reflection: string) => {
+  const finishUnwind = async (
+    dayVibe: string | null,
+    reflection: string,
+    checkIn: MoodCheckIn
+  ) => {
     setSaving(true);
     setError(null);
     try {
@@ -587,6 +633,7 @@ export default function PlanPage() {
         }),
       }).then((response) => expectJson<DailyPlanRecord>(response));
       setPlan(saved);
+      await saveMood("unwind", checkIn);
       setRitual(null);
     } catch (caught) {
       setError(
@@ -778,13 +825,13 @@ export default function PlanPage() {
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
-        <header className="sunnie-plan-hero relative mb-6 overflow-hidden rounded-[2rem] border border-border p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7">
+        <header className="sunnie-plan-hero relative mb-6 overflow-hidden rounded-[2rem] border border-border p-5 shadow-[var(--shadow-raised)] sm:p-7">
           <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border-[28px] border-white/20" />
           <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[color:var(--sunnie-warm-glow)] opacity-15 blur-2xl" />
           <div className="relative flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
             <div className="min-w-0 max-w-2xl">
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card/55 px-3 py-1.5">
                   <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
                 </span>
               </div>
@@ -797,14 +844,14 @@ export default function PlanPage() {
               </h1>
               {view !== "review" && (
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-secondary-foreground">
-                  <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
+                  <span className="rounded-full bg-card/60 px-3 py-1.5 font-medium">
                     {selectedDate.toLocaleDateString(undefined, {
                       weekday: "long",
                       month: "long",
                       day: "numeric",
                     })}
                   </span>
-                  <span className="rounded-full bg-white/35 px-3 py-1.5">
+                  <span className="rounded-full bg-card/35 px-3 py-1.5">
                     {plannedMinutes} minutes planned
                   </span>
                 </div>
@@ -812,11 +859,11 @@ export default function PlanPage() {
             </div>
             <div className="flex min-w-0 flex-col gap-3 sm:items-end">
               {view !== "review" && (
-                <div className="flex items-center gap-2 rounded-2xl bg-white/55 p-1.5 shadow-sm">
+                <div className="flex items-center gap-2 rounded-2xl bg-card/55 p-1.5 shadow-sm">
                   <button
                     onClick={() => moveDate(-1)}
                     aria-label="Previous day"
-                    className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                    className="grid h-9 w-9 place-items-center rounded-xl bg-card/65 transition hover:bg-card"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -829,7 +876,7 @@ export default function PlanPage() {
                   <button
                     onClick={() => moveDate(1)}
                     aria-label="Next day"
-                    className="grid h-9 w-9 place-items-center rounded-xl bg-white/65 transition hover:bg-white"
+                    className="grid h-9 w-9 place-items-center rounded-xl bg-card/65 transition hover:bg-card"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -888,7 +935,7 @@ export default function PlanPage() {
                 "rounded-xl px-3 py-2.5 text-sm font-semibold transition",
                 view === id
                   ? "bg-accent text-accent-foreground shadow-sm"
-                  : "text-black/45 hover:bg-white"
+                  : "text-muted-foreground hover:bg-card"
               )}
             >
               {label}
@@ -897,26 +944,24 @@ export default function PlanPage() {
         </nav>
 
         {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <div className="mb-5 rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="grid min-h-[420px] place-items-center">
-            <Loader2 className="h-7 w-7 animate-spin text-primary" />
-          </div>
+          <PlanPageSkeleton />
         ) : (
           <div className="flex flex-col gap-5">
             <section
               className={cn(
-                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm",
+                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[var(--shadow-paper)] backdrop-blur-sm",
                 view !== "today" && "hidden"
               )}
             >
               <div className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 max-w-xl">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                     <IntentionIcon className="h-4 w-4" /> Your daily landing pad
                   </div>
                   <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">
@@ -924,11 +969,11 @@ export default function PlanPage() {
                   </h2>
                 </div>
                 <div className="w-full min-w-0 lg:w-48 lg:min-w-48">
-                  <div className="flex items-center justify-between text-xs font-semibold text-[#5f7048]">
+                  <div className="flex items-center justify-between text-xs font-semibold text-secondary-foreground">
                     <span>Today’s plan</span>
                     <span>{completedPlanningSteps}/3 ready</span>
                   </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/75">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-card/75">
                     <motion.div
                       initial={false}
                       animate={{
@@ -939,7 +984,7 @@ export default function PlanPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid border-t border-black/[0.055] sm:grid-cols-3">
+              <div className="grid border-t border-border/60 sm:grid-cols-3">
                 {planningSteps.map((step, index) => {
                   const StepIcon = step.icon;
                   return (
@@ -958,9 +1003,9 @@ export default function PlanPage() {
                         }
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-5 py-4 text-left transition hover:bg-white/55",
+                        "flex items-center gap-3 px-5 py-4 text-left transition hover:bg-card/55",
                         index > 0 &&
-                          "border-t border-black/[0.05] sm:border-l sm:border-t-0"
+                          "border-t border-border/60 sm:border-l sm:border-t-0"
                       )}
                     >
                       <span
@@ -981,7 +1026,7 @@ export default function PlanPage() {
                         <span className="block text-sm font-semibold">
                           {step.label}
                         </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-black/40">
+                        <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
                           {step.detail}
                         </span>
                       </span>
@@ -991,29 +1036,29 @@ export default function PlanPage() {
               </div>
               <div
                 className={cn(
-                  "border-t border-black/[0.055] px-5 py-4",
+                  "border-t border-border/60 px-5 py-4",
                   capacity.state === "over"
-                    ? "bg-[#fff0e9]"
+                    ? "bg-destructive/10"
                     : capacity.state === "near"
-                      ? "bg-[#fff7df]"
-                      : "bg-[#f4f7ea]"
+                      ? "bg-warning/10"
+                      : "bg-success/10"
                 )}
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-white/80 text-[#66764e]">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-card/80 text-primary">
                       <Gauge className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold">Daily capacity</p>
-                      <p className="mt-0.5 text-xs text-black/55">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {capacityMessage}
                       </p>
                     </div>
                   </div>
                   {capacity.capacityMinutes !== null && (
                     <div className="w-full shrink-0 sm:w-64">
-                      <div className="flex items-center justify-between text-[11px] font-medium text-black/50">
+                      <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground">
                         <span>
                           {formatCapacityTime(capacity.taskMinutes)} tasks +{" "}
                           {formatCapacityTime(capacity.meetingMinutes)} meetings
@@ -1022,7 +1067,7 @@ export default function PlanPage() {
                           {formatCapacityTime(capacity.capacityMinutes)} day
                         </span>
                       </div>
-                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/80">
+                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-card/80">
                         <motion.div
                           initial={false}
                           animate={{
@@ -1039,17 +1084,17 @@ export default function PlanPage() {
 
             <section
               className={cn(
-                "order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e2d9bd] bg-gradient-to-br from-white/85 to-[#fff5d9] p-4 shadow-[0_14px_35px_rgba(113,91,50,0.08)] sm:p-6",
+                "order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card/85 to-accent/45 p-4 shadow-[var(--shadow-paper)] sm:p-6",
                 view !== "week" && "hidden"
               )}
             >
               <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b16b43]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Zoom out
                   </p>
                   <h2 className="mt-1 text-xl font-semibold">Shape the week</h2>
-                  <p className="mt-1 text-xs text-black/42">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {weekStart.toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
@@ -1062,18 +1107,18 @@ export default function PlanPage() {
                     . Move tasks from Backlog → This week → a day.
                   </p>
                 </div>
-                <span className="text-xs font-medium text-[#65764d]">
+                <span className="text-xs font-medium text-secondary-foreground">
                   {weekTasks.length} task{weekTasks.length === 1 ? "" : "s"}{" "}
                   this week
                 </span>
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
-                <div className="order-2 rounded-2xl border border-[#d9e3c7] bg-[#eef3e3] p-4">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
+                <div className="order-2 rounded-2xl border border-border bg-muted p-4">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     This week
                   </p>
                   {weekTasks.length === 0 && (
-                    <p className="py-3 text-xs text-black/40">
+                    <p className="py-3 text-xs text-muted-foreground">
                       No weekly tasks yet. Choose some from your backlog.
                     </p>
                   )}
@@ -1081,7 +1126,7 @@ export default function PlanPage() {
                     {weekTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="flex min-w-0 rounded-lg bg-white/75 hover:bg-white"
+                        className="flex min-w-0 rounded-lg bg-card/75 hover:bg-card"
                       >
                         <button
                           disabled={isSameDayInTimeZone(
@@ -1101,11 +1146,11 @@ export default function PlanPage() {
                           }
                           className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-xs disabled:opacity-55"
                         >
-                          <Plus className="h-3.5 w-3.5 shrink-0 text-[#d0902f]" />
+                          <Plus className="h-3.5 w-3.5 shrink-0 text-primary" />
                           <span className="min-w-0 flex-1 truncate">
                             {task.title}
                           </span>
-                          <span className="shrink-0 text-black/35">
+                          <span className="shrink-0 text-muted-foreground">
                             {isSameDayInTimeZone(
                               task.startDate,
                               selectedKey,
@@ -1126,7 +1171,7 @@ export default function PlanPage() {
                               scheduleLocked: false,
                             })
                           }
-                          className="grid w-8 shrink-0 place-items-center rounded-r-lg text-black/25 hover:bg-black/[0.04] hover:text-black/55"
+                          className="grid w-8 shrink-0 place-items-center rounded-r-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -1134,12 +1179,12 @@ export default function PlanPage() {
                     ))}
                   </div>
                 </div>
-                <div className="order-1 rounded-2xl border border-[#f0ddaa] bg-[#fff4d5] p-4">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
+                <div className="order-1 rounded-2xl border border-border bg-accent/65 p-4">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     Backlog
                   </p>
                   {backlogTasks.length === 0 && (
-                    <p className="py-3 text-xs text-black/40">
+                    <p className="py-3 text-xs text-muted-foreground">
                       Everything is planned or completed.
                     </p>
                   )}
@@ -1152,13 +1197,13 @@ export default function PlanPage() {
                             plannedWeekStart: `${weekStartKey}T00:00:00.000Z`,
                           })
                         }
-                        className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 px-3 py-2 text-left text-xs hover:bg-white"
+                        className="flex min-w-0 items-center gap-2 rounded-lg bg-card/75 px-3 py-2 text-left text-xs hover:bg-card"
                       >
-                        <Plus className="h-3.5 w-3.5 shrink-0 text-[#7b8e5d]" />
+                        <Plus className="h-3.5 w-3.5 shrink-0 text-primary" />
                         <span className="min-w-0 flex-1 truncate">
                           {task.title}
                         </span>
-                        <span className="shrink-0 text-black/35">
+                        <span className="shrink-0 text-muted-foreground">
                           Add to week
                         </span>
                       </button>
@@ -1176,16 +1221,16 @@ export default function PlanPage() {
             >
               <section
                 data-plan-section="today-list"
-                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]"
+                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[var(--shadow-paper)]"
               >
-                <div className="border-b border-black/[0.055] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c26343]">
+                <div className="border-b border-border/60 p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Choose
                   </p>
                   <h2 className="mt-1 text-xl font-semibold">
                     Today&apos;s tasks
                   </h2>
-                  <p className="mt-1 text-xs text-black/42">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Real tasks saved to your account.
                   </p>
                   <form onSubmit={createTask} className="mt-4 flex gap-2">
@@ -1196,6 +1241,8 @@ export default function PlanPage() {
                       className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                     <button
+                      type="submit"
+                      aria-label="Add task for today"
                       disabled={saving || !newTaskTitle.trim()}
                       className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground shadow-sm disabled:opacity-40"
                     >
@@ -1205,14 +1252,14 @@ export default function PlanPage() {
                 </div>
                 <div className="space-y-2 p-3">
                   {todayTasks.length === 0 && (
-                    <p className="p-5 text-center text-sm text-black/40">
+                    <p className="p-5 text-center text-sm text-muted-foreground">
                       Your day is open. Add a task or choose one from this week.
                     </p>
                   )}
                   {todayTasks.map((task) => (
                     <article
                       key={task.id}
-                      className="rounded-xl border border-black/[0.055] bg-white p-3.5"
+                      className="rounded-xl border border-border bg-card p-3.5"
                     >
                       <div className="flex items-start gap-3">
                         <button
@@ -1232,15 +1279,15 @@ export default function PlanPage() {
                         </button>
                         <div className="min-w-0 flex-1">
                           <p
-                            className={`text-sm font-medium ${task.status === "completed" ? "text-black/35 line-through" : ""}`}
+                            className={`text-sm font-medium ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}
                           >
                             {task.title}
                           </p>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-black/40">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                             <Clock3 className="h-3 w-3" />
                             {task.duration ?? 30}m
                             {task.project?.name && ` · ${task.project.name}`}
-                            <label className="mt-1 flex w-full items-center justify-end gap-1.5 text-black/45 min-[380px]:ml-auto min-[380px]:mt-0 min-[380px]:w-auto">
+                            <label className="mt-1 flex w-full items-center justify-end gap-1.5 text-muted-foreground min-[380px]:ml-auto min-[380px]:mt-0 min-[380px]:w-auto">
                               Time
                               <input
                                 type="time"
@@ -1261,7 +1308,7 @@ export default function PlanPage() {
                                 onChange={(event) =>
                                   void scheduleTask(task, event.target.value)
                                 }
-                                className="rounded-md border border-black/10 bg-[#f8f6f1] px-1.5 py-1 text-[10px] text-black/65"
+                                className="rounded-md border border-border bg-background px-1.5 py-1 text-[10px] text-foreground"
                               />
                             </label>
                             <button
@@ -1273,7 +1320,7 @@ export default function PlanPage() {
                                   scheduleLocked: false,
                                 })
                               }
-                              className="text-[10px] text-black/35 underline-offset-2 hover:text-black/60 hover:underline"
+                              className="text-[10px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                             >
                               Remove from day
                             </button>
@@ -1283,8 +1330,8 @@ export default function PlanPage() {
                     </article>
                   ))}
                 </div>
-                <details className="group border-t border-black/[0.055] p-4">
-                  <summary className="cursor-pointer list-none text-xs font-semibold text-[#65764d] marker:hidden">
+                <details className="group border-t border-border/60 p-4">
+                  <summary className="cursor-pointer list-none text-xs font-semibold text-secondary-foreground marker:hidden">
                     <span className="inline-flex items-center gap-2">
                       <Plus className="h-3.5 w-3.5 transition group-open:rotate-45" />
                       Choose from this week
@@ -1299,7 +1346,7 @@ export default function PlanPage() {
                           userTimeZone
                         )
                     ).length === 0 && (
-                      <p className="py-3 text-xs text-black/35">
+                      <p className="py-3 text-xs text-muted-foreground">
                         No other weekly tasks waiting.
                       </p>
                     )}
@@ -1325,11 +1372,13 @@ export default function PlanPage() {
                               ).toISOString(),
                             })
                           }
-                          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-black/[0.035]"
+                          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs hover:bg-muted"
                         >
-                          <Plus className="h-3.5 w-3.5 text-[#d0902f]" />
+                          <Plus className="h-3.5 w-3.5 text-primary" />
                           <span className="flex-1 truncate">{task.title}</span>
-                          <span className="text-black/30">Add to day</span>
+                          <span className="text-muted-foreground">
+                            Add to day
+                          </span>
                         </button>
                       ))}
                   </div>
@@ -1338,10 +1387,10 @@ export default function PlanPage() {
 
               <section
                 data-plan-section="today-timeline"
-                className="order-3 min-w-0 max-w-full rounded-3xl border border-[#d8dfc8] bg-gradient-to-b from-[#f8faef] to-white/85 p-4 shadow-[0_12px_30px_rgba(81,90,56,0.07)] sm:p-5"
+                className="order-3 min-w-0 max-w-full rounded-3xl border border-border bg-gradient-to-b from-muted to-card/85 p-4 shadow-[var(--shadow-paper)] sm:p-5"
               >
                 <div className="mb-4">
-                  <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#718e50]">
+                  <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     <CalendarDays className="h-4 w-4" /> Give it time
                   </p>
                   <h2 className="mt-1 text-xl font-semibold">
@@ -1375,7 +1424,7 @@ export default function PlanPage() {
                         start: task.scheduledStart!,
                         end: task.scheduledEnd!,
                         type: "Focus block",
-                        color: "#ffd8ca",
+                        color: plannerColorTheme.palettes.tasks[0].value,
                       })),
                   ]
                     .sort(
@@ -1386,7 +1435,7 @@ export default function PlanPage() {
                     .map((item) => (
                       <article
                         key={item.id}
-                        className="flex items-center gap-3 rounded-xl border border-black/[0.055] bg-white p-3"
+                        className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
                       >
                         <span
                           className="h-10 w-1 rounded-full"
@@ -1396,7 +1445,7 @@ export default function PlanPage() {
                           <p className="truncate text-sm font-medium">
                             {item.title}
                           </p>
-                          <p className="mt-0.5 text-[11px] text-black/40">
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
                             {formatTime(item.start, userTimeZone)} –{" "}
                             {formatTime(item.end, userTimeZone)} · {item.type}
                           </p>
@@ -1405,10 +1454,10 @@ export default function PlanPage() {
                     ))}
                   {dayEvents.length === 0 &&
                     !todayTasks.some((task) => task.scheduledStart) && (
-                      <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-black/10 text-center">
+                      <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-border text-center">
                         <div>
-                          <CalendarDays className="mx-auto h-6 w-6 text-black/20" />
-                          <p className="mt-2 text-sm text-black/40">
+                          <CalendarDays className="mx-auto h-6 w-6 text-muted-foreground/50" />
+                          <p className="mt-2 text-sm text-muted-foreground">
                             Your events and focus blocks will appear here.
                           </p>
                         </div>
@@ -1532,7 +1581,13 @@ export default function PlanPage() {
             </div>
           </div>
         )}
-        <div className={cn(view !== "review" && "hidden")}>
+        <div className={cn((view !== "review" || loading) && "hidden")}>
+          <MoodGarden
+            initialMonth={selectedDate}
+            refreshKey={moodEntries
+              .map((entry) => `${entry.phase}:${entry.updatedAt}`)
+              .join("|")}
+          />
           <WeeklyReview
             onTasksChanged={() => {
               void fetch("/api/tasks")
@@ -1557,6 +1612,9 @@ export default function PlanPage() {
             day: "numeric",
           })}
           initialIntention={intention}
+          initialMood={
+            moodEntries.find((entry) => entry.phase === "rise") ?? null
+          }
           todayTasks={unfinishedTodayTasks}
           carryoverTasks={carryoverTasks}
           availableTasks={weekTasks.filter(
@@ -1609,12 +1667,46 @@ export default function PlanPage() {
             }))}
           timeZone={userTimeZone}
           initialVibe={plan?.dayVibe ?? null}
+          initialMood={
+            moodEntries.find((entry) => entry.phase === "unwind") ?? null
+          }
           initialReflection={plan?.unwindReflection ?? ""}
           earliestTaskDate={earliestUnwindTaskDate}
           busy={saving}
           onTaskAction={placeUnfinishedTask}
           onFinish={finishUnwind}
         />
+      </div>
+    </div>
+  );
+}
+
+function PlanPageSkeleton() {
+  return (
+    <div aria-label="Loading your plan" className="space-y-5">
+      <section className="overflow-hidden rounded-3xl border border-border bg-card/70 p-5 shadow-[var(--shadow-paper)]">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-3">
+            <SunnieSkeleton className="h-3 w-36" />
+            <SunnieSkeleton className="h-6 w-64 max-w-full" />
+          </div>
+          <SunnieSkeleton className="h-10 w-full sm:w-48" />
+        </div>
+        <div className="mt-5 grid gap-3 border-t border-border/60 pt-5 sm:grid-cols-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <SunnieSkeleton className="h-10 w-10 shrink-0 rounded-2xl" />
+              <div className="flex-1 space-y-2">
+                <SunnieSkeleton className="h-4 w-3/4" />
+                <SunnieSkeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <SunnieSkeleton className="h-72 rounded-3xl" />
+        <SunnieSkeleton className="h-72 rounded-3xl" />
       </div>
     </div>
   );

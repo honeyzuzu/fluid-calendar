@@ -1,4 +1,4 @@
-import { HiOutlinePlus } from "react-icons/hi";
+import { Plus } from "lucide-react";
 
 import { useTaskModalStore } from "@/store/taskModal";
 
@@ -10,7 +10,7 @@ export function useTaskCommands(): Command[] {
       id: "tasks.create",
       title: "Create Task",
       keywords: ["task", "new", "add", "create"],
-      icon: HiOutlinePlus,
+      icon: Plus,
       section: "tasks",
       shortcut: "nt", // 'n' for new, 't' for task
       context: {

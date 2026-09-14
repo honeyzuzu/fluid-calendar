@@ -142,7 +142,7 @@ export function SunnieColorPicker({
   return (
     <div className={cn("space-y-3", className)}>
       <div
-        className="rounded-2xl border border-black/[0.06] bg-white/65 p-3"
+        className="rounded-2xl border border-border/70 bg-card/65 p-3"
         aria-label={`${paletteName === "tasks" ? "Task" : "Event"} color presets`}
       >
         <p className="text-sm font-semibold text-foreground">
@@ -173,7 +173,7 @@ export function SunnieColorPicker({
                 type="button"
                 onClick={() => stageColor(color.value, color.id)}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-black/10 px-1 py-2 text-[10px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
+                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-border/70 px-1 py-2 text-[10px] font-medium shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
                   selected &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-card"
                 )}
@@ -182,7 +182,7 @@ export function SunnieColorPicker({
                 aria-pressed={selected}
               >
                 <span
-                  className="grid h-7 w-7 place-items-center rounded-full border border-black/10"
+                  className="grid h-7 w-7 place-items-center rounded-full border border-border"
                   style={{ backgroundColor: color.value }}
                 >
                   {selected && (
@@ -221,7 +221,7 @@ export function SunnieColorPicker({
                   aria-label={`Recent color ${color}`}
                   aria-pressed={selected}
                 >
-                  {selected && <Check className="h-4 w-4 text-stone-700" />}
+                  {selected && <Check className="h-4 w-4 text-foreground" />}
                 </button>
               );
             })}
@@ -246,7 +246,7 @@ export function SunnieColorPicker({
             )}
           >
             <span
-              className="h-4 w-4 rounded-full border border-black/10"
+              className="h-4 w-4 rounded-full border border-border"
               style={{ backgroundColor: customColor }}
               aria-hidden="true"
             />

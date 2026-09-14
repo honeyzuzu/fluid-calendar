@@ -141,14 +141,14 @@ export function TaskQueue() {
           {/* Compact metadata display */}
           <div className="ml-1 flex shrink-0 items-center space-x-1">
             {task.status !== TaskStatus.COMPLETED && task.dueDate && (
-              <span className="rounded bg-red-200 px-1.5 py-0.5 text-xs font-medium text-red-900 dark:bg-red-900/50 dark:text-red-100">
+              <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">
                 {format(task.dueDate, "MM/dd")}
               </span>
             )}
 
             {task.postponedUntil &&
               newDate(task.postponedUntil) > newDate() && (
-                <span className="rounded bg-amber-200 px-1.5 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
+                <span className="rounded bg-warning/15 px-1.5 py-0.5 text-xs font-medium text-warning">
                   {format(task.postponedUntil, "MM/dd")}
                 </span>
               )}
@@ -171,8 +171,8 @@ export function TaskQueue() {
         className={cn(
           "grid h-8 w-8 shrink-0 place-items-center rounded-full border transition duration-300",
           task.status === TaskStatus.COMPLETED
-            ? "border-[#8fa96c] bg-[#9fb878] text-white shadow-sm"
-            : "border-[#cfc9af] bg-white/70 text-transparent hover:scale-105 hover:border-[#91a96f] hover:text-[#718958]"
+            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+            : "border-border bg-card/70 text-transparent hover:scale-105 hover:border-primary hover:text-primary"
         )}
       >
         <Check className="h-4 w-4" />
@@ -230,25 +230,25 @@ export function TaskQueue() {
           "Top Tasks",
           queuedTasks,
           "queued",
-          "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+          "bg-info/10 text-info"
         )}
         {renderSection(
           "Past Due",
           pastDueTasks,
           "pastDue",
-          "bg-red-500/10 text-red-700 dark:text-red-400"
+          "bg-destructive/10 text-destructive"
         )}
         {renderSection(
           "Postponed",
           postponedTasks,
           "postponed",
-          "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          "bg-warning/10 text-warning"
         )}
         {renderSection(
           "Recently Completed",
           recentlyCompletedTasks,
           "completed",
-          "bg-green-500/10 text-green-700 dark:text-green-400"
+          "bg-success/10 text-success"
         )}
 
         {queuedTasks.length === 0 &&

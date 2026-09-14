@@ -1,6 +1,6 @@
 "use client";
 
-import { RiEyeOffLine } from "react-icons/ri";
+import { EyeOff } from "lucide-react";
 
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 
@@ -17,7 +17,7 @@ export function usePrivacyCommands(): Command[] {
         : "Enable Privacy Mode",
       section: "privacy",
       keywords: ["privacy", "blur", "screenshot", "hide", "sensitive"],
-      icon: RiEyeOffLine,
+      icon: EyeOff,
       perform: async () => {
         togglePrivacyMode();
       },

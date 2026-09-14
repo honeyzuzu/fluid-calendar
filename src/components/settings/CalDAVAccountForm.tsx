@@ -224,7 +224,7 @@ export function CalDAVAccountForm({
     if (!testResults) return null;
 
     return (
-      <div className="mt-4 rounded-md border bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+      <div className="mt-4 rounded-xl border border-border bg-muted p-4">
         <h3 className="mb-2 font-medium">Connection Test Results</h3>
 
         {testResults.steps &&
@@ -234,10 +234,10 @@ export function CalDAVAccountForm({
                 <span
                   className={`mr-2 ${
                     step.status === "success"
-                      ? "text-green-500"
+                      ? "text-success"
                       : step.status === "failed"
-                        ? "text-red-500"
-                        : "text-yellow-500"
+                        ? "text-destructive"
+                        : "text-warning"
                   }`}
                 >
                   {step.status === "success"
@@ -248,20 +248,20 @@ export function CalDAVAccountForm({
                 </span>
                 <span className="font-medium">{step.step}</span>
                 {step.status === "success" && step.calendars !== undefined && (
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="ml-2 text-sm text-muted-foreground">
                     ({step.calendars} calendars found)
                   </span>
                 )}
               </div>
 
               {step.error && (
-                <div className="ml-6 mt-1 whitespace-pre-wrap text-sm text-red-600 dark:text-red-400">
+                <div className="ml-6 mt-1 whitespace-pre-wrap text-sm text-destructive">
                   Error: {step.error}
                 </div>
               )}
 
               {step.calendarNames && step.calendarNames.length > 0 && (
-                <div className="ml-6 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <div className="ml-6 mt-1 text-sm text-muted-foreground">
                   Calendars: {step.calendarNames.join(", ")}
                 </div>
               )}
@@ -269,7 +269,7 @@ export function CalDAVAccountForm({
           ))}
 
         {testResults.error && !testResults.steps?.some((s) => s.error) && (
-          <div className="mt-2 text-red-600 dark:text-red-400">
+          <div className="mt-2 text-destructive">
             <div className="font-medium">Error:</div>
             <div className="whitespace-pre-wrap text-sm">
               {testResults.error}
@@ -278,7 +278,7 @@ export function CalDAVAccountForm({
         )}
 
         {testResults.success && (
-          <div className="mt-2 font-medium text-green-600 dark:text-green-400">
+          <div className="mt-2 font-medium text-success">
             Connection successful! You can now connect your account.
           </div>
         )}
@@ -301,13 +301,13 @@ export function CalDAVAccountForm({
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {errorMessage && (
-            <div className="mb-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <div className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               {errorMessage}
             </div>
           )}
 
           {isApple ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-foreground">
               <p className="font-medium">Before you connect</p>
               <p className="mt-1 leading-relaxed">
                 Create an app-specific password in your Apple Account. Never use
@@ -317,7 +317,7 @@ export function CalDAVAccountForm({
                 href="https://account.apple.com/account/manage"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-block font-medium text-amber-800 underline underline-offset-4"
+                className="mt-2 inline-block font-medium text-warning underline underline-offset-4"
               >
                 Open Apple Account security
               </a>
@@ -328,7 +328,7 @@ export function CalDAVAccountForm({
                 className="mb-2.5 text-[15px] leading-normal"
                 htmlFor="serverUrl"
               >
-                Server URL <span className="text-red-500">*</span>
+                Server URL <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="serverUrl"
@@ -350,7 +350,7 @@ export function CalDAVAccountForm({
               htmlFor="username"
             >
               {isApple ? "Apple Account email" : "Username"}{" "}
-              <span className="text-red-500">*</span>
+              <span className="text-destructive">*</span>
             </Label>
             <Input
               id="username"
@@ -373,7 +373,7 @@ export function CalDAVAccountForm({
               htmlFor="password"
             >
               {isApple ? "App-specific password" : "Password"}{" "}
-              <span className="text-red-500">*</span>
+              <span className="text-destructive">*</span>
             </Label>
             <Input
               id="password"

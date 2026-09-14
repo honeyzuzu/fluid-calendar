@@ -16,15 +16,15 @@ interface ColumnProps {
 }
 
 const statusColors = {
-  [TaskStatus.TODO]: "bg-yellow-500/10 border-yellow-500/20",
-  [TaskStatus.IN_PROGRESS]: "bg-blue-500/10 border-blue-500/20",
-  [TaskStatus.COMPLETED]: "bg-green-500/10 border-green-500/20",
+  [TaskStatus.TODO]: "border-accent/30 bg-accent/10",
+  [TaskStatus.IN_PROGRESS]: "border-primary/25 bg-primary/10",
+  [TaskStatus.COMPLETED]: "border-success/25 bg-success/10",
 };
 
 const statusHeaderColors = {
-  [TaskStatus.TODO]: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400",
-  [TaskStatus.IN_PROGRESS]: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
-  [TaskStatus.COMPLETED]: "bg-green-500/20 text-green-700 dark:text-green-400",
+  [TaskStatus.TODO]: "bg-accent/25 text-accent-foreground",
+  [TaskStatus.IN_PROGRESS]: "bg-primary/15 text-primary",
+  [TaskStatus.COMPLETED]: "bg-success/15 text-success",
 };
 
 // Helper function to format enum values for display
@@ -51,7 +51,7 @@ export function Column({ status, tasks, onEdit, onDelete }: ColumnProps) {
       className={cn(
         "flex min-h-64 min-w-0 w-full flex-col rounded-xl border bg-background md:min-h-0",
         statusColors[status],
-        isOver && "relative z-10 ring-2 ring-[#d29b39] ring-offset-2"
+        isOver && "relative z-10 ring-2 ring-primary ring-offset-2"
       )}
     >
       <div className="border-b border-border p-2">

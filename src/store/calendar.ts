@@ -4,6 +4,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { prepareCalendarEventDeletion } from "@/lib/calendar-event-deletion";
+import {
+  addCalendarRangeBuffer,
+  calendarEventOverlapsRange,
+} from "@/lib/calendar-range";
 import { newDate, normalizeAllDayDate } from "@/lib/date-utils";
 
 import { useTaskStore } from "@/store/task";
@@ -16,6 +20,8 @@ import {
   CalendarViewState,
 } from "@/types/calendar";
 import { TaskStatus } from "@/types/task";
+
+const calendarRangeRequests = new Map<string, Promise<void>>();
 
 // Separate store for view preferences that will be persisted in localStorage
 interface ViewStore extends CalendarViewState {
@@ -138,6 +144,14 @@ interface CalendarStore extends CalendarState {
 
   // Data loading
   loadFromDatabase: () => Promise<void>;
+  loadEventsForRange: (
+    start: Date,
+    end: Date,
+    force?: boolean
+  ) => Promise<void>;
+  refreshVisibleEvents: () => Promise<void>;
+  loadedEventRanges: string[];
+  activeEventRange?: { start: string; end: string };
 
   // State management
   setFeeds: (feeds: CalendarFeed[]) => void;
@@ -169,6 +183,8 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
   error: undefined,
   selectedDate: newDate(),
   selectedView: "week",
+  loadedEventRanges: [],
+  activeEventRange: undefined,
 
   // Helper function to expand recurring events
   getExpandedEvents: (
@@ -669,11 +685,8 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
 
       // Reconcile quietly in the background in case the provider changed a
       // recurring series, and let auto-scheduling use the newly freed time.
-      void fetch("/api/events")
-        .then(async (response) => {
-          if (!response.ok) return;
-          set({ events: await response.json() });
-        })
+      void get()
+        .refreshVisibleEvents()
         .catch((refreshError) => {
           console.error(
             "Failed to refresh events after deletion:",
@@ -775,26 +788,122 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
       const feeds = await feedsResponse.json();
       // console.log("Loaded feeds:", feeds);
 
-      // Load events
-      // console.log("Fetching events...");
-      const eventsResponse = await fetch("/api/events");
-      if (!eventsResponse.ok) {
-        throw new Error("Failed to load events from database");
-      }
-      const events = await eventsResponse.json();
-      // console.log("Loaded events:", events);
+      set({ feeds });
 
-      // console.log("Setting state with loaded data:", {
-      //   feeds: feeds.length,
-      //   events: events.length,
-      // });
-      set({ feeds, events });
+      const activeRange = get().activeEventRange;
+      if (activeRange) {
+        await get().loadEventsForRange(
+          newDate(activeRange.start),
+          newDate(activeRange.end),
+          true
+        );
+      }
     } catch (error) {
       console.error("Failed to load data from database:", error);
       set({ error: error instanceof Error ? error.message : "Unknown error" });
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  loadEventsForRange: async (start, end, force = false) => {
+    const range = addCalendarRangeBuffer(start, end);
+    const feedIds = get()
+      .feeds.filter((feed) => feed.enabled)
+      .map((feed) => feed.id)
+      .sort();
+    const rangeKey = `${range.start.toISOString()}:${range.end.toISOString()}:${feedIds.join(",")}`;
+
+    set({
+      activeEventRange: {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      },
+    });
+
+    if (!feedIds.length) {
+      set((state) => ({
+        events: state.events.filter((event) =>
+          state.feeds.some((feed) => feed.id === event.feedId && !feed.enabled)
+        ),
+        loadedEventRanges: state.loadedEventRanges.includes(rangeKey)
+          ? state.loadedEventRanges
+          : [...state.loadedEventRanges.slice(-11), rangeKey],
+      }));
+      return;
+    }
+
+    if (!force && get().loadedEventRanges.includes(rangeKey)) return;
+
+    const pendingRequest = calendarRangeRequests.get(rangeKey);
+    if (!force && pendingRequest) {
+      await pendingRequest;
+      return;
+    }
+
+    const request = (async () => {
+      try {
+        set({ isLoading: true, error: undefined });
+        const params = new URLSearchParams({
+          start: range.start.toISOString(),
+          end: range.end.toISOString(),
+        });
+        for (const feedId of feedIds) params.append("feedId", feedId);
+
+        const response = await fetch(`/api/events?${params}`);
+        if (!response.ok) {
+          throw new Error(`Failed to load visible events (${response.status})`);
+        }
+        const visibleEvents = (await response.json()) as CalendarEvent[];
+        const includedFeeds = new Set(feedIds);
+
+        set((state) => {
+          const merged = new Map(
+            state.events
+              .filter(
+                (event) =>
+                  !includedFeeds.has(event.feedId) ||
+                  !calendarEventOverlapsRange(event, range)
+              )
+              .map((event) => [event.id, event])
+          );
+          for (const event of visibleEvents) merged.set(event.id, event);
+
+          return {
+            events: [...merged.values()],
+            loadedEventRanges: state.loadedEventRanges.includes(rangeKey)
+              ? state.loadedEventRanges
+              : [...state.loadedEventRanges.slice(-11), rangeKey],
+          };
+        });
+      } catch (error) {
+        console.error("Failed to load visible calendar events:", error);
+        set({
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      } finally {
+        set({ isLoading: false });
+      }
+    })();
+
+    calendarRangeRequests.set(rangeKey, request);
+    try {
+      await request;
+    } finally {
+      if (calendarRangeRequests.get(rangeKey) === request) {
+        calendarRangeRequests.delete(rangeKey);
+      }
+    }
+  },
+
+  refreshVisibleEvents: async () => {
+    const range = get().activeEventRange;
+    if (!range) return;
+    await get().loadEventsForRange(
+      newDate(range.start),
+      newDate(range.end),
+      true
+    );
   },
 
   setFeeds: (feeds) => set({ feeds }),
@@ -819,17 +928,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
   },
 
   refreshEvents: async () => {
-    try {
-      set({ isLoading: true, error: undefined });
-      const response = await fetch("/api/events");
-      if (!response.ok) throw new Error("Failed to fetch calendar events");
-      const events = await response.json();
-      set({ events });
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Unknown error" });
-    } finally {
-      set({ isLoading: false });
-    }
+    await get().refreshVisibleEvents();
   },
 
   syncCalendar: async (feedId: string) => {
