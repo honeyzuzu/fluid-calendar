@@ -8,6 +8,7 @@ export interface Project {
   name: string;
   description?: string | null;
   color?: string | null;
+  colorSlot?: string | null;
   status: ProjectStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -21,6 +22,7 @@ export interface NewProject {
   name: string;
   description?: string;
   color?: string;
+  colorSlot?: string | null;
   status?: ProjectStatus;
 }
 

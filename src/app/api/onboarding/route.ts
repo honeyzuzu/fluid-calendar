@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
           id: true,
           name: true,
           color: true,
+          colorSlot: true,
           enabled: true,
           type: true,
           account: { select: { email: true, provider: true } },

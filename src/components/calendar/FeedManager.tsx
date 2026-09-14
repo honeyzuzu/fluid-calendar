@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarColor } from "@/lib/friend-calendar-colors";
 import { cn } from "@/lib/utils";
@@ -130,7 +131,12 @@ export function FeedManager() {
                       type="button"
                       className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-background shadow-sm ring-1 ring-border transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
                       style={{
-                        backgroundColor: feed.color || "#F6D77A",
+                        backgroundColor: resolveThemeLinkedColor(
+                          "events",
+                          feed.colorSlot,
+                          feed.color,
+                          colorTheme.id
+                        ),
                       }}
                       title={`Change ${feed.name} color`}
                       aria-label={`Change ${feed.name} color`}
@@ -141,10 +147,16 @@ export function FeedManager() {
                       {feed.name} color
                     </p>
                     <SunnieColorPicker
-                      value={feed.color}
-                      onChange={(color) => {
+                      value={resolveThemeLinkedColor(
+                        "events",
+                        feed.colorSlot,
+                        feed.color,
+                        colorTheme.id
+                      )}
+                      valueSlot={feed.colorSlot}
+                      onChange={(color, colorSlot) => {
                         if (color) {
-                          void updateFeed(feed.id, { color });
+                          void updateFeed(feed.id, { color, colorSlot });
                         }
                       }}
                     />
@@ -202,15 +214,15 @@ export function FeedManager() {
           )}
         </div>
 
-        <div className="border-t border-[#e4e0cc] pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 font-medium text-foreground">
-              <UsersRound className="h-4 w-4 text-[#8069a7]" /> Friends&apos;
+              <UsersRound className="h-4 w-4 text-primary" /> Friends&apos;
               shared time
             </h3>
             <Link
               href="/friends"
-              className="text-xs font-semibold text-[#687b4c] hover:underline"
+              className="text-xs font-semibold text-primary hover:underline"
             >
               Manage
             </Link>
@@ -224,7 +236,8 @@ export function FeedManager() {
               const friendColor = getFriendCalendarColor(
                 connection.friend.id,
                 friendCalendarColors,
-                friendColors[0].value
+                "friend-1",
+                colorTheme.id
               );
               return (
                 <div
@@ -255,11 +268,12 @@ export function FeedManager() {
                       />
                     </PopoverTrigger>
                     <PopoverContent align="start" className="w-64">
-                      <p className="text-sm font-semibold text-[#495036]">
-                        Friend calendar color
+                      <p className="text-sm font-semibold text-foreground">
+                        {colorTheme.paletteNames.friends}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Every shared block from this friend uses the same color.
+                        Friend colors · every shared block from this friend uses
+                        the same color.
                       </p>
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         {friendColors.map((color) => (
@@ -269,7 +283,7 @@ export function FeedManager() {
                             onClick={() =>
                               setFriendCalendarColor(
                                 connection.friend.id,
-                                color.value
+                                color.id
                               )
                             }
                             className={cn(
@@ -290,7 +304,7 @@ export function FeedManager() {
                     </PopoverContent>
                   </Popover>
                   <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_2px_#e5f0d7]" : "bg-[#aaa5b0]"}`}
+                    className={`h-2 w-2 shrink-0 rounded-full ${connection.friend.online ? "bg-success shadow-[0_0_0_2px_hsl(var(--success)/0.2)]" : "bg-muted-foreground/60"}`}
                     title={connection.friend.online ? "Online now" : "Offline"}
                     aria-label={
                       connection.friend.online ? "Online now" : "Offline"

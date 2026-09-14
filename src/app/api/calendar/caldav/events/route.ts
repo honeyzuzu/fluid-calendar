@@ -106,12 +106,16 @@ export async function POST(request: NextRequest) {
       LOG_SOURCE
     );
 
-    const savedEvent = eventData.color
-      ? await prisma.calendarEvent.update({
-          where: { id: createdEvent.id },
-          data: { color: eventData.color },
-        })
-      : createdEvent;
+    const savedEvent =
+      eventData.color || eventData.colorSlot
+        ? await prisma.calendarEvent.update({
+            where: { id: createdEvent.id },
+            data: {
+              color: eventData.color || null,
+              colorSlot: eventData.colorSlot || null,
+            },
+          })
+        : createdEvent;
 
     return NextResponse.json(savedEvent);
   } catch (error) {
@@ -230,10 +234,13 @@ export async function PUT(request: NextRequest) {
     );
 
     const savedEvent =
-      "color" in updates
+      "color" in updates || "colorSlot" in updates
         ? await prisma.calendarEvent.update({
             where: { id: updatedEvent.id },
-            data: { color: updates.color || null },
+            data: {
+              color: updates.color || null,
+              colorSlot: updates.colorSlot || null,
+            },
           })
         : updatedEvent;
 

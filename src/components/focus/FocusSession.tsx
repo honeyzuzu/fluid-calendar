@@ -505,8 +505,8 @@ export function FocusSession({
       );
 
   return (
-    <section className="mb-5 overflow-hidden rounded-3xl border border-[#dfdab8] bg-[#fffaf0] shadow-[0_7px_0_#e7dfbf]">
-      <div className="grid gap-4 bg-[linear-gradient(135deg,#fff1bd_0%,#eff4df_100%)] p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
+    <section className="mb-5 overflow-hidden rounded-3xl border border-border bg-card shadow-[0_7px_0_var(--sunnie-border)]">
+      <div className="sunnie-focus-hero grid gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
         <div
           className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border-4 border-white text-5xl shadow-md transition-transform duration-500 hover:rotate-2 hover:scale-105 motion-reduce:transform-none"
           style={{ backgroundColor: selectedPet.color }}
@@ -536,10 +536,10 @@ export function FocusSession({
               {sunDrops} sun {sunDrops === 1 ? "drop" : "drops"}
             </span>
           </div>
-          <h3 className="mt-1 text-lg font-bold text-[#4f583d]">
+          <h3 className="mt-1 text-lg font-bold text-foreground">
             {displayPetName}
           </h3>
-          <p className="mt-0.5 text-sm leading-relaxed text-[#6e7058]">
+          <p className="mt-0.5 text-sm leading-relaxed text-secondary-foreground">
             {displayMessage}
           </p>
         </div>

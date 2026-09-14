@@ -248,7 +248,7 @@ export default function FriendsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${connection.friend.online ? "bg-[#76a856] shadow-[0_0_0_3px_#e5f0d7]" : "bg-[#c4c3b9]"}`}
+                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${connection.friend.online ? "bg-success shadow-[0_0_0_3px_hsl(var(--success)/0.2)]" : "bg-muted-foreground/60"}`}
                             title={
                               connection.friend.online
                                 ? "Online now"

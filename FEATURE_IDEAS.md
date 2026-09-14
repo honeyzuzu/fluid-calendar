@@ -32,8 +32,8 @@ We can fill these in together. A rough bullet is enough to begin.
 - **Original thought:** Add seasonal/color theme packs for the entire app. The planner theme should update Sunnie's overall colors and the coordinated colors available for calendar, task, project, and friend items. Add three new themes and preserve the current colors as the Base theme. Make the calendar feel prettier and less dated. Replace the custom color picker's editing-style bubbles with a clear `+` button.
   - **Why it matters:** The whole planner should feel intentionally styled rather than like separate features using unrelated hardcoded colors.
   - **What it could feel like:** Choosing a new colorway changes the app surfaces and every theme-linked item while keeping custom colors fixed. Calendar, project, task, and friend choices remain coordinated but visually distinct.
-  - **Small first version:** Use the exact 44-color contract in [the colorway worksheet](docs/colorways.md), keep Sunnie Base alongside the four seasonal sets, persist the selected colorway, remap recognized theme-linked colors with an explicit refresh, and finish moving the current interface onto theme tokens.
-  - **Open questions:** All four seasonal colorways are supplied. The final calendar card treatment and recent-custom-color management interaction will be chosen during the visual pass.
+  - **Implemented:** The exact 44-color contract in [the colorway worksheet](docs/colorways.md) now powers Sunnie Base and all four seasonal sets. A selection applies immediately; explicit palette slots recolor feeds, events, projects, tasks, and friends while custom colors remain fixed through provider refreshes. Theme and swatch collection names are visible in Settings and color pickers, and the primary application surfaces use semantic theme tokens.
+  - **Open questions:** The final calendar card treatment and recent-custom-color management interaction can continue during a later visual pass.
   - **Later possibilities:** An optional automatic seasonal rotation can wait until manual colorway selection and stable item recoloring are complete.
 
 ## Ready for a future session

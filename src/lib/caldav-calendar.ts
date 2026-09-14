@@ -531,8 +531,11 @@ export class CalDAVCalendarService {
       // A color override belongs to Sunnie, not the remote CalDAV event. Keep
       // it when the provider sync replaces the local event rows.
       const existingColorOverrides = await prisma.calendarEvent.findMany({
-        where: { feedId: feed.id, color: { not: null } },
-        select: { externalEventId: true, color: true },
+        where: {
+          feedId: feed.id,
+          OR: [{ color: { not: null } }, { colorSlot: { not: null } }],
+        },
+        select: { externalEventId: true, color: true, colorSlot: true },
       });
       const colorOverrides = new Map(
         existingColorOverrides
@@ -540,6 +543,14 @@ export class CalDAVCalendarService {
           .map((event) => [
             event.externalEventId as string,
             event.color as string,
+          ])
+      );
+      const colorSlotOverrides = new Map(
+        existingColorOverrides
+          .filter((event) => event.externalEventId && event.colorSlot)
+          .map((event) => [
+            event.externalEventId as string,
+            event.colorSlot as string,
           ])
       );
       //delete all events from the database
@@ -568,7 +579,8 @@ export class CalDAVCalendarService {
       const result = await this.createAllEvents(
         events,
         feed.id,
-        colorOverrides
+        colorOverrides,
+        colorSlotOverrides
       );
       // Update the feed's last sync time and sync token
       await prisma.calendarFeed.update({
@@ -624,7 +636,8 @@ export class CalDAVCalendarService {
 
       // Resolve the user's timezone so timed events serialize with a TZID
       // (keeps wall-clock time across DST for recurring events; issue #135).
-      const timeZone = event.timeZone ?? (await this.resolveUserTimeZone(userId));
+      const timeZone =
+        event.timeZone ?? (await this.resolveUserTimeZone(userId));
 
       // Generate the iCalendar data
       const icalData = this.convertToICalendar({
@@ -1164,7 +1177,8 @@ export class CalDAVCalendarService {
 
       // Resolve the user's timezone so timed events serialize with a TZID
       // (keeps wall-clock time across DST for recurring events; issue #135).
-      const timeZone = event.timeZone ?? (await this.resolveUserTimeZone(userId));
+      const timeZone =
+        event.timeZone ?? (await this.resolveUserTimeZone(userId));
 
       // Generate the iCalendar data
       const icalData = this.convertToICalendar({
@@ -1323,7 +1337,8 @@ export class CalDAVCalendarService {
   private async createAllEvents(
     events: CalendarEvent[],
     feedId: string,
-    colorOverrides: Map<string, string> = new Map()
+    colorOverrides: Map<string, string> = new Map(),
+    colorSlotOverrides: Map<string, string> = new Map()
   ): Promise<SyncResult> {
     try {
       // Separate master events and instances
@@ -1334,7 +1349,8 @@ export class CalDAVCalendarService {
       const createdMasterEvents = await this.createMasterEvents(
         masterEvents,
         feedId,
-        colorOverrides
+        colorOverrides,
+        colorSlotOverrides
       );
 
       // Create a map of external IDs to database IDs for linking instances
@@ -1350,7 +1366,8 @@ export class CalDAVCalendarService {
         instanceEvents,
         masterEventMap,
         feedId,
-        colorOverrides
+        colorOverrides,
+        colorSlotOverrides
       );
 
       return {
@@ -1374,7 +1391,8 @@ export class CalDAVCalendarService {
   private async createMasterEvents(
     masterEvents: CalendarEvent[],
     feedId: string,
-    colorOverrides: Map<string, string>
+    colorOverrides: Map<string, string>,
+    colorSlotOverrides: Map<string, string>
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1392,6 +1410,9 @@ export class CalDAVCalendarService {
           location: event.location,
           color: event.externalEventId
             ? colorOverrides.get(event.externalEventId)
+            : undefined,
+          colorSlot: event.externalEventId
+            ? colorSlotOverrides.get(event.externalEventId)
             : undefined,
           isRecurring: event.isRecurring || false,
           recurrenceRule: event.recurrenceRule,
@@ -1431,7 +1452,8 @@ export class CalDAVCalendarService {
     instanceEvents: CalendarEvent[],
     masterEventMap: Map<string, string>,
     feedId: string,
-    colorOverrides: Map<string, string>
+    colorOverrides: Map<string, string>,
+    colorSlotOverrides: Map<string, string>
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1458,6 +1480,9 @@ export class CalDAVCalendarService {
           location: event.location,
           color: event.externalEventId
             ? colorOverrides.get(event.externalEventId)
+            : undefined,
+          colorSlot: event.externalEventId
+            ? colorSlotOverrides.get(event.externalEventId)
             : undefined,
           isRecurring: event.isRecurring || false, // Instance events are not recurring themselves
           recurrenceRule: event.recurrenceRule, // Instance events don't have recurrence rules

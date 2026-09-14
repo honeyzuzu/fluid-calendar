@@ -16,6 +16,7 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Textarea } from "@/components/ui/textarea";
 
 import { getReadableTextColor } from "@/lib/color-contrast";
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/project-colors";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(DEFAULT_PROJECT_COLOR);
+  const [colorSlot, setColorSlot] = useState<string | null>("project-1");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -46,13 +48,22 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     if (project && isOpen) {
       setName(project.name);
       setDescription(project.description || "");
-      setColor(project.color || defaultProjectColor);
+      setColor(
+        resolveThemeLinkedColor(
+          "projects",
+          project.colorSlot,
+          project.color,
+          colorTheme.id
+        )
+      );
+      setColorSlot(project.colorSlot || null);
     } else if (!project && isOpen) {
       setName("");
       setDescription("");
       setColor(defaultProjectColor);
+      setColorSlot("project-1");
     }
-  }, [project, isOpen, defaultProjectColor]);
+  }, [project, isOpen, defaultProjectColor, colorTheme.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,12 +76,14 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
           name: name.trim(),
           description: description.trim() || undefined,
           color,
+          colorSlot,
         });
       } else {
         await createProject({
           name: name.trim(),
           description: description.trim() || undefined,
           color,
+          colorSlot,
           status: ProjectStatus.ACTIVE,
         });
       }
@@ -116,12 +129,15 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
 
             <fieldset>
               <legend className="text-sm font-medium">Project color</legend>
+              <p className="mt-1 text-sm font-semibold text-primary">
+                {colorTheme.paletteNames.projects}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 This colors the project tile only, not the tasks inside it.
               </p>
               <div className="mt-3 grid grid-cols-4 gap-2">
                 {projectColors.map((preset) => {
-                  const isSelected = color.toUpperCase() === preset.value;
+                  const isSelected = colorSlot === preset.id;
                   return (
                     <button
                       key={preset.id}
@@ -129,7 +145,10 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                       aria-label={`Use ${preset.name}`}
                       aria-pressed={isSelected}
                       title={preset.name}
-                      onClick={() => setColor(preset.value)}
+                      onClick={() => {
+                        setColor(preset.value);
+                        setColorSlot(preset.id);
+                      }}
                       className={cn(
                         "h-11 rounded-xl border border-black/10 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transform-none",
                         isSelected &&
@@ -137,7 +156,9 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                       )}
                       style={{ backgroundColor: preset.value }}
                     >
-                      <span className="sr-only">{preset.name}</span>
+                      <span className="rounded-md bg-black/35 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                        {preset.name}
+                      </span>
                     </button>
                   );
                 })}
@@ -150,7 +171,10 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                   type="color"
                   id="color"
                   value={color}
-                  onChange={(e) => setColor(e.target.value)}
+                  onChange={(e) => {
+                    setColor(e.target.value);
+                    setColorSlot(null);
+                  }}
                   className="h-10 w-20 cursor-pointer p-1"
                 />
                 <div

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -28,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
 import { getCalendarEventChangeKind } from "@/lib/calendar-event-update";
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
@@ -144,6 +146,7 @@ export function EventModal({
   defaultDate,
   defaultEndDate,
 }: EventModalProps) {
+  const { colorTheme } = useTheme();
   const { feeds, addEvent, updateEvent, removeEvent } = useCalendarStore();
   const { calendar } = useSettingsStore();
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -181,6 +184,7 @@ export function EventModal({
   const [isAllDay, setIsAllDay] = useState(event?.allDay || false);
   const [isRecurring, setIsRecurring] = useState(event?.isRecurring || false);
   const [color, setColor] = useState(event?.color || "");
+  const [colorSlot, setColorSlot] = useState(event?.colorSlot || null);
   const [recurrenceFreq, setRecurrenceFreq] = useState("");
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
@@ -216,6 +220,7 @@ export function EventModal({
       setIsAllDay(event?.allDay || false);
       setIsRecurring(event?.isRecurring || false);
       setColor(event?.color || "");
+      setColorSlot(event?.colorSlot || null);
       const { freq, interval, byDay } = parseRecurrenceRule(
         event?.recurrenceRule
       );
@@ -307,6 +312,7 @@ export function EventModal({
           : undefined,
         isMaster: false,
         color: color || null,
+        colorSlot,
       };
 
       if (event?.id) {
@@ -320,7 +326,10 @@ export function EventModal({
             const response = await fetch(`/api/events/${event.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ color: eventData.color }),
+              body: JSON.stringify({
+                color: eventData.color,
+                colorSlot: eventData.colorSlot,
+              }),
             });
             if (!response.ok) {
               throw new Error("Failed to save the event color");
@@ -620,10 +629,22 @@ export function EventModal({
                     <Label>Event color</Label>
                     <SunnieColorPicker
                       value={color}
-                      fallbackColor={
-                        feeds.find((feed) => feed.id === selectedFeedId)?.color
-                      }
-                      onChange={(nextColor) => setColor(nextColor || "")}
+                      valueSlot={colorSlot}
+                      fallbackColor={(() => {
+                        const selectedFeed = feeds.find(
+                          (feed) => feed.id === selectedFeedId
+                        );
+                        return resolveThemeLinkedColor(
+                          "events",
+                          selectedFeed?.colorSlot,
+                          selectedFeed?.color,
+                          colorTheme.id
+                        );
+                      })()}
+                      onChange={(nextColor, nextColorSlot) => {
+                        setColor(nextColor || "");
+                        setColorSlot(nextColorSlot);
+                      }}
                       allowDefault
                     />
                   </div>
@@ -797,6 +818,7 @@ export function EventModal({
     setIsAllDay(false);
     setIsRecurring(false);
     setColor("");
+    setColorSlot(null);
     setRecurrenceFreq("");
     setRecurrenceInterval(1);
     setRecurrenceByDay([]);

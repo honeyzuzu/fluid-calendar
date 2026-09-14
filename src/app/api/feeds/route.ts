@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -10,6 +11,7 @@ interface CalendarFeedUpdate {
   id: string;
   enabled?: boolean;
   color?: string | null;
+  colorSlot?: string | null;
 }
 
 // List all calendar feeds
@@ -71,6 +73,12 @@ export async function POST(request: NextRequest) {
     const created = await prisma.calendarFeed.create({
       data: {
         ...feedData,
+        colorSlot:
+          feedData.colorSlot ||
+          getStableThemeColorSlot(
+            "events",
+            feedData.id || feedData.url || feedData.name
+          ),
         // Associate the feed with the current user
         userId,
       },
@@ -143,7 +151,7 @@ export async function PATCH(request: NextRequest) {
 
     const userId = auth.userId;
 
-    const { id, enabled, color } = await request.json();
+    const { id, enabled, color, colorSlot } = await request.json();
 
     if (!id) {
       return NextResponse.json(
@@ -161,6 +169,7 @@ export async function PATCH(request: NextRequest) {
       data: {
         enabled: enabled !== undefined ? enabled : undefined,
         color: color !== undefined ? color : undefined,
+        colorSlot: colorSlot !== undefined ? colorSlot : undefined,
       },
     });
 

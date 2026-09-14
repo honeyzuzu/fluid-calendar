@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -18,6 +19,7 @@ import {
   stringifySelectedCalendars,
   stringifyWorkDays,
 } from "@/lib/autoSchedule";
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 
 import { useCalendarStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
@@ -27,6 +29,7 @@ import { SettingRow, SettingsSection } from "./SettingsSection";
 export function AutoScheduleSettings() {
   const { autoSchedule, updateAutoScheduleSettings, user } = useSettingsStore();
   const { feeds, loadFromDatabase } = useCalendarStore();
+  const { colorTheme } = useTheme();
 
   // Load calendar feeds when component mounts
   useEffect(() => {
@@ -85,7 +88,14 @@ export function AutoScheduleSettings() {
               <Label className="flex items-center gap-2">
                 <span
                   className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: feed.color || "var(--muted)" }}
+                  style={{
+                    backgroundColor: resolveThemeLinkedColor(
+                      "events",
+                      feed.colorSlot,
+                      feed.color,
+                      colorTheme.id
+                    ),
+                  }}
                 />
                 {feed.name}
               </Label>
@@ -391,7 +401,12 @@ export function AutoScheduleSettings() {
                           <span
                             className="h-3 w-3 rounded-full"
                             style={{
-                              backgroundColor: feed.color || "var(--muted)",
+                              backgroundColor: resolveThemeLinkedColor(
+                                "events",
+                                feed.colorSlot,
+                                feed.color,
+                                colorTheme.id
+                              ),
                             }}
                           />
                           {feed.name}

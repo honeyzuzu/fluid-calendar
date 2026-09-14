@@ -48,7 +48,13 @@ export async function GET(request: NextRequest) {
       }),
       prisma.calendarFeed.findMany({
         where: { userId },
-        select: { id: true, name: true, enabled: true, color: true },
+        select: {
+          id: true,
+          name: true,
+          enabled: true,
+          color: true,
+          colorSlot: true,
+        },
       }),
       prisma.calendarEvent.findMany({
         where: {

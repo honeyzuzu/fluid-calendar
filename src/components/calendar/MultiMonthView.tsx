@@ -12,6 +12,7 @@ import FullCalendar from "@fullcalendar/react";
 
 import { TaskModal } from "@/components/tasks/TaskModal";
 
+import { getCalendarDisplayColor } from "@/lib/calendar-colors";
 import {
   getSelectionRange,
   getTapSelectionRange,
@@ -52,8 +53,9 @@ export function MultiMonthView({
     (state) => state.friendRefreshRevision
   );
   const { user: userSettings } = useSettingsStore();
-  const friendFallbackColor = getColorTheme(userSettings.colorTheme).palettes
-    .friends[0].value;
+  const activeColorTheme = getColorTheme(userSettings.colorTheme);
+  const friendFallbackColor = activeColorTheme.palettes.friends[0].value;
+  const taskFallbackColor = activeColorTheme.palettes.tasks[0].value;
   const { updateTask } = useTaskStore();
   const [selectedEvent, setSelectedEvent] = useState<Partial<CalendarEvent>>();
   const [selectedTask, setSelectedTask] = useState<Task>();
@@ -92,7 +94,8 @@ export function MultiMonthView({
         arg.start,
         arg.end,
         friendCalendarColors,
-        friendFallbackColor
+        friendFallbackColor,
+        activeColorTheme.id
       );
       const formattedItems = items
         .filter((item) => {
@@ -108,16 +111,12 @@ export function MultiMonthView({
           location: item.location,
           backgroundColor:
             item.feedId === "tasks"
-              ? item.color || "#4f46e5"
-              : item.color ||
-                feeds.find((f) => f.id === item.feedId)?.color ||
-                "#3b82f6",
+              ? taskFallbackColor
+              : getCalendarDisplayColor(item, feeds, activeColorTheme.id),
           borderColor:
             item.feedId === "tasks"
-              ? item.color || "#4f46e5"
-              : item.color ||
-                feeds.find((f) => f.id === item.feedId)?.color ||
-                "#3b82f6",
+              ? taskFallbackColor
+              : getCalendarDisplayColor(item, feeds, activeColorTheme.id),
           allDay: item.allDay,
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
@@ -148,6 +147,8 @@ export function MultiMonthView({
       feeds,
       friendCalendarColors,
       friendFallbackColor,
+      activeColorTheme.id,
+      taskFallbackColor,
       getAllCalendarItems,
       hiddenFriendIds,
     ]

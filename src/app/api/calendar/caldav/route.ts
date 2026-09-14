@@ -4,6 +4,7 @@ import { formatISO } from "date-fns";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { CalDAVCalendarService } from "@/lib/caldav-calendar";
+import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -209,6 +210,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: calendarName,
           color: calendarColor,
+          colorSlot: getStableThemeColorSlot("events", calendarId),
           type: "CALDAV",
           url: calendarId,
           accountId,

@@ -27,7 +27,8 @@ async function writeEventToDatabase(
   feedId: string,
   event: GoogleEvent,
   instances?: GoogleEvent[],
-  color?: string | null
+  color?: string | null,
+  colorSlot?: string | null
 ) {
   const isRecurring = !!event.recurrence;
   const isAllDay = event.start ? !event.start.dateTime : false;
@@ -48,6 +49,7 @@ async function writeEventToDatabase(
           : newDate(event.end?.dateTime || event.end?.date || ""),
         location: event.location,
         color,
+        colorSlot,
         isRecurring: isRecurring,
         recurrenceRule: event.recurrence?.[0],
         allDay: isAllDay,
@@ -93,6 +95,7 @@ async function writeEventToDatabase(
             : newDate(instance.end?.dateTime || instance.end?.date || ""),
           location: instance.location,
           color,
+          colorSlot,
           isRecurring: true,
           recurrenceRule: event.recurrence?.[0],
           recurringEventId: instance.recurringEventId,
@@ -187,7 +190,8 @@ export async function POST(request: NextRequest) {
       feed.id,
       event,
       instances,
-      eventData.color
+      eventData.color,
+      eventData.colorSlot
     );
 
     return NextResponse.json(records);
@@ -274,7 +278,8 @@ export async function PUT(request: NextRequest) {
       validatedEvent.feed.id,
       updatedEvent,
       instances,
-      "color" in updates ? updates.color : validatedEvent.color
+      "color" in updates ? updates.color : validatedEvent.color,
+      "colorSlot" in updates ? updates.colorSlot : validatedEvent.colorSlot
     );
 
     return NextResponse.json(records);

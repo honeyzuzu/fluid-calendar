@@ -46,7 +46,7 @@ describe("responsive application shell", () => {
   it("reserves layout space and an opaque surface for an open project panel", () => {
     const projects = read("src/components/projects/ProjectSidebar.tsx");
     expect(projects).toContain('isSidebarOpen ? "w-64" : "w-6"');
-    expect(projects).toContain("bg-[#fffdf2]");
+    expect(projects).toContain("bg-card");
     expect(projects).toContain("New project");
     expect(projects).not.toContain('isSidebarOpen && "xl:w-64"');
   });

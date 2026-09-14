@@ -30,7 +30,8 @@ describe("friend calendar visibility", () => {
     const styles = read("src/app/globals.css");
     expect(store).toContain("setFriendCalendarColor");
     expect(store).toContain("friendCalendarColors: state.friendCalendarColors");
-    expect(manager).toContain("FRIEND_CALENDAR_COLORS");
+    expect(manager).toContain("colorTheme.palettes.friends");
+    expect(manager).toContain("setFriendCalendarColor");
     expect(styles).toContain(".calendar-friend-event");
     expect(styles).toContain("pointer-events: none");
     expect(styles).toContain("--friend-lane-offset");

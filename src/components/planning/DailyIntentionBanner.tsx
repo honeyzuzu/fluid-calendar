@@ -6,7 +6,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ArrowRight, Leaf } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { ThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 
 import {
   DAILY_INTENTION_UPDATED_EVENT,
@@ -20,6 +23,7 @@ type IntentionUpdate = { date: string; intention: string | null };
 type UserSettingsResponse = { timeZone?: string | null };
 
 export function DailyIntentionBanner() {
+  const { colorTheme } = useTheme();
   const { status } = useSession();
   const pathname = usePathname();
   const [intention, setIntention] = useState<string | null>(null);
@@ -78,25 +82,29 @@ export function DailyIntentionBanner() {
     return null;
 
   return (
-    <aside className="relative z-20 flex-none border-b border-[#e4dfbd] bg-[#fff4c9]/95 px-3 py-2 text-[#5c5537] shadow-[0_2px_12px_rgba(94,83,43,0.05)] sm:px-4">
+    <aside className="relative z-20 flex-none border-b border-border bg-accent/90 px-3 py-2 text-accent-foreground shadow-[0_2px_12px_rgba(50,50,40,0.06)] sm:px-4">
       <Link
         href="/plan"
-        className="mx-auto flex max-w-[1480px] items-center gap-2.5 rounded-xl px-1 py-0.5 transition hover:text-[#4d5c38]"
+        className="mx-auto flex max-w-[1480px] items-center gap-2.5 rounded-xl px-1 py-0.5 transition hover:text-foreground"
       >
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#dcebc7] text-[#55703c] shadow-[0_2px_0_#b9d09b]">
-          <Leaf className={cn("h-4 w-4", !intention && "opacity-65")} />
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <ThemeMotifIcon
+            motif={colorTheme.motif.intentionIcon}
+            className={cn("h-4 w-4", !intention && "opacity-65")}
+            aria-label={colorTheme.motif.intentionLabel}
+          />
         </span>
         <div className="min-w-0 flex-1 text-xs sm:flex sm:items-baseline sm:gap-2 sm:text-sm">
           <span className="font-semibold">
             {intention ? "Today’s intention" : "Set your daily intention!"}
           </span>
           {intention && (
-            <span className="block truncate text-black/55 sm:inline">
+            <span className="block truncate opacity-70 sm:inline">
               {intention}
             </span>
           )}
         </div>
-        <ArrowRight className="h-4 w-4 shrink-0 text-black/35" />
+        <ArrowRight className="h-4 w-4 shrink-0 opacity-50" />
       </Link>
     </aside>
   );

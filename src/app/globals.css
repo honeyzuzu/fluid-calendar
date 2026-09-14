@@ -78,6 +78,10 @@
 
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 89%;
+    --success: 91 31% 51%;
+    --success-foreground: 72 18% 22%;
+    --info: 214 42% 62%;
+    --info-foreground: 0 0% 100%;
 
     --border: 74 20% 82%;
     --input: 74 20% 82%;
@@ -116,6 +120,10 @@
     --destructive-foreground: 48 100% 96%;
     --warning: 45 85% 73%;
     --warning-foreground: 40 52% 24%;
+    --success: 91 31% 51%;
+    --success-foreground: 72 18% 22%;
+    --info: 214 42% 62%;
+    --info-foreground: 0 0% 100%;
     --border: 74 20% 82%;
     --input: 74 20% 82%;
     --ring: 86 22% 37%;
@@ -157,6 +165,23 @@
       var(--sunnie-canvas, #fff9e8);
   }
 
+  .sunnie-plan-hero {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--sunnie-accent) 45%, var(--sunnie-surface)),
+      color-mix(in srgb, var(--sunnie-warm-glow) 38%, var(--sunnie-surface)),
+      color-mix(in srgb, var(--sunnie-warm-glow) 72%, var(--sunnie-surface))
+    );
+  }
+
+  .sunnie-focus-hero {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--sunnie-accent) 48%, var(--sunnie-surface)),
+      color-mix(in srgb, var(--sunnie-cool-glow) 28%, var(--sunnie-surface))
+    );
+  }
+
   .sunnie-app .bg-white,
   .sunnie-app .dark\:bg-gray-800,
   .sunnie-app .dark\:bg-gray-900 {
@@ -181,6 +206,28 @@
   .sunnie-app .bg-blue-600 {
     background-color: var(--sunnie-primary, #64734a) !important;
   }
+}
+
+.sunnie-intention-card {
+  color: hsl(var(--primary-foreground));
+  background: linear-gradient(
+    135deg,
+    var(--sunnie-primary),
+    color-mix(in srgb, var(--sunnie-primary) 72%, var(--sunnie-accent))
+  );
+  box-shadow: 0 8px 0 color-mix(in srgb, var(--sunnie-primary) 78%, #111 22%);
+}
+
+.sunnie-intention-card-saved {
+  color: hsl(var(--foreground));
+  border: 1px solid var(--sunnie-border);
+  background: linear-gradient(
+    135deg,
+    var(--sunnie-surface),
+    color-mix(in srgb, var(--sunnie-cool-glow) 34%, var(--sunnie-surface))
+  );
+  box-shadow: 0 8px 0
+    color-mix(in srgb, var(--sunnie-border) 75%, var(--sunnie-cool-glow));
 }
 
 /* FullCalendar Customization */

@@ -17,8 +17,10 @@ import {
 } from "lucide-react";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { AccountManager } from "@/components/settings/AccountManager";
 
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { formatIntentionQuote } from "@/lib/daily-intention";
 import {
   CURRENT_ONBOARDING_VERSION,
@@ -41,6 +43,7 @@ type OnboardingCalendar = {
   id: string;
   name: string;
   color: string | null;
+  colorSlot: string | null;
   enabled: boolean;
   type: string;
   account: { email: string; provider: string } | null;
@@ -104,6 +107,7 @@ function StepProgress({
 }
 
 export function OnboardingTour() {
+  const { colorTheme } = useTheme();
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -604,7 +608,14 @@ export function OnboardingTour() {
                     >
                       <span
                         className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-white shadow-sm"
-                        style={{ backgroundColor: calendar.color || "#f4c85b" }}
+                        style={{
+                          backgroundColor: resolveThemeLinkedColor(
+                            "events",
+                            calendar.colorSlot,
+                            calendar.color,
+                            colorTheme.id
+                          ),
+                        }}
                       >
                         {calendar.enabled && (
                           <Check className="h-4 w-4 text-white drop-shadow" />

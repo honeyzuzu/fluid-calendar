@@ -75,6 +75,7 @@ export async function PUT(
         name: json.name,
         description: json.description,
         color: json.color,
+        colorSlot: json.colorSlot,
         status: json.status,
       },
       include: {

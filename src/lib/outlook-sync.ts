@@ -368,6 +368,20 @@ export async function syncOutlookCalendar(
   lastSyncToken?: string | null,
   forceFullSync?: boolean
 ) {
+  const preservedColorOverrides = forceFullSync
+    ? await prisma.calendarEvent.findMany({
+        where: {
+          feedId: feed.id,
+          OR: [{ color: { not: null } }, { colorSlot: { not: null } }],
+        },
+        select: {
+          externalEventId: true,
+          color: true,
+          colorSlot: true,
+        },
+      })
+    : [];
+
   // Fetch all events
   const {
     events: allEvents,
@@ -478,6 +492,25 @@ export async function syncOutlookCalendar(
   for (const [, masterEvent] of masterEvents) {
     const processedIds = await processMasterEvent(client, masterEvent, feed);
     processedIds.forEach((id) => processedEventIds.add(id));
+  }
+
+  if (preservedColorOverrides.length > 0) {
+    await prisma.$transaction(
+      preservedColorOverrides
+        .filter((event) => event.externalEventId)
+        .map((event) =>
+          prisma.calendarEvent.updateMany({
+            where: {
+              feedId: feed.id,
+              externalEventId: event.externalEventId,
+            },
+            data: {
+              color: event.color,
+              colorSlot: event.colorSlot,
+            },
+          })
+        )
+    );
   }
 
   return { processedEventIds, nextSyncToken };

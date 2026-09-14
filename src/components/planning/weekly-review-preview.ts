@@ -45,7 +45,13 @@ export const weeklyReviewPreview: WeeklyReviewData = {
     },
   ],
   calendars: [
-    { id: "personal", name: "Personal", enabled: true, color: "#a8c9a1" },
+    {
+      id: "personal",
+      name: "Personal",
+      enabled: true,
+      color: "#a8c9a1",
+      colorSlot: null,
+    },
   ],
   events: [
     {

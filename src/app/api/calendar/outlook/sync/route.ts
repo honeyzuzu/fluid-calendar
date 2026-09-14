@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { getOutlookClient } from "@/lib/outlook-calendar";
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
         type: "OUTLOOK",
         url: calendarId,
         color: color || "#3b82f6",
+        colorSlot: getStableThemeColorSlot("events", calendarId),
         enabled: true,
         accountId: account.id,
         userId,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { getThemeColorSlot } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -119,6 +120,7 @@ export async function POST(request: NextRequest) {
                 name: project.name,
                 description: project.description,
                 color: project.color,
+                colorSlot: getThemeColorSlot("projects", project.color),
                 status: project.status || "active",
                 userId,
               },

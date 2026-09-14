@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
-import { MoonStar, Palette, RefreshCw, Sunrise } from "lucide-react";
+import { MoonStar, Palette, Sunrise } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { ThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +19,7 @@ import {
 import {
   COLOR_THEMES,
   ColorThemeId,
-  mapThemeLinkedColor,
+  getThemeColorSlot,
 } from "@/lib/color-themes";
 
 import { useCalendarUIStore } from "@/store/calendar";
@@ -42,14 +42,19 @@ export function UserSettings() {
     setSelectedColorTheme(user.colorTheme || "base");
   }, [user.colorTheme]);
 
-  const applyColorTheme = async () => {
+  const applyColorTheme = async (nextTheme: ColorThemeId) => {
+    const previousTheme = user.colorTheme || "base";
+    setSelectedColorTheme(nextTheme);
     setIsApplyingColorTheme(true);
     setColorThemeError(null);
+    useSettingsStore.setState((state) => ({
+      user: { ...state.user, colorTheme: nextTheme },
+    }));
     try {
       const response = await fetch("/api/color-theme/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ colorTheme: selectedColorTheme }),
+        body: JSON.stringify({ colorTheme: nextTheme }),
       });
       if (!response.ok) {
         const result = (await response.json().catch(() => null)) as {
@@ -58,26 +63,33 @@ export function UserSettings() {
         throw new Error(result?.error || "Failed to apply planner colorway");
       }
 
-      useSettingsStore.setState((state) => ({
-        user: { ...state.user, colorTheme: selectedColorTheme },
-      }));
       const calendarUI = useCalendarUIStore.getState();
       useCalendarUIStore.setState({
         friendCalendarColors: Object.fromEntries(
           Object.entries(calendarUI.friendCalendarColors).map(
             ([friendId, color]) => [
               friendId,
-              mapThemeLinkedColor("friends", color, selectedColorTheme) ||
-                color,
+              getThemeColorSlot("friends", color) || color,
             ]
           )
         ),
       });
-      window.location.reload();
+      const settingsIdentity = session?.user?.email || session?.user?.name;
+      if (settingsIdentity) {
+        window.localStorage.setItem(
+          `sunnie-color-theme:${settingsIdentity}`,
+          nextTheme
+        );
+      }
     } catch (error) {
+      setSelectedColorTheme(previousTheme);
+      useSettingsStore.setState((state) => ({
+        user: { ...state.user, colorTheme: previousTheme },
+      }));
       setColorThemeError(
         error instanceof Error ? error.message : "Failed to apply colorway"
       );
+    } finally {
       setIsApplyingColorTheme(false);
     }
   };
@@ -207,10 +219,10 @@ export function UserSettings() {
         <div className="space-y-2">
           <Select
             value={selectedColorTheme}
-            onValueChange={(value) => {
-              setSelectedColorTheme(value as ColorThemeId);
-              setColorThemeError(null);
-            }}
+            onValueChange={(value) =>
+              void applyColorTheme(value as ColorThemeId)
+            }
+            disabled={isApplyingColorTheme}
           >
             <SelectTrigger aria-label="Planner colorway">
               <Palette className="mr-2 h-4 w-4" />
@@ -224,38 +236,74 @@ export function UserSettings() {
               ))}
             </SelectContent>
           </Select>
-          <div className="flex gap-1.5" aria-label="Current colorway preview">
-            {COLOR_THEMES[selectedColorTheme].palettes.events
-              .slice(0, 6)
-              .map((swatch) => (
-                <span
-                  key={swatch.id}
-                  className="h-5 w-5 rounded-full border border-black/10 shadow-sm"
-                  style={{ backgroundColor: swatch.value }}
-                  title={swatch.name}
-                />
-              ))}
+          <div className="flex max-w-sm items-start gap-2 text-xs text-muted-foreground">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+              <ThemeMotifIcon
+                motif={COLOR_THEMES[selectedColorTheme].motif.intentionIcon}
+                className="h-4 w-4"
+                aria-label={
+                  COLOR_THEMES[selectedColorTheme].motif.intentionLabel
+                }
+              />
+            </span>
+            <span>
+              {COLOR_THEMES[selectedColorTheme].description}
+              <span className="mt-0.5 block font-medium text-foreground">
+                Intention motif:{" "}
+                {COLOR_THEMES[selectedColorTheme].motif.intentionLabel}
+              </span>
+            </span>
+          </div>
+          <div className="grid max-w-md gap-3 sm:grid-cols-2">
+            {Object.entries(COLOR_THEMES[selectedColorTheme].palettes).map(
+              ([paletteKey, swatches]) => (
+                <section
+                  key={paletteKey}
+                  className="rounded-xl border border-border bg-card/70 p-3"
+                >
+                  <p className="text-xs font-semibold text-foreground">
+                    {
+                      COLOR_THEMES[selectedColorTheme].paletteNames[
+                        paletteKey as keyof (typeof COLOR_THEMES)[ColorThemeId]["palettes"]
+                      ]
+                    }
+                  </p>
+                  <p className="mb-2 text-[10px] capitalize text-muted-foreground">
+                    {paletteKey}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {swatches.map((swatch) => (
+                      <span
+                        key={swatch.id}
+                        className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                        title={`${swatch.name} ${swatch.value}`}
+                      >
+                        <span
+                          className="h-4 w-4 rounded-full border border-black/10 shadow-sm"
+                          style={{ backgroundColor: swatch.value }}
+                        />
+                        {swatch.name}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )
+            )}
           </div>
           <p className="max-w-sm text-xs text-muted-foreground">
-            Apply updates Sunnie surfaces and every recognized palette color.
-            Custom colors stay unchanged.
+            Choosing a colorway updates Sunnie and every theme-linked color
+            immediately. Custom colors stay unchanged.
           </p>
           {colorThemeError && (
             <p className="text-xs font-medium text-destructive" role="alert">
               {colorThemeError}
             </p>
           )}
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void applyColorTheme()}
-            disabled={isApplyingColorTheme}
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${isApplyingColorTheme ? "animate-spin" : ""}`}
-            />
-            {isApplyingColorTheme ? "Applying…" : "Apply & refresh"}
-          </Button>
+          {isApplyingColorTheme && (
+            <p className="text-xs font-medium text-info" role="status">
+              Applying colorway…
+            </p>
+          )}
         </div>
       </SettingRow>
 

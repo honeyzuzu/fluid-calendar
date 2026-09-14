@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { HiCheck, HiExclamation, HiX } from "react-icons/hi";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +24,7 @@ import {
   newDate,
   newDateFromYMD,
 } from "@/lib/date-utils";
+import { getProjectDisplayColor } from "@/lib/project-colors";
 
 import { useProjectStore } from "@/store/project";
 
@@ -49,6 +51,7 @@ export function EditableCell({
   value,
   onSave,
 }: EditableCellProps) {
+  const { colorTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const editRef = useRef<HTMLDivElement>(null);
@@ -219,7 +222,10 @@ export function EditableCell({
                 <div
                   className="h-3 w-3 rounded-full"
                   style={{
-                    backgroundColor: task.project.color || "var(--muted)",
+                    backgroundColor: getProjectDisplayColor(
+                      task.project,
+                      colorTheme.id
+                    ),
                   }}
                 />
                 <span className="text-sm text-foreground">
@@ -443,7 +449,10 @@ export function EditableCell({
                   <div
                     className="h-3 w-3 rounded-full"
                     style={{
-                      backgroundColor: task.project.color || "var(--muted)",
+                      backgroundColor: getProjectDisplayColor(
+                        task.project,
+                        colorTheme.id
+                      ),
                     }}
                   />
                   <span>{task.project.name}</span>
@@ -460,7 +469,12 @@ export function EditableCell({
                 <div className="flex items-center gap-2">
                   <div
                     className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: project.color || "var(--muted)" }}
+                    style={{
+                      backgroundColor: getProjectDisplayColor(
+                        project,
+                        colorTheme.id
+                      ),
+                    }}
                   />
                   <span>{project.name}</span>
                 </div>

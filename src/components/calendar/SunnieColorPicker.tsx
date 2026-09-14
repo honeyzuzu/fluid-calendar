@@ -16,8 +16,9 @@ export { SUNNIE_PASTEL_COLORS } from "@/lib/calendar-colors";
 
 interface SunnieColorPickerProps {
   value?: string | null;
+  valueSlot?: string | null;
   fallbackColor?: string | null;
-  onChange: (color: string | null) => void;
+  onChange: (color: string | null, colorSlot: string | null) => void;
   allowDefault?: boolean;
   defaultLabel?: string;
   className?: string;
@@ -25,6 +26,7 @@ interface SunnieColorPickerProps {
 
 export function SunnieColorPicker({
   value,
+  valueSlot,
   fallbackColor,
   onChange,
   allowDefault = false,
@@ -37,9 +39,11 @@ export function SunnieColorPicker({
   const displayedColor = value || fallbackColor || eventColors[0].value;
   const [customColor, setCustomColor] = useState(displayedColor);
   const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
-  const isPreset = eventColors.some(
-    (color) => color.value.toLowerCase() === value?.toLowerCase()
-  );
+  const isPreset =
+    !!valueSlot ||
+    eventColors.some(
+      (color) => color.value.toLowerCase() === value?.toLowerCase()
+    );
   const presetValues = eventColors.map((color) => color.value);
 
   useEffect(() => {
@@ -81,7 +85,7 @@ export function SunnieColorPicker({
       }
       return nextColors;
     });
-    onChange(color);
+    onChange(color, null);
   };
 
   const previewCustomColor = (color: string) => {
@@ -102,31 +106,41 @@ export function SunnieColorPicker({
         className="rounded-2xl border border-black/[0.06] bg-white/65 p-3"
         aria-label="Event color presets"
       >
-        <p className="mb-3 text-xs leading-relaxed text-black/45">
-          Pick a mood for this event. Task urgency colors stay separate.
+        <p className="text-sm font-semibold text-foreground">
+          {colorTheme.paletteNames.events}
         </p>
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+          Event colors · pick a mood. Task colors stay separate.
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {eventColors.map((color) => {
-            const selected = color.value.toLowerCase() === value?.toLowerCase();
+            const selected = valueSlot
+              ? color.id === valueSlot
+              : color.value.toLowerCase() === value?.toLowerCase();
 
             return (
               <button
                 key={color.id}
                 type="button"
-                onClick={() => onChange(color.value)}
+                onClick={() => onChange(color.value, color.id)}
                 className={cn(
-                  "flex aspect-square min-h-9 items-center justify-center rounded-xl border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
+                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-black/10 px-1 py-2 text-[10px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
                   selected &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-card"
                 )}
-                style={{ backgroundColor: color.value }}
                 title={color.name}
                 aria-label={color.name}
                 aria-pressed={selected}
               >
-                {selected && (
-                  <Check className="h-4 w-4 text-white drop-shadow-sm" />
-                )}
+                <span
+                  className="grid h-7 w-7 place-items-center rounded-full border border-black/10"
+                  style={{ backgroundColor: color.value }}
+                >
+                  {selected && (
+                    <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                  )}
+                </span>
+                <span className="text-foreground">{color.name}</span>
               </button>
             );
           })}
@@ -146,7 +160,7 @@ export function SunnieColorPicker({
                 <button
                   key={color}
                   type="button"
-                  onClick={() => onChange(color)}
+                  onClick={() => onChange(color, null)}
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                     selected ? "border-foreground/70" : "border-background"
@@ -204,7 +218,7 @@ export function SunnieColorPicker({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onChange(null)}
+            onClick={() => onChange(null, null)}
             disabled={!value}
           >
             {defaultLabel}

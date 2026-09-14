@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.userId;
 
-    const { feedId, ...eventData } = await request.json();
+    const { feedId, color, colorSlot, ...eventData } = await request.json();
 
     // Check if the feed belongs to the current user
     const feed = await prisma.calendarFeed.findUnique({
@@ -93,7 +93,12 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to find created event after sync");
     }
 
-    return NextResponse.json(createdEvent);
+    const coloredEvent = await prisma.calendarEvent.update({
+      where: { id: createdEvent.id },
+      data: { color: color || null, colorSlot: colorSlot || null },
+    });
+
+    return NextResponse.json(coloredEvent);
   } catch (error) {
     logger.error(
       "Failed to create Outlook calendar event:",
@@ -119,7 +124,8 @@ export async function PUT(request: NextRequest) {
 
     const userId = auth.userId;
 
-    const { eventId, mode, ...updates } = await request.json();
+    const { eventId, mode, color, colorSlot, ...updates } =
+      await request.json();
     if (!eventId) {
       return NextResponse.json({ error: "Event ID required" }, { status: 400 });
     }
@@ -176,8 +182,24 @@ export async function PUT(request: NextRequest) {
       validatedEvent.feed.syncToken
     );
 
+    await prisma.calendarEvent.updateMany({
+      where: {
+        feedId: validatedEvent.feed.id,
+        OR: [
+          { externalEventId: outlookEvent.id },
+          ...(mode === "series" ? [{ recurringEventId: outlookEvent.id }] : []),
+        ],
+      },
+      data: {
+        color: color !== undefined ? color : validatedEvent.color,
+        colorSlot:
+          colorSlot !== undefined ? colorSlot : validatedEvent.colorSlot,
+      },
+    });
+
     const record = await prisma.calendarEvent.findFirst({
       where: {
+        feedId: validatedEvent.feed.id,
         externalEventId: outlookEvent.id,
       },
     });

@@ -26,7 +26,8 @@ export function getCalendarEventChangeKind(
     !sameOptionalText(original.recurrenceRule, update.recurrenceRule);
   const colorChanged =
     (original.color || null)?.toLowerCase() !==
-    (update.color || null)?.toLowerCase();
+      (update.color || null)?.toLowerCase() ||
+    (original.colorSlot || null) !== (update.colorSlot || null);
 
   return { contentChanged, colorChanged };
 }

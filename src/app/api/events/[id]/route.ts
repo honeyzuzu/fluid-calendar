@@ -91,7 +91,10 @@ export async function PATCH(
       );
     }
 
-    const body = (await request.json()) as { color?: unknown };
+    const body = (await request.json()) as {
+      color?: unknown;
+      colorSlot?: unknown;
+    };
     if (
       !("color" in body) ||
       (body.color !== null &&
@@ -103,9 +106,26 @@ export async function PATCH(
         { status: 400 }
       );
     }
+    if (
+      body.colorSlot !== undefined &&
+      body.colorSlot !== null &&
+      (typeof body.colorSlot !== "string" ||
+        !/^event-[1-8]$/.test(body.colorSlot))
+    ) {
+      return NextResponse.json(
+        { error: "Choose a valid event palette color" },
+        { status: 400 }
+      );
+    }
     const updated = await prisma.calendarEvent.update({
       where: { id },
-      data: { color: body.color },
+      data: {
+        color: body.color,
+        colorSlot:
+          body.colorSlot === undefined
+            ? undefined
+            : (body.colorSlot as string | null),
+      },
     });
 
     return NextResponse.json(updated);

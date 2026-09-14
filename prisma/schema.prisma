@@ -171,6 +171,7 @@ model CalendarFeed {
   url               String? // Optional for local calendars
   type              String // "LOCAL", "GOOGLE", "OUTLOOK", "CALDAV"
   color             String? // Add back color field
+  colorSlot         String? // Theme-linked event palette slot; null means color is custom
   enabled           Boolean           @default(true)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -203,6 +204,7 @@ model CalendarEvent {
   end             DateTime
   location        String?
   color           String? // Optional Sunnie-only override; falls back to the feed color
+  colorSlot       String? // Theme-linked event palette slot; null means color is custom/inherited
   isRecurring     Boolean      @default(false)
   recurrenceRule  String?
   allDay          Boolean      @default(false)
@@ -234,6 +236,7 @@ model Project {
   name             String
   description      String?
   color            String?
+  colorSlot        String? // Theme-linked project palette slot; null means color is custom
   status           String            @default("active") // enum: 'active', 'archived'
   tasks            Task[]
   taskListMappings TaskListMapping[]

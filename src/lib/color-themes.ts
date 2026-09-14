@@ -48,6 +48,12 @@ export type ThemeLinkedPaletteName =
   | "projects"
   | "tasks"
   | "friends";
+export type ColorThemeMotifId =
+  | "sprout"
+  | "flower"
+  | "sun"
+  | "autumn-leaf"
+  | "snowflake";
 
 export type ColorThemeSwatch = {
   id: string;
@@ -59,6 +65,11 @@ export type ColorTheme = {
   id: ColorThemeId;
   name: string;
   description: string;
+  motif: {
+    intentionIcon: ColorThemeMotifId;
+    intentionLabel: string;
+  };
+  paletteNames: Record<ColorThemePaletteName, string>;
   core: Record<ColorThemeCoreRole, string>;
   palettes: {
     events: readonly ColorThemeSwatch[];
@@ -73,6 +84,14 @@ export const BASE_COLOR_THEME: ColorTheme = {
   id: "base",
   name: "Sunnie Base",
   description: "The original warm cream, sunshine, and garden colorway.",
+  motif: { intentionIcon: "sprout", intentionLabel: "Growing intention" },
+  paletteNames: {
+    events: "Open Skies",
+    projects: "Sunny Garden",
+    tasks: "Soft Daydreams",
+    friends: "Friendship Pastels",
+    statuses: "Sunnie Signals",
+  },
   core: {
     canvas: "#FFF9E8",
     surface: "#FFFDF5",
@@ -138,21 +157,32 @@ export const AUTUMN_GOLDEN_HOUR_THEME: ColorTheme = {
   name: "Autumn — Golden Hour",
   description:
     "A cozy autumn afternoon moving from the apple orchard to warm drinks by the fire.",
+  motif: {
+    intentionIcon: "autumn-leaf",
+    intentionLabel: "Falling-leaf intention",
+  },
+  paletteNames: {
+    events: "Apple Picking",
+    projects: "Pumpkin Patch",
+    tasks: "Falling Leaves",
+    friends: "Fireside Chats",
+    statuses: "Autumn Signals",
+  },
   core: {
-    canvas: "#F6F0E4",
-    surface: "#FCF8F0",
-    surfaceRaised: "#FFF9EF",
-    surfaceMuted: "#E5E2D3",
-    ink: "#40372F",
-    inkSoft: "#625E4D",
-    inkMuted: "#82786D",
-    border: "#D9CDBD",
-    primary: "#59634B",
-    onPrimary: "#FFF9EF",
-    accent: "#E5B85C",
-    onAccent: "#5A421E",
-    warmGlow: "#E8A34D",
-    coolGlow: "#91A1A5",
+    canvas: "#F3E3CE",
+    surface: "#FAEEDC",
+    surfaceRaised: "#FFF6E8",
+    surfaceMuted: "#DDD4BC",
+    ink: "#49362D",
+    inkSoft: "#705447",
+    inkMuted: "#8D7565",
+    border: "#D9C1A7",
+    primary: "#874F3F",
+    onPrimary: "#FFF8EE",
+    accent: "#D58A45",
+    onAccent: "#553426",
+    warmGlow: "#D57942",
+    coolGlow: "#A7A078",
   },
   palettes: {
     events: [
@@ -203,21 +233,29 @@ export const SPRING_FRESH_AIR_THEME: ColorTheme = {
   name: "Spring — Fresh Air",
   description:
     "Open windows, rainy mornings, tiny flowers, garden greens, and soft sunlight.",
+  motif: { intentionIcon: "flower", intentionLabel: "First-bloom intention" },
+  paletteNames: {
+    events: "April Showers",
+    projects: "Garden Party",
+    tasks: "First Bloom",
+    friends: "Picnic Basket",
+    statuses: "Spring Signals",
+  },
   core: {
-    canvas: "#F7F6EB",
-    surface: "#FCFBF5",
-    surfaceRaised: "#FFFDF8",
-    surfaceMuted: "#E6EBDD",
-    ink: "#3D4438",
-    inkSoft: "#5D6858",
-    inkMuted: "#7B8378",
-    border: "#DCE1D3",
-    primary: "#647A59",
-    onPrimary: "#FBFAF3",
-    accent: "#F0CF72",
-    onAccent: "#5B5129",
-    warmGlow: "#F1B77D",
-    coolGlow: "#A9D2CE",
+    canvas: "#F8EDEF",
+    surface: "#FFF7F5",
+    surfaceRaised: "#FFFDFC",
+    surfaceMuted: "#E4EBD8",
+    ink: "#443C46",
+    inkSoft: "#6D5E69",
+    inkMuted: "#8B7B84",
+    border: "#E5D2D5",
+    primary: "#9B7190",
+    onPrimary: "#FFF8FA",
+    accent: "#DCA7B1",
+    onAccent: "#563B47",
+    warmGlow: "#F2C4A3",
+    coolGlow: "#B7CFA9",
   },
   palettes: {
     events: [
@@ -268,21 +306,29 @@ export const SUMMER_SUN_KISSED_THEME: ColorTheme = {
   name: "Summer — Sun-Kissed",
   description:
     "Long sunny days filled with fruit stands, salty air, flowers, and cold drinks.",
+  motif: { intentionIcon: "sun", intentionLabel: "Sunlit intention" },
+  paletteNames: {
+    events: "Strawberry Picking",
+    projects: "Farmers Market",
+    tasks: "Seaside Holiday",
+    friends: "Summer in Bloom",
+    statuses: "Summer Signals",
+  },
   core: {
-    canvas: "#FBF5E7",
-    surface: "#FFF9EE",
-    surfaceRaised: "#FFFCF5",
-    surfaceMuted: "#E7E8D4",
-    ink: "#41453A",
-    inkSoft: "#626B56",
-    inkMuted: "#7F8170",
-    border: "#E2D9C2",
-    primary: "#56877F",
-    onPrimary: "#FFF9EE",
-    accent: "#F2C85E",
-    onAccent: "#5B4C20",
-    warmGlow: "#F2A36F",
-    coolGlow: "#8FCAC8",
+    canvas: "#FFF3D2",
+    surface: "#FFF9E7",
+    surfaceRaised: "#FFFFF4",
+    surfaceMuted: "#DDE9D9",
+    ink: "#394C4B",
+    inkSoft: "#56706C",
+    inkMuted: "#778983",
+    border: "#E5D7AF",
+    primary: "#438B91",
+    onPrimary: "#F8FFFF",
+    accent: "#F0C95A",
+    onAccent: "#594B1F",
+    warmGlow: "#F4A866",
+    coolGlow: "#7DC7C4",
   },
   palettes: {
     events: [
@@ -333,21 +379,29 @@ export const WINTER_CANDLELIGHT_SNOW_THEME: ColorTheme = {
   name: "Winter — Candlelight & Snow",
   description:
     "Fresh snowfall and evergreen branches followed by rosy twilight and hot drinks.",
+  motif: { intentionIcon: "snowflake", intentionLabel: "Snowflake intention" },
+  paletteNames: {
+    events: "Snow Day",
+    projects: "Gingerbread House",
+    tasks: "Sugar Plum",
+    friends: "Hot Cocoa",
+    statuses: "Winter Signals",
+  },
   core: {
-    canvas: "#F5F3EC",
-    surface: "#FBFAF6",
-    surfaceRaised: "#FFFEFA",
-    surfaceMuted: "#E2E5DF",
-    ink: "#343E39",
-    inkSoft: "#56615C",
-    inkMuted: "#777F7C",
-    border: "#D7DBD7",
-    primary: "#4F6659",
-    onPrimary: "#FBFAF6",
-    accent: "#D9A5A2",
-    onAccent: "#613F42",
-    warmGlow: "#E6B66C",
-    coolGlow: "#A9C6CF",
+    canvas: "#E9EDF3",
+    surface: "#F5F4F6",
+    surfaceRaised: "#FBF9FA",
+    surfaceMuted: "#D9DFE7",
+    ink: "#303746",
+    inkSoft: "#566071",
+    inkMuted: "#788292",
+    border: "#CCD4DF",
+    primary: "#526582",
+    onPrimary: "#F8FAFF",
+    accent: "#A99BC5",
+    onAccent: "#39324B",
+    warmGlow: "#D8A4A2",
+    coolGlow: "#91ABC7",
   },
   palettes: {
     events: [
@@ -409,6 +463,16 @@ export function getColorTheme(value: unknown): ColorTheme {
   return isColorThemeId(value) ? COLOR_THEMES[value] : BASE_COLOR_THEME;
 }
 
+export function getAccessibleControlForeground(
+  preferred: string,
+  background: string
+) {
+  if (hasReadableContrast(preferred, background)) return preferred;
+  const darkFallback = "#111111";
+  if (hasReadableContrast(darkFallback, background)) return darkFallback;
+  return "#FFFCF5";
+}
+
 const LEGACY_THEME_COLOR_SLOTS: Partial<
   Record<ThemeLinkedPaletteName, Record<string, string>>
 > = {
@@ -457,6 +521,65 @@ export function mapThemeLinkedColor(
   );
 }
 
+export function getThemeColorSlot(
+  paletteName: ThemeLinkedPaletteName,
+  color: string | null | undefined
+) {
+  if (!color) return null;
+  const normalizedColor = color.toUpperCase();
+  const legacySlot = LEGACY_THEME_COLOR_SLOTS[paletteName]?.[normalizedColor];
+  if (legacySlot) return legacySlot;
+
+  for (const theme of Object.values(COLOR_THEMES)) {
+    const swatch = theme.palettes[paletteName].find(
+      (candidate) => candidate.value.toUpperCase() === normalizedColor
+    );
+    if (swatch) return swatch.id;
+  }
+  return null;
+}
+
+export function getStableThemeColorSlot(
+  paletteName: ThemeLinkedPaletteName,
+  identity: string
+) {
+  const paletteSize = COLOR_THEME_PALETTE_SIZES[paletteName];
+  const hash = [...identity].reduce(
+    (total, character) => (total * 31 + character.charCodeAt(0)) >>> 0,
+    0
+  );
+  const prefix =
+    paletteName === "friends" ? "friend" : paletteName.slice(0, -1);
+  return `${prefix}-${(hash % paletteSize) + 1}`;
+}
+
+export function isThemeColorSlot(
+  paletteName: ThemeLinkedPaletteName,
+  value: unknown
+) {
+  return (
+    typeof value === "string" &&
+    COLOR_THEMES.base.palettes[paletteName].some(
+      (swatch) => swatch.id === value
+    )
+  );
+}
+
+export function resolveThemeLinkedColor(
+  paletteName: ThemeLinkedPaletteName,
+  colorSlot: string | null | undefined,
+  customColor: string | null | undefined,
+  themeId: ColorThemeId
+) {
+  if (colorSlot) {
+    const linked = COLOR_THEMES[themeId].palettes[paletteName].find(
+      (swatch) => swatch.id === colorSlot
+    );
+    if (linked) return linked.value;
+  }
+  return customColor || COLOR_THEMES[themeId].palettes[paletteName][0].value;
+}
+
 function hexToHslChannels(hex: string) {
   const normalized = hex.replace("#", "");
   const red = Number.parseInt(normalized.slice(0, 2), 16) / 255;
@@ -497,18 +620,14 @@ export function getColorThemeCssVariables(
       ],
     ])
   );
-  const primaryForeground = hasReadableContrast(
+  const primaryForeground = getAccessibleControlForeground(
     theme.core.onPrimary,
     theme.core.primary
-  )
-    ? theme.core.onPrimary
-    : getReadableTextColor(theme.core.primary);
-  const accentForeground = hasReadableContrast(
+  );
+  const accentForeground = getAccessibleControlForeground(
     theme.core.onAccent,
     theme.core.accent
-  )
-    ? theme.core.onAccent
-    : getReadableTextColor(theme.core.accent);
+  );
 
   return {
     "--background": hexToHslChannels(theme.core.canvas),
@@ -535,6 +654,12 @@ export function getColorThemeCssVariables(
     "--warning-foreground": hexToHslChannels(
       getReadableTextColor(status.warning)
     ),
+    "--success": hexToHslChannels(status.success),
+    "--success-foreground": hexToHslChannels(
+      getReadableTextColor(status.success)
+    ),
+    "--info": hexToHslChannels(status.info),
+    "--info-foreground": hexToHslChannels(getReadableTextColor(status.info)),
     "--border": hexToHslChannels(theme.core.border),
     "--input": hexToHslChannels(theme.core.border),
     "--ring": hexToHslChannels(theme.core.primary),
@@ -557,6 +682,10 @@ export function getColorThemeCssVariables(
     "--sunnie-on-accent": theme.core.onAccent,
     "--sunnie-warm-glow": theme.core.warmGlow,
     "--sunnie-cool-glow": theme.core.coolGlow,
+    "--sunnie-status-success": status.success,
+    "--sunnie-status-warning": status.warning,
+    "--sunnie-status-danger": status.danger,
+    "--sunnie-status-info": status.info,
     ...taskVariables,
   } satisfies Record<string, string>;
 }

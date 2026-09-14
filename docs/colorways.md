@@ -5,8 +5,8 @@ Last reviewed: 2026-09-14.
 Sunnie has five planner colorways: the existing **Sunnie Base** plus four
 owner-supplied seasonal themes: **Spring — Fresh Air**, **Summer — Sun-Kissed**,
 **Autumn — Golden Hour**, and **Winter — Candlelight & Snow**. Each theme uses
-the same stable roles and palette-slot IDs so changing themes can eventually
-recolor every theme-linked item without changing what that item means.
+the same stable roles and palette-slot IDs, so changing themes immediately
+recolors every theme-linked item without changing what that item means.
 
 ## Exact color count
 
@@ -25,6 +25,32 @@ Each theme needs exactly **44 hex colors**:
 The four seasonal themes supply **176 new hex values**. Together with Sunnie
 Base, the completed collection contains **220 coordinated colors**.
 
+## Available theme: Sunnie Base
+
+**Mood:** Sunnie's original warm cream, sunny yellow, leafy green, peach, and
+soft pastel planner identity.
+
+Its coordinated story is Sunnie Base for the interface, Open Skies for events,
+Sunny Garden for projects, Soft Daydreams for tasks, and Friendship Pastels for
+friends. Its semantic status collection is called Sunnie Signals, and its
+intention motif is a sprout.
+
+## Seasonal interface worlds
+
+The seasonal themes deliberately change the atmosphere of the whole planner,
+not only its item palettes. Their interface identities and intention motifs are:
+
+| Theme  | Interface world                | Primary   | Accent    | Intention motif |
+| ------ | ------------------------------ | --------- | --------- | --------------- |
+| Spring | Blush and lilac garden         | `#9B7190` | `#DCA7B1` | Flower          |
+| Summer | Butter and aqua seaside        | `#438B91` | `#F0C95A` | Sun             |
+| Autumn | Parchment, apple, and pumpkin  | `#874F3F` | `#D58A45` | Falling leaf    |
+| Winter | Icy lavender and midnight blue | `#526582` | `#A99BC5` | Snowflake       |
+
+The canvas/surface families are blush for Spring, buttery cream for Summer,
+parchment and oat for Autumn, and cool blue-gray/lavender for Winter. Warm and
+cool glows reinforce each environment throughout theme-aware hero surfaces.
+
 ## Available theme: Autumn — Golden Hour
 
 **Mood:** A cozy autumn afternoon moving from the apple orchard to the pumpkin
@@ -35,9 +61,11 @@ events, Pumpkin Patch for projects, Falling Leaves for tasks, and Fireside
 Chats for friends. The exact 44 names and hexes are registered under the stable
 slots in `src/lib/color-themes.ts`.
 
-The supplied primary/on-primary and accent/on-accent pairs pass WCAG AA normal
-text contrast. Weathered Taupe is preserved for decorative muted details, while
-small muted labels use the darker Olive Bark role for reliable readability.
+Its intention cards and reminders use a falling-leaf motif.
+
+The supplied primary/on-primary pair passes WCAG AA normal-text contrast. The
+pumpkin accent keeps its supplied dark companion for decorative and large text;
+small accent controls automatically use Sunnie's accessible near-black fallback.
 
 ## Available theme: Spring — Fresh Air
 
@@ -49,9 +77,11 @@ Garden Party for projects, First Bloom for tasks, and Picnic Basket for friends.
 The exact 44 names and hexes are registered under the stable slots in
 `src/lib/color-themes.ts`.
 
-Matcha Leaf with the supplied Petal White measures 4.49:1, just below the 4.5:1
-normal-text target. Both supplied colors remain intact; small primary controls
-automatically use Sunnie's nearly identical accessible warm-white fallback.
+Its intention cards and reminders use a first-flower motif.
+
+Dusty Mauve with the supplied pale foreground measures 3.89:1. Both supplied
+colors remain intact; small primary controls automatically use an accessible
+near-black fallback.
 
 ## Available theme: Summer — Sun-Kissed
 
@@ -63,9 +93,11 @@ events, Farmers Market for projects, Seaside Holiday for tasks, and Summer in
 Bloom for friends. The exact 44 names and hexes are registered under the stable
 slots in `src/lib/color-themes.ts`.
 
-Sea Glass with Coconut Cream measures 3.88:1, so small primary controls use the
-automatic accessible dark-text fallback while both supplied colors remain
-available unchanged.
+Its intention cards and reminders use a sun motif.
+
+Sea Glass Turquoise with the supplied pale foreground measures 3.88:1, so small
+primary controls use the automatic accessible near-black fallback while both
+supplied colors remain available unchanged.
 
 ## Available theme: Winter — Candlelight & Snow
 
@@ -77,9 +109,10 @@ events, Gingerbread House for projects, Sugar Plum for tasks, and Hot Cocoa for
 friends. The exact 44 names and hexes are registered under the stable slots in
 `src/lib/color-themes.ts`.
 
-Cranberry Cream with Mulled Berry measures 4.29:1, so small accent controls use
-the automatic accessible dark-text fallback while both supplied colors remain
-available unchanged.
+Its intention cards and reminders use a snowflake motif.
+
+The supplied slate-blue primary and lavender accent foreground pairs pass WCAG
+AA normal-text contrast.
 
 ## Why these counts
 
@@ -189,19 +222,27 @@ be contrast-checked before a theme is made available.
 
 ## Theme-linked colors versus custom colors
 
-Palette slots are stable identities. When **Apply & refresh** is used, Sunnie
-recognizes palette colors from any of its themes, maps them to the equivalent
-slot in the chosen theme, and then reloads the interface. For example, an event
-using the Base `event-3` color receives the new theme's `event-3` hex. A custom
-hex is intentionally fixed and does not change.
+Palette slots are stable identities. Choosing a colorway in Settings saves it
+immediately and updates the interface without a page reload. For example, an
+event using `event-3` displays the active theme's `event-3` hex. A custom hex is
+intentionally fixed and does not change.
 
 The theme registry and global CSS-variable application are now centralized in
 `src/lib/color-themes.ts`. The database stores the selected planner colorway on
-`UserSettings.colorTheme`. Recognized feed, event, and project colors are
-remapped inside Sunnie's database without editing external provider events;
-friend colors are remapped in browser storage. Scheduled tasks derive a stable
-aesthetic slot from their ID. Explicit palette-slot database fields remain a
-possible later hardening step rather than a prerequisite for theme switching.
+`UserSettings.colorTheme`. `CalendarFeed`, `CalendarEvent`, and `Project` store
+explicit palette-slot identities separately from custom hexes. Friend slot IDs
+remain browser-local, and scheduled tasks derive a stable aesthetic slot from
+their ID. Provider feeds receive a stable event slot automatically, while an
+explicit custom feed, event, or project color clears the link and stays fixed.
+Google, CalDAV, and Outlook refreshes preserve Sunnie-only event color slots and
+custom overrides without editing the provider event.
+
+Settings and the event, feed, project, and friend pickers show both the
+collection name and each swatch name. The seasonal collection names are April
+Showers / Garden Party / First Bloom / Picnic Basket for Spring; Strawberry
+Picking / Farmers Market / Seaside Holiday / Summer in Bloom for Summer; Apple
+Picking / Pumpkin Patch / Falling Leaves / Fireside Chats for Autumn; and Snow
+Day / Gingerbread House / Sugar Plum / Hot Cocoa for Winter.
 
 ## Calendar visual direction
 

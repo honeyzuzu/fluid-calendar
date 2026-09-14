@@ -1,10 +1,37 @@
 import {
   SUNNIE_EVENT_COLOR_GROUPS,
   SUNNIE_PASTEL_COLORS,
+  getCalendarDisplayColor,
 } from "@/lib/calendar-colors";
 import { BASE_COLOR_THEME } from "@/lib/color-themes";
 
 describe("calendar event colors", () => {
+  it("resolves feed and custom event colors correctly", () => {
+    const feeds = [
+      {
+        id: "feed-1",
+        name: "Calendar",
+        type: "GOOGLE" as const,
+        enabled: true,
+        color: "#9BC7D9",
+        colorSlot: "event-1",
+      },
+    ];
+    expect(
+      getCalendarDisplayColor(
+        { feedId: "feed-1", color: null, colorSlot: null },
+        feeds,
+        "autumn-golden-hour"
+      )
+    ).toBe("#8FA05A");
+    expect(
+      getCalendarDisplayColor(
+        { feedId: "feed-1", color: "#123456", colorSlot: null },
+        feeds,
+        "autumn-golden-hour"
+      )
+    ).toBe("#123456");
+  });
   it("keeps every preset visually distinct from aesthetic task colors", () => {
     const taskColors = new Set(
       BASE_COLOR_THEME.palettes.tasks.map((color) => color.value.toUpperCase())

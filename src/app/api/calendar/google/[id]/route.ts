@@ -10,6 +10,7 @@ const LOG_SOURCE = "GoogleCalendarIdAPI";
 interface UpdateRequest {
   enabled?: boolean;
   color?: string;
+  colorSlot?: string | null;
 }
 
 // Update a Google Calendar feed
@@ -49,6 +50,7 @@ export async function PATCH(
       data: {
         enabled: updates.enabled,
         color: updates.color,
+        colorSlot: updates.colorSlot,
       },
     });
 

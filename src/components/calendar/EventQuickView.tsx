@@ -12,6 +12,7 @@ import {
   IoTimeOutline,
 } from "react-icons/io5";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import {
   Popover,
   PopoverContent,
@@ -20,6 +21,7 @@ import {
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
 import { format, isFutureDate, newDate } from "@/lib/date-utils";
+import { getProjectDisplayColor } from "@/lib/project-colors";
 import { isTaskOverdue } from "@/lib/task-utils";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +42,13 @@ interface EventQuickViewProps {
         attendees?: Attendee[];
         extendedProps?: { isTask?: boolean };
       })
-    | (Task & { project?: { name: string; color?: string | null } | null });
+    | (Task & {
+        project?: {
+          name: string;
+          color?: string | null;
+          colorSlot?: string | null;
+        } | null;
+      });
   onEdit: () => void;
   onDelete: () => void | Promise<void>;
   isTask: boolean;
@@ -66,6 +74,7 @@ export function EventQuickView({
   onStatusChange,
   referenceElement,
 }: EventQuickViewProps) {
+  const { colorTheme } = useTheme();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const getStatusColor = (status: string | undefined) => {
     switch (status?.toUpperCase()) {
@@ -334,10 +343,14 @@ export function EventQuickView({
                     <span
                       className="rounded px-2 py-0.5 text-xs"
                       style={{
-                        backgroundColor:
-                          (taskItem.project.color || "hsl(var(--primary))") +
-                          "20",
-                        color: taskItem.project.color || "hsl(var(--primary))",
+                        backgroundColor: `${getProjectDisplayColor(
+                          taskItem.project,
+                          colorTheme.id
+                        )}20`,
+                        color: getProjectDisplayColor(
+                          taskItem.project,
+                          colorTheme.id
+                        ),
                       }}
                     >
                       {taskItem.project.name}

@@ -508,18 +508,23 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: "calendar-settings",
-      partialize: (state) => ({
-        ...state,
-        system: {
-          ...state.system,
-          googleClientId: undefined,
-          googleClientSecret: undefined,
-          outlookClientId: undefined,
-          outlookClientSecret: undefined,
-          outlookTenantId: undefined,
-          resendApiKey: undefined,
-        },
-      }),
+      partialize: (state) => {
+        const { colorTheme: _colorTheme, ...persistedUser } = state.user;
+        void _colorTheme;
+        return {
+          ...state,
+          user: persistedUser,
+          system: {
+            ...state.system,
+            googleClientId: undefined,
+            googleClientSecret: undefined,
+            outlookClientId: undefined,
+            outlookClientSecret: undefined,
+            outlookTenantId: undefined,
+            resendApiKey: undefined,
+          },
+        };
+      },
       merge: (persisted, current) => {
         const saved = persisted as Partial<SettingsStore>;
         return {

@@ -20,7 +20,6 @@ import {
   Clock3,
   Dices,
   Gauge,
-  Leaf,
   Loader2,
   MoonStar,
   Pencil,
@@ -38,7 +37,9 @@ import {
   type UnwindTaskAction,
 } from "@/components/planning/DailyRhythm";
 import { WeeklyReview } from "@/components/planning/WeeklyReview";
+import { getThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 
+import { getColorTheme, resolveThemeLinkedColor } from "@/lib/color-themes";
 import {
   type DailyCapacitySettings,
   calculateDailyCapacity,
@@ -51,6 +52,8 @@ import {
   randomIntentionQuote,
 } from "@/lib/daily-intention";
 import { cn } from "@/lib/utils";
+
+import { useSettingsStore } from "@/store/settings";
 
 type TaskRecord = {
   id: string;
@@ -79,7 +82,14 @@ type EventRecord = {
   status?: string | null;
   externalEventId?: string | null;
   feedId?: string | null;
-  feed?: { name: string; color: string | null; enabled?: boolean };
+  color?: string | null;
+  colorSlot?: string | null;
+  feed?: {
+    name: string;
+    color: string | null;
+    colorSlot?: string | null;
+    enabled?: boolean;
+  };
 };
 
 type CalendarSettingsRecord = {
@@ -166,6 +176,12 @@ async function expectJson<T>(response: Response): Promise<T> {
 }
 
 export default function PlanPage() {
+  const plannerColorTheme = getColorTheme(
+    useSettingsStore((state) => state.user.colorTheme)
+  );
+  const IntentionIcon = getThemeMotifIcon(
+    plannerColorTheme.motif.intentionIcon
+  );
   const [view, setView] = useState<"today" | "week" | "review">("today");
   const [ritual, setRitual] = useState<"rise" | "unwind" | null>(null);
   const [requestedRitual, setRequestedRitual] = useState<
@@ -422,10 +438,10 @@ export default function PlanPage() {
   );
   const capacityColor =
     capacity.state === "over"
-      ? "bg-[#d96f55]"
+      ? "bg-destructive"
       : capacity.state === "near"
-        ? "bg-[#e4a63f]"
-        : "bg-[#7f9b5d]";
+        ? "bg-warning"
+        : "bg-success";
   const capacityMessage =
     capacity.state === "unavailable"
       ? "This day is outside your configured work hours, so Sunnie is leaving it open-ended."
@@ -444,7 +460,7 @@ export default function PlanPage() {
         ? "Your direction is clear"
         : "Choose a gentle direction",
       complete: Boolean(plan?.intention?.trim()),
-      icon: Leaf,
+      icon: IntentionIcon,
       target: "intention-card",
     },
     {
@@ -762,9 +778,9 @@ export default function PlanPage() {
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
-        <header className="relative mb-6 overflow-hidden rounded-[2rem] border border-[#ead7a5] bg-gradient-to-br from-[#fff7d6] via-[#ffe7b5] to-[#f4c783] p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7">
+        <header className="sunnie-plan-hero relative mb-6 overflow-hidden rounded-[2rem] border border-border p-5 shadow-[0_18px_45px_rgba(139,105,45,0.12)] sm:p-7">
           <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border-[28px] border-white/20" />
-          <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[#f39b72]/15 blur-2xl" />
+          <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[color:var(--sunnie-warm-glow)] opacity-15 blur-2xl" />
           <div className="relative flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
             <div className="min-w-0 max-w-2xl">
               <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#a95736]">
@@ -772,7 +788,7 @@ export default function PlanPage() {
                   <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
                 </span>
               </div>
-              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-[#42381f] sm:text-5xl">
+              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-5xl">
                 {view === "today"
                   ? "Shape a day that feels like yours."
                   : view === "week"
@@ -780,7 +796,7 @@ export default function PlanPage() {
                     : "Look back kindly, then begin again."}
               </h1>
               {view !== "review" && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#6f6040]">
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-secondary-foreground">
                   <span className="rounded-full bg-white/60 px-3 py-1.5 font-medium">
                     {selectedDate.toLocaleDateString(undefined, {
                       weekday: "long",
@@ -806,7 +822,7 @@ export default function PlanPage() {
                   </button>
                   <button
                     onClick={() => setSelectedDate(new Date())}
-                    className="rounded-xl px-4 py-2 text-sm font-semibold text-[#5c5135] transition hover:bg-white/70"
+                    className="rounded-xl px-4 py-2 text-sm font-semibold text-secondary-foreground transition hover:bg-card/70"
                   >
                     Today
                   </button>
@@ -839,7 +855,7 @@ export default function PlanPage() {
                 <button
                   onClick={() => void autoSchedule("week")}
                   disabled={scheduling !== null}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#586e40] disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm transition hover:brightness-95 disabled:opacity-50"
                 >
                   {scheduling === "week" ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -855,7 +871,7 @@ export default function PlanPage() {
 
         <nav
           aria-label="Planning views"
-          className="mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-[#dfe3c7] bg-white/65 p-1.5 shadow-sm sm:mx-auto sm:max-w-lg"
+          className="mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card/65 p-1.5 shadow-sm sm:mx-auto sm:max-w-lg"
         >
           {(
             [
@@ -888,20 +904,20 @@ export default function PlanPage() {
 
         {loading ? (
           <div className="grid min-h-[420px] place-items-center">
-            <Loader2 className="h-7 w-7 animate-spin text-[#d0902f]" />
+            <Loader2 className="h-7 w-7 animate-spin text-primary" />
           </div>
         ) : (
           <div className="flex flex-col gap-5">
             <section
               className={cn(
-                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#dfe3c7] bg-white/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm",
+                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[0_12px_35px_rgba(80,86,55,0.07)] backdrop-blur-sm",
                 view !== "today" && "hidden"
               )}
             >
               <div className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 max-w-xl">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#758456]">
-                    <Leaf className="h-4 w-4" /> Your daily landing pad
+                    <IntentionIcon className="h-4 w-4" /> Your daily landing pad
                   </div>
                   <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">
                     A gentle rhythm for the day.
@@ -951,8 +967,8 @@ export default function PlanPage() {
                         className={cn(
                           "grid h-9 w-9 shrink-0 place-items-center rounded-2xl",
                           step.complete
-                            ? "bg-[#7f9b5d] text-white"
-                            : "bg-white/80 text-[#7a805f]"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-card/80 text-muted-foreground"
                         )}
                       >
                         {step.complete ? (
@@ -1160,7 +1176,7 @@ export default function PlanPage() {
             >
               <section
                 data-plan-section="today-list"
-                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-[#e0d8c3] bg-white/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]"
+                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[0_12px_30px_rgba(81,70,46,0.07)]"
               >
                 <div className="border-b border-black/[0.055] p-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c26343]">
@@ -1177,11 +1193,11 @@ export default function PlanPage() {
                       value={newTaskTitle}
                       onChange={(event) => setNewTaskTitle(event.target.value)}
                       placeholder="Add a task for today"
-                      className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-[#d0902f]"
+                      className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                     <button
                       disabled={saving || !newTaskTitle.trim()}
-                      className="grid h-10 w-10 place-items-center rounded-xl bg-[#e9ae43] text-[#493916] shadow-[0_3px_0_#c88d2b] disabled:opacity-40"
+                      className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground shadow-sm disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -1208,7 +1224,7 @@ export default function PlanPage() {
                                   : "completed",
                             })
                           }
-                          className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border ${task.status === "completed" ? "border-[#84a75e] bg-[#84a75e] text-white" : "border-black/20"}`}
+                          className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border ${task.status === "completed" ? "border-success bg-success text-success-foreground" : "border-border"}`}
                         >
                           {task.status === "completed" && (
                             <Check className="h-3 w-3" />
@@ -1340,7 +1356,14 @@ export default function PlanPage() {
                       start: event.start,
                       end: event.end,
                       type: event.feed?.name ?? "Calendar",
-                      color: event.feed?.color ?? "#d9cdf2",
+                      color: resolveThemeLinkedColor(
+                        "events",
+                        event.colorSlot || event.color
+                          ? event.colorSlot
+                          : event.feed?.colorSlot,
+                        event.color || event.feed?.color,
+                        plannerColorTheme.id
+                      ),
                     })),
                     ...todayTasks
                       .filter(
@@ -1406,11 +1429,14 @@ export default function PlanPage() {
                   className={cn(
                     "relative overflow-hidden rounded-3xl p-5 transition-colors sm:p-6",
                     !editingIntention && plan?.intention?.trim()
-                      ? "border border-[#cddcaf] bg-gradient-to-br from-[#f3f7e8] via-[#eaf2dc] to-[#dce9c8] text-[#4f6039] shadow-[0_8px_0_#c8d8aa]"
-                      : "bg-gradient-to-br from-[#667b4d] via-[#78915a] to-[#9bad72] text-[#fffbea] shadow-[0_8px_0_#52653d]"
+                      ? "sunnie-intention-card-saved"
+                      : "sunnie-intention-card"
                   )}
                 >
-                  <Leaf className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rotate-12 opacity-[0.08]" />
+                  <IntentionIcon
+                    className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rotate-12 opacity-[0.08]"
+                    aria-hidden="true"
+                  />
                   <AnimatePresence>
                     {intentionJustSaved && (
                       <motion.div
@@ -1418,33 +1444,34 @@ export default function PlanPage() {
                         animate={{ opacity: [0, 1, 1, 0], scale: [0.7, 1, 1] }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5 }}
-                        className="pointer-events-none absolute right-4 top-3 flex items-center gap-1 text-xs font-semibold text-[#718e50]"
+                        className="pointer-events-none absolute right-4 top-3 flex items-center gap-1 text-xs font-semibold"
                       >
-                        <Sparkles className="h-4 w-4 text-[#e2a83e]" /> Saved!
+                        <Sparkles className="h-4 w-4 text-accent-foreground" />{" "}
+                        Saved!
                       </motion.div>
                     )}
                   </AnimatePresence>
 
                   {!editingIntention && plan?.intention?.trim() ? (
                     <div className="relative max-w-3xl">
-                      <div className="flex items-center gap-2 text-xs font-semibold text-[#718650]">
-                        <Leaf className="h-4 w-4" /> Today&apos;s intention is
-                        set
+                      <div className="flex items-center gap-2 text-xs font-semibold opacity-75">
+                        <IntentionIcon className="h-4 w-4" /> Today&apos;s
+                        intention is set
                       </div>
-                      <p className="mt-4 text-base font-medium leading-relaxed text-[#435032]">
+                      <p className="mt-4 text-base font-medium leading-relaxed">
                         {plan.intention}
                       </p>
                       <button
                         onClick={() => setEditingIntention(true)}
-                        className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#687d4c] underline decoration-[#a9bd88] underline-offset-4"
+                        className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold underline decoration-current/40 underline-offset-4"
                       >
                         <Pencil className="h-3.5 w-3.5" /> Change intention
                       </button>
                     </div>
                   ) : (
                     <div className="relative max-w-3xl">
-                      <div className="flex items-center gap-2 text-xs font-medium text-white/65">
-                        <Leaf className="h-3.5 w-3.5 text-[#f4c85b]" />
+                      <div className="flex items-center gap-2 text-xs font-medium opacity-70">
+                        <IntentionIcon className="h-3.5 w-3.5" />
                         Set your daily intention!
                       </div>
                       <textarea
@@ -1452,7 +1479,7 @@ export default function PlanPage() {
                         onChange={(event) => setIntention(event.target.value)}
                         placeholder="What would make today meaningful?"
                         rows={5}
-                        className="mt-4 w-full resize-none rounded-xl border border-white/15 bg-white/[0.08] p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-[#f4c85b]"
+                        className="mt-4 w-full resize-none rounded-xl border border-current/20 bg-card/10 p-3 text-sm leading-relaxed text-current outline-none placeholder:text-current placeholder:opacity-40 focus:border-accent"
                       />
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                         <button
@@ -1460,14 +1487,14 @@ export default function PlanPage() {
                           onClick={() =>
                             setIntention(randomIntentionQuote(intention))
                           }
-                          className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white/80 hover:bg-white/15"
+                          className="flex items-center gap-1.5 rounded-lg bg-card/10 px-2.5 py-1.5 text-xs font-semibold opacity-85 hover:bg-card/15"
                         >
                           <Dices className="h-3.5 w-3.5" /> Inspire me
                         </button>
                         <button
                           onClick={() => savePlan(undefined, true)}
                           disabled={saving || !intention.trim()}
-                          className="flex items-center gap-2 text-xs font-semibold text-[#f8dc8a] disabled:opacity-40"
+                          className="flex items-center gap-2 text-xs font-semibold disabled:opacity-40"
                         >
                           {saving ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1483,7 +1510,7 @@ export default function PlanPage() {
                 <button
                   onClick={() => savePlan(!plan?.completedAt)}
                   disabled={saving}
-                  className={`flex w-full items-center justify-between rounded-3xl px-5 py-5 text-left shadow-sm transition xl:h-full ${plan?.completedAt ? "bg-[#84a75e] text-white" : "bg-gradient-to-br from-[#ffd86f] to-[#f2b847] text-[#4b3b18] hover:from-[#fbd063] hover:to-[#ebad3d]"}`}
+                  className={`flex w-full items-center justify-between rounded-3xl px-5 py-5 text-left shadow-sm transition xl:h-full ${plan?.completedAt ? "bg-success text-success-foreground" : "bg-accent text-accent-foreground hover:brightness-95"}`}
                 >
                   <span>
                     <span className="block text-sm font-semibold">
@@ -1491,7 +1518,7 @@ export default function PlanPage() {
                         ? "Your day is planned"
                         : "Finish planning"}
                     </span>
-                    <span className="mt-0.5 block text-[10px] text-white/70">
+                    <span className="mt-0.5 block text-[10px] opacity-70">
                       Saved to your account
                     </span>
                   </span>

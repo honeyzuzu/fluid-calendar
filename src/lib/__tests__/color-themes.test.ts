@@ -8,10 +8,14 @@ import {
   SPRING_FRESH_AIR_THEME,
   SUMMER_SUN_KISSED_THEME,
   WINTER_CANDLELIGHT_SNOW_THEME,
+  getAccessibleControlForeground,
   getColorTheme,
   getColorThemeCssVariables,
+  getStableThemeColorSlot,
+  getThemeColorSlot,
   isColorThemeId,
   mapThemeLinkedColor,
+  resolveThemeLinkedColor,
 } from "@/lib/color-themes";
 
 describe("planner colorways", () => {
@@ -55,6 +59,19 @@ describe("planner colorways", () => {
     }
   });
 
+  it("publishes a visible collection name for every mini-palette", () => {
+    for (const theme of Object.values(COLOR_THEMES)) {
+      expect(Object.keys(theme.paletteNames).sort()).toEqual(
+        Object.keys(COLOR_THEME_PALETTE_SIZES).sort()
+      );
+      for (const name of Object.values(theme.paletteNames)) {
+        expect(name.trim().length).toBeGreaterThan(0);
+      }
+    }
+    expect(AUTUMN_GOLDEN_HOUR_THEME.paletteNames.events).toBe("Apple Picking");
+    expect(SPRING_FRESH_AIR_THEME.paletteNames.projects).toBe("Garden Party");
+  });
+
   it("falls back safely to Base and produces both legacy and Sunnie tokens", () => {
     expect(isColorThemeId("base")).toBe(true);
     expect(isColorThemeId("autumn-golden-hour")).toBe(true);
@@ -71,7 +88,8 @@ describe("planner colorways", () => {
 
   it("registers the owner-supplied Autumn palette", () => {
     expect(COLOR_THEMES["autumn-golden-hour"]).toBe(AUTUMN_GOLDEN_HOUR_THEME);
-    expect(AUTUMN_GOLDEN_HOUR_THEME.core.primary).toBe("#59634B");
+    expect(AUTUMN_GOLDEN_HOUR_THEME.core.primary).toBe("#874F3F");
+    expect(AUTUMN_GOLDEN_HOUR_THEME.motif.intentionIcon).toBe("autumn-leaf");
     expect(AUTUMN_GOLDEN_HOUR_THEME.palettes.events[3]).toMatchObject({
       name: "Blue Jean",
       value: "#667D8A",
@@ -84,7 +102,8 @@ describe("planner colorways", () => {
 
   it("registers the owner-supplied Spring palette", () => {
     expect(COLOR_THEMES["spring-fresh-air"]).toBe(SPRING_FRESH_AIR_THEME);
-    expect(SPRING_FRESH_AIR_THEME.core.primary).toBe("#647A59");
+    expect(SPRING_FRESH_AIR_THEME.core.primary).toBe("#9B7190");
+    expect(SPRING_FRESH_AIR_THEME.motif.intentionIcon).toBe("flower");
     expect(SPRING_FRESH_AIR_THEME.palettes.events[0]).toMatchObject({
       name: "Raincoat",
       value: "#E1B94F",
@@ -97,7 +116,8 @@ describe("planner colorways", () => {
 
   it("registers the owner-supplied Summer palette", () => {
     expect(COLOR_THEMES["summer-sun-kissed"]).toBe(SUMMER_SUN_KISSED_THEME);
-    expect(SUMMER_SUN_KISSED_THEME.core.primary).toBe("#56877F");
+    expect(SUMMER_SUN_KISSED_THEME.core.primary).toBe("#438B91");
+    expect(SUMMER_SUN_KISSED_THEME.motif.intentionIcon).toBe("sun");
     expect(SUMMER_SUN_KISSED_THEME.palettes.events[0]).toMatchObject({
       name: "Strawberry",
       value: "#D94F45",
@@ -112,7 +132,8 @@ describe("planner colorways", () => {
     expect(COLOR_THEMES["winter-candlelight-snow"]).toBe(
       WINTER_CANDLELIGHT_SNOW_THEME
     );
-    expect(WINTER_CANDLELIGHT_SNOW_THEME.core.primary).toBe("#4F6659");
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.core.primary).toBe("#526582");
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.motif.intentionIcon).toBe("snowflake");
     expect(WINTER_CANDLELIGHT_SNOW_THEME.palettes.events[7]).toMatchObject({
       name: "Golden Window",
       value: "#D5AE68",
@@ -139,5 +160,54 @@ describe("planner colorways", () => {
     expect(mapThemeLinkedColor("events", "#123456", "summer-sun-kissed")).toBe(
       "#123456"
     );
+  });
+
+  it("resolves linked slots in the active theme while preserving custom hexes", () => {
+    expect(getThemeColorSlot("events", "#9bc7d9")).toBe("event-1");
+    expect(
+      resolveThemeLinkedColor(
+        "events",
+        "event-1",
+        "#123456",
+        "winter-candlelight-snow"
+      )
+    ).toBe("#91B4C4");
+    expect(
+      resolveThemeLinkedColor(
+        "events",
+        null,
+        "#123456",
+        "winter-candlelight-snow"
+      )
+    ).toBe("#123456");
+    expect(getStableThemeColorSlot("events", "calendar-a")).toMatch(
+      /^event-[1-8]$/
+    );
+    expect(getStableThemeColorSlot("events", "calendar-a")).toBe(
+      getStableThemeColorSlot("events", "calendar-a")
+    );
+  });
+
+  it("exports every semantic status token", () => {
+    const variables = getColorThemeCssVariables(SUMMER_SUN_KISSED_THEME);
+    expect(variables["--success"]).toBeDefined();
+    expect(variables["--info"]).toBeDefined();
+    expect(variables["--sunnie-status-success"]).toBe("#60845E");
+    expect(variables["--sunnie-status-info"]).toBe("#5F91A8");
+  });
+
+  it("uses an AA control foreground when a supplied seasonal pair is too soft", () => {
+    expect(
+      getAccessibleControlForeground(
+        SPRING_FRESH_AIR_THEME.core.onPrimary,
+        SPRING_FRESH_AIR_THEME.core.primary
+      )
+    ).toBe("#111111");
+    expect(
+      getAccessibleControlForeground(
+        AUTUMN_GOLDEN_HOUR_THEME.core.onPrimary,
+        AUTUMN_GOLDEN_HOUR_THEME.core.primary
+      )
+    ).toBe(AUTUMN_GOLDEN_HOUR_THEME.core.onPrimary);
   });
 });

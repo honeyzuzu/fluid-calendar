@@ -20,10 +20,13 @@ import { WeekPicker } from "@/components/planning/WeekPicker";
 import { WeekRangeSelect } from "@/components/planning/WeekRangeSelect";
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
+import { getColorTheme, resolveThemeLinkedColor } from "@/lib/color-themes";
 import { localDateKey } from "@/lib/daily-intention";
 import { WEEKLY_REVIEW_TOUR_STEP_EVENT } from "@/lib/onboarding";
 import { shiftWeek, weekKey, weekRangeLabel } from "@/lib/planning-week";
 import { cn } from "@/lib/utils";
+
+import { useSettingsStore } from "@/store/settings";
 
 type ReviewTask = {
   id: string;
@@ -54,6 +57,7 @@ export type WeeklyReviewData = {
     name: string;
     enabled: boolean;
     color: string | null;
+    colorSlot: string | null;
   }[];
   events: {
     id: string;
@@ -65,9 +69,9 @@ export type WeeklyReviewData = {
   }[];
 };
 const button =
-  "rounded-xl border border-[#dce3c9] bg-[#fffdf5] px-3 py-2 text-sm font-medium disabled:opacity-50";
+  "rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium disabled:opacity-50";
 const field =
-  "mt-2 w-full min-w-0 rounded-xl border border-[#dce3c9] bg-[#fffdf5] p-3 text-sm outline-none focus:ring-2 focus:ring-[#b6c994]";
+  "mt-2 w-full min-w-0 rounded-xl border border-border bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-ring";
 const steps = ["Look back", "Reflect", "Unfinished tasks", "Next week"];
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok)
@@ -86,6 +90,9 @@ export function WeeklyReview({
   onTasksChanged?: () => void;
 }) {
   const router = useRouter();
+  const colorTheme = getColorTheme(
+    useSettingsStore((state) => state.user.colorTheme)
+  );
   const [week, setWeek] = useState(
     preview?.week ?? shiftWeek(weekKey(localDateKey(new Date())), -1)
   );
@@ -515,7 +522,12 @@ export function WeeklyReview({
                             aria-hidden="true"
                             className="mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ring-white"
                             style={{
-                              backgroundColor: calendar?.color ?? "#d9a66f",
+                              backgroundColor: resolveThemeLinkedColor(
+                                "events",
+                                calendar?.colorSlot,
+                                calendar?.color,
+                                colorTheme.id
+                              ),
                             }}
                           />
                           <span className="min-w-0 flex-1">

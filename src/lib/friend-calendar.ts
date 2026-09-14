@@ -1,3 +1,4 @@
+import { ColorThemeId } from "@/lib/color-themes";
 import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarColor } from "@/lib/friend-calendar-colors";
 
@@ -35,7 +36,8 @@ export async function getFriendCalendarItems(
   start: Date,
   end: Date,
   friendColors: Record<string, string> = {},
-  fallbackColor?: string
+  fallbackColor?: string,
+  themeId: ColorThemeId = "base"
 ) {
   try {
     const response = await fetch(
@@ -54,7 +56,8 @@ export async function getFriendCalendarItems(
       const friendColor = getFriendCalendarColor(
         block.ownerId,
         friendColors,
-        fallbackColor
+        fallbackColor,
+        themeId
       );
       const friendLane = Math.min(friendLanes.get(block.ownerId) ?? 0, 15);
       return {

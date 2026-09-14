@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { getAppUrl } from "@/lib/app-url";
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { createAllDayDate, newDate, newDateFromYMD } from "@/lib/date-utils";
 import { createGoogleOAuthClient } from "@/lib/google";
 import { getGoogleCalendarClient } from "@/lib/google-calendar";
@@ -146,6 +147,7 @@ export async function GET(request: NextRequest) {
                   url: cal.id,
                   type: "GOOGLE",
                   color: cal.backgroundColor ?? undefined,
+                  colorSlot: getStableThemeColorSlot("events", cal.id),
                   accountId,
                   userId,
                 },
@@ -243,6 +245,7 @@ export async function POST(request: NextRequest) {
         url: calendarId,
         type: "GOOGLE",
         color,
+        colorSlot: getStableThemeColorSlot("events", calendarId),
         accountId,
         userId,
       },
@@ -276,167 +279,171 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      await prisma.$transaction(async (tx) => {
-        // Master events are prefetched before starting the transaction (to avoid network calls inside transaction)
-        // `masterEvents` is available from the outer scope
+      await prisma.$transaction(
+        async (tx) => {
+          // Master events are prefetched before starting the transaction (to avoid network calls inside transaction)
+          // `masterEvents` is available from the outer scope
 
+          // Create or update master events
+          for (const [eventId, masterEventData] of masterEvents) {
+            const existingMaster = await tx.calendarEvent.findFirst({
+              where: {
+                feedId: feed.id,
+                externalEventId: eventId,
+                isMaster: true,
+              },
+            });
 
-        // Create or update master events
-        for (const [eventId, masterEventData] of masterEvents) {
-          const existingMaster = await tx.calendarEvent.findFirst({
-            where: {
+            const isAllDay = masterEventData.start
+              ? !masterEventData.start.dateTime
+              : false;
+
+            const masterEventRecord = {
               feedId: feed.id,
               externalEventId: eventId,
+              title: masterEventData.summary || "Untitled Event",
+              description: masterEventData.description || "",
+              start: isAllDay
+                ? createAllDayDate(masterEventData.start?.date || "")
+                : newDate(
+                    masterEventData.start?.dateTime ||
+                      masterEventData.start?.date ||
+                      ""
+                  ),
+              end: isAllDay
+                ? createAllDayDate(masterEventData.end?.date || "")
+                : newDate(
+                    masterEventData.end?.dateTime ||
+                      masterEventData.end?.date ||
+                      ""
+                  ),
+              location: masterEventData.location,
+              isRecurring: true,
               isMaster: true,
-            },
-          });
-
-          const isAllDay = masterEventData.start
-            ? !masterEventData.start.dateTime
-            : false;
-
-          const masterEventRecord = {
-            feedId: feed.id,
-            externalEventId: eventId,
-            title: masterEventData.summary || "Untitled Event",
-            description: masterEventData.description || "",
-            start: isAllDay
-              ? createAllDayDate(masterEventData.start?.date || "")
-              : newDate(
+              recurrenceRule: processRecurrenceRule(
+                masterEventData.recurrence,
+                newDate(
                   masterEventData.start?.dateTime ||
                     masterEventData.start?.date ||
                     ""
-                ),
-            end: isAllDay
-              ? createAllDayDate(masterEventData.end?.date || "")
-              : newDate(
-                  masterEventData.end?.dateTime ||
-                    masterEventData.end?.date ||
-                    ""
-                ),
-            location: masterEventData.location,
-            isRecurring: true,
-            isMaster: true,
-            recurrenceRule: processRecurrenceRule(
-              masterEventData.recurrence,
-              newDate(
-                masterEventData.start?.dateTime ||
-                  masterEventData.start?.date ||
-                  ""
-              )
-            ),
-            recurringEventId: masterEventData.recurringEventId,
-            allDay: isAllDay,
-            status: masterEventData.status,
-            sequence: masterEventData.sequence,
-            created: masterEventData.created
-              ? newDate(masterEventData.created)
-              : undefined,
-            lastModified: masterEventData.updated
-              ? newDate(masterEventData.updated)
-              : undefined,
-            organizer: masterEventData.organizer
-              ? {
-                  name: masterEventData.organizer.displayName,
-                  email: masterEventData.organizer.email,
-                }
-              : undefined,
-            attendees: masterEventData.attendees?.map(
-              (a: calendar_v3.Schema$EventAttendee) => ({
+                )
+              ),
+              recurringEventId: masterEventData.recurringEventId,
+              allDay: isAllDay,
+              status: masterEventData.status,
+              sequence: masterEventData.sequence,
+              created: masterEventData.created
+                ? newDate(masterEventData.created)
+                : undefined,
+              lastModified: masterEventData.updated
+                ? newDate(masterEventData.updated)
+                : undefined,
+              organizer: masterEventData.organizer
+                ? {
+                    name: masterEventData.organizer.displayName,
+                    email: masterEventData.organizer.email,
+                  }
+                : undefined,
+              attendees: masterEventData.attendees?.map(
+                (a: calendar_v3.Schema$EventAttendee) => ({
+                  name: a.displayName,
+                  email: a.email,
+                  status: a.responseStatus,
+                })
+              ),
+            };
+
+            if (existingMaster) {
+              await tx.calendarEvent.update({
+                where: { id: existingMaster.id },
+                data: masterEventRecord,
+              });
+            } else {
+              await tx.calendarEvent.create({
+                data: masterEventRecord,
+              });
+            }
+          }
+
+          // Create or update instances
+          for (const event of events) {
+            const masterEvent = event.recurringEventId
+              ? await tx.calendarEvent.findFirst({
+                  where: {
+                    feedId: feed.id,
+                    externalEventId: event.recurringEventId,
+                    isMaster: true,
+                  },
+                })
+              : null;
+
+            const isAllDay = event.start ? !event.start.dateTime : false;
+
+            const eventRecord = {
+              feedId: feed.id,
+              externalEventId: event.id,
+              title: event.summary || "Untitled Event",
+              description: event.description || "",
+              start: isAllDay
+                ? createAllDayDate(event.start?.date || "")
+                : newDate(event.start?.dateTime || event.start?.date || ""),
+              end: isAllDay
+                ? createAllDayDate(event.end?.date || "")
+                : newDate(event.end?.dateTime || event.end?.date || ""),
+              location: event.location,
+              isRecurring: !!event.recurringEventId,
+              isMaster: false,
+              masterEventId: masterEvent?.id,
+              recurringEventId: event.recurringEventId,
+              recurrenceRule: masterEvent
+                ? undefined
+                : processRecurrenceRule(
+                    event.recurrence,
+                    event.start
+                      ? newDate(
+                          event.start?.dateTime || event.start?.date || ""
+                        )
+                      : undefined
+                  ),
+              allDay: isAllDay,
+              status: event.status,
+              sequence: event.sequence,
+              created: event.created ? newDate(event.created) : undefined,
+              lastModified: event.updated ? newDate(event.updated) : undefined,
+              organizer: event.organizer
+                ? {
+                    name: event.organizer.displayName,
+                    email: event.organizer.email,
+                  }
+                : undefined,
+              attendees: event.attendees?.map((a) => ({
                 name: a.displayName,
                 email: a.email,
                 status: a.responseStatus,
-              })
-            ),
-          };
+              })),
+            };
 
-          if (existingMaster) {
-            await tx.calendarEvent.update({
-              where: { id: existingMaster.id },
-              data: masterEventRecord,
+            const existingEvent = await tx.calendarEvent.findFirst({
+              where: {
+                feedId: feed.id,
+                externalEventId: event.id,
+              },
             });
-          } else {
-            await tx.calendarEvent.create({
-              data: masterEventRecord,
-            });
+
+            if (existingEvent) {
+              await tx.calendarEvent.update({
+                where: { id: existingEvent.id },
+                data: eventRecord,
+              });
+            } else {
+              await tx.calendarEvent.create({
+                data: eventRecord,
+              });
+            }
           }
-        }
-
-        // Create or update instances
-        for (const event of events) {
-          const masterEvent = event.recurringEventId
-            ? await tx.calendarEvent.findFirst({
-                where: {
-                  feedId: feed.id,
-                  externalEventId: event.recurringEventId,
-                  isMaster: true,
-                },
-              })
-            : null;
-
-          const isAllDay = event.start ? !event.start.dateTime : false;
-
-          const eventRecord = {
-            feedId: feed.id,
-            externalEventId: event.id,
-            title: event.summary || "Untitled Event",
-            description: event.description || "",
-            start: isAllDay
-              ? createAllDayDate(event.start?.date || "")
-              : newDate(event.start?.dateTime || event.start?.date || ""),
-            end: isAllDay
-              ? createAllDayDate(event.end?.date || "")
-              : newDate(event.end?.dateTime || event.end?.date || ""),
-            location: event.location,
-            isRecurring: !!event.recurringEventId,
-            isMaster: false,
-            masterEventId: masterEvent?.id,
-            recurringEventId: event.recurringEventId,
-            recurrenceRule: masterEvent
-              ? undefined
-              : processRecurrenceRule(
-                  event.recurrence,
-                  event.start
-                    ? newDate(event.start?.dateTime || event.start?.date || "")
-                    : undefined
-                ),
-            allDay: isAllDay,
-            status: event.status,
-            sequence: event.sequence,
-            created: event.created ? newDate(event.created) : undefined,
-            lastModified: event.updated ? newDate(event.updated) : undefined,
-            organizer: event.organizer
-              ? {
-                  name: event.organizer.displayName,
-                  email: event.organizer.email,
-                }
-              : undefined,
-            attendees: event.attendees?.map((a) => ({
-              name: a.displayName,
-              email: a.email,
-              status: a.responseStatus,
-            })),
-          };
-
-          const existingEvent = await tx.calendarEvent.findFirst({
-            where: {
-              feedId: feed.id,
-              externalEventId: event.id,
-            },
-          });
-
-          if (existingEvent) {
-            await tx.calendarEvent.update({
-              where: { id: existingEvent.id },
-              data: eventRecord,
-            });
-          } else {
-            await tx.calendarEvent.create({
-              data: eventRecord,
-            });
-          }
-        }
-      }, {timeout: 30000});
+        },
+        { timeout: 30000 }
+      );
     }
 
     return NextResponse.json(feed);
@@ -533,13 +540,27 @@ export async function PUT(request: NextRequest) {
 
     // Preserve Sunnie-only per-event color overrides across a full sync.
     const existingColorOverrides = await prisma.calendarEvent.findMany({
-      where: { feedId, color: { not: null } },
-      select: { externalEventId: true, color: true },
+      where: {
+        feedId,
+        OR: [{ color: { not: null } }, { colorSlot: { not: null } }],
+      },
+      select: { externalEventId: true, color: true, colorSlot: true },
     });
     const colorOverrides = new Map(
       existingColorOverrides
         .filter((event) => event.externalEventId && event.color)
-        .map((event) => [event.externalEventId as string, event.color as string])
+        .map((event) => [
+          event.externalEventId as string,
+          event.color as string,
+        ])
+    );
+    const colorSlotOverrides = new Map(
+      existingColorOverrides
+        .filter((event) => event.externalEventId && event.colorSlot)
+        .map((event) => [
+          event.externalEventId as string,
+          event.colorSlot as string,
+        ])
     );
 
     // Now perform database operations in transaction
@@ -551,75 +572,81 @@ export async function PUT(request: NextRequest) {
     });
 
     // Create new events
-    await prisma.$transaction(async (tx) => {
-      console.log("Creating ${events.length} events");
-      for (const event of events) {
-        console.log("Processing event:", event.id);
-        
-        // Skip events without start time
-        if (!event.start?.dateTime && !event.start?.date) continue;
+    await prisma.$transaction(
+      async (tx) => {
+        console.log("Creating ${events.length} events");
+        for (const event of events) {
+          console.log("Processing event:", event.id);
 
-        // Get recurrence rule from pre-fetched master events
-        if (event.recurringEventId) {
-          event.recurrence = masterEvents.get(event.recurringEventId);
+          // Skip events without start time
+          if (!event.start?.dateTime && !event.start?.date) continue;
+
+          // Get recurrence rule from pre-fetched master events
+          if (event.recurringEventId) {
+            event.recurrence = masterEvents.get(event.recurringEventId);
+          }
+
+          const isAllDay = event.start ? !event.start.dateTime : false;
+
+          await tx.calendarEvent.create({
+            data: {
+              id: event.id || undefined,
+              feedId: feed.id,
+              externalEventId: event.id,
+              title: event.summary || "Untitled Event",
+              description: event.description || "",
+              start: isAllDay
+                ? createAllDayDate(event.start.date || "")
+                : newDate(event.start.dateTime || event.start.date || ""),
+              end: isAllDay
+                ? createAllDayDate(event.end?.date || "")
+                : newDate(event.end?.dateTime || event.end?.date || ""),
+              location: event.location,
+              color: event.id ? colorOverrides.get(event.id) : undefined,
+              colorSlot: event.id
+                ? colorSlotOverrides.get(event.id)
+                : undefined,
+              isRecurring: !!event.recurringEventId || !!event.recurrence,
+              recurringEventId: event.recurringEventId,
+              recurrenceRule: processRecurrenceRule(
+                event.recurrence,
+                event.start
+                  ? newDate(event.start?.dateTime || event.start?.date || "")
+                  : undefined
+              ),
+              allDay: isAllDay,
+              status: event.status,
+              sequence: event.sequence,
+              created: event.created ? newDate(event.created) : undefined,
+              lastModified: event.updated ? newDate(event.updated) : undefined,
+              organizer: event.organizer
+                ? {
+                    name: event.organizer.displayName,
+                    email: event.organizer.email,
+                  }
+                : undefined,
+              attendees: event.attendees?.map(
+                (a: calendar_v3.Schema$EventAttendee) => ({
+                  name: a.displayName,
+                  email: a.email,
+                  status: a.responseStatus,
+                })
+              ),
+            },
+          });
         }
 
-        const isAllDay = event.start ? !event.start.dateTime : false;
-
-        await tx.calendarEvent.create({
+        // Update feed sync status
+        await tx.calendarFeed.update({
+          where: { id: feedId, userId },
           data: {
-            id: event.id || undefined,
-            feedId: feed.id,
-            externalEventId: event.id,
-            title: event.summary || "Untitled Event",
-            description: event.description || "",
-            start: isAllDay
-              ? createAllDayDate(event.start.date || "")
-              : newDate(event.start.dateTime || event.start.date || ""),
-            end: isAllDay
-              ? createAllDayDate(event.end?.date || "")
-              : newDate(event.end?.dateTime || event.end?.date || ""),
-            location: event.location,
-            color: event.id ? colorOverrides.get(event.id) : undefined,
-            isRecurring: !!event.recurringEventId || !!event.recurrence,
-            recurringEventId: event.recurringEventId,
-            recurrenceRule: processRecurrenceRule(
-              event.recurrence,
-              event.start
-                ? newDate(event.start?.dateTime || event.start?.date || "")
-                : undefined
-            ),
-            allDay: isAllDay,
-            status: event.status,
-            sequence: event.sequence,
-            created: event.created ? newDate(event.created) : undefined,
-            lastModified: event.updated ? newDate(event.updated) : undefined,
-            organizer: event.organizer
-              ? {
-                  name: event.organizer.displayName,
-                  email: event.organizer.email,
-                }
-              : undefined,
-            attendees: event.attendees?.map(
-              (a: calendar_v3.Schema$EventAttendee) => ({
-                name: a.displayName,
-                email: a.email,
-                status: a.responseStatus,
-              })
-            ),
+            lastSync: newDate(),
+            error: null,
           },
         });
-      }
-
-      // Update feed sync status
-      await tx.calendarFeed.update({
-        where: { id: feedId, userId },
-        data: {
-          lastSync: newDate(),
-          error: null,
-        },
-      });
-    }, {timeout: 30000});
+      },
+      { timeout: 30000 }
+    );
 
     console.log("Successfully synced calendar:", feedId);
     return NextResponse.json({ success: true });

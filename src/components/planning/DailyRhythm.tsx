@@ -10,13 +10,14 @@ import {
   Check,
   CheckCircle2,
   Clock3,
-  Leaf,
   Loader2,
   MoonStar,
   Sparkles,
   Sunrise,
 } from "lucide-react";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { ThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 import {
   Dialog,
   DialogContent,
@@ -72,7 +73,7 @@ function StepDots({ step, labels }: { step: number; labels: string[] }) {
           <div
             className={cn(
               "h-1.5 rounded-full transition-colors",
-              index <= step ? "bg-[#718e50]" : "bg-black/10"
+              index <= step ? "bg-primary" : "bg-muted"
             )}
           />
           <span className="mt-1 hidden truncate text-[10px] text-black/40 sm:block">
@@ -105,7 +106,7 @@ function RhythmShell({
   return (
     <MotionConfig reducedMotion="user">
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[760px] w-[calc(100vw-1rem)] max-w-[720px] flex-col gap-0 overflow-hidden border-0 p-0 text-[#3f432e] sm:h-auto sm:min-h-[620px]">
+        <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[760px] w-[calc(100vw-1rem)] max-w-[720px] flex-col gap-0 overflow-hidden border-0 p-0 text-foreground sm:h-auto sm:min-h-[620px]">
           <div
             className={cn(
               "relative flex-none overflow-hidden border-b border-black/[0.055] px-5 pb-4 pt-5 sm:px-7",
@@ -145,7 +146,7 @@ function RhythmShell({
               <StepDots step={step} labels={labels} />
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto bg-[#fffdf7] p-5 sm:p-7">
+          <div className="min-h-0 flex-1 overflow-y-auto bg-card p-5 sm:p-7">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${kind}-${step}`}
@@ -196,6 +197,7 @@ export function DailyRise({
   onSchedule: () => Promise<void>;
   onFinish: (intention: string) => Promise<void>;
 }) {
+  const { colorTheme } = useTheme();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState(initialIntention);
   useEffect(() => {
@@ -220,7 +222,7 @@ export function DailyRise({
         <button
           onClick={() => setStep((value) => value + 1)}
           disabled={step === 1 && !draft.trim()}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
         >
           Next <ArrowRight className="h-4 w-4" />
         </button>
@@ -228,7 +230,7 @@ export function DailyRise({
         <button
           onClick={() => void onFinish(draft)}
           disabled={busy || !draft.trim()}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#e9ae43] px-4 py-2.5 text-sm font-semibold text-[#493916] shadow-[0_3px_0_#c88d2b] disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground shadow-sm disabled:opacity-40"
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -275,8 +277,13 @@ export function DailyRise({
       )}
       {step === 1 && (
         <div className="mx-auto max-w-xl">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#718e50]">
-            <Leaf className="h-4 w-4" /> Today’s direction
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+            <ThemeMotifIcon
+              motif={colorTheme.motif.intentionIcon}
+              className="h-4 w-4"
+              aria-label={colorTheme.motif.intentionLabel}
+            />{" "}
+            Today’s direction
           </p>
           <h2 className="mt-2 text-2xl font-semibold">
             What would make today meaningful?
@@ -288,7 +295,7 @@ export function DailyRise({
             autoFocus
             maxLength={500}
             placeholder="Move gently, finish the important thing, make space to breathe…"
-            className="mt-5 w-full resize-none rounded-2xl border border-[#dce3c9] bg-white p-4 text-base leading-7 outline-none focus:ring-2 focus:ring-[#b6c994]"
+            className="mt-5 w-full resize-none rounded-2xl border border-border bg-card p-4 text-base leading-7 outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       )}
@@ -327,9 +334,9 @@ export function DailyRise({
             {todayTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 rounded-2xl border border-[#dce3c9] bg-[#f3f6e9] p-3"
+                className="flex items-center gap-3 rounded-2xl border border-border bg-muted p-3"
               >
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-[#718e50]" />
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">
                   {task.title}
                 </span>
@@ -379,7 +386,7 @@ export function DailyRise({
       {step === 3 && (
         <div className="grid min-h-[300px] place-items-center">
           <div className="w-full max-w-xl rounded-3xl border border-[#d8dfc8] bg-gradient-to-br from-[#f5f8e9] to-white p-6 text-center">
-            <CalendarDays className="mx-auto h-8 w-8 text-[#718e50]" />
+            <CalendarDays className="mx-auto h-8 w-8 text-primary" />
             <h2 className="mt-3 text-2xl font-semibold">
               Make room for the plan.
             </h2>
@@ -464,7 +471,7 @@ export function DailyUnwind({
         <button
           onClick={() => setStep((value) => value + 1)}
           disabled={step === 1 && unresolved > 0}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#69658e] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           {step === 1 && unresolved > 0
             ? `Place ${unresolved} task${unresolved === 1 ? "" : "s"}`
@@ -475,7 +482,7 @@ export function DailyUnwind({
         <button
           onClick={() => void onFinish(vibe, reflection)}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#667c4d] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-success-foreground disabled:opacity-40"
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -636,7 +643,7 @@ export function DailyUnwind({
             ))}
             {unfinishedTasks.length === 0 && (
               <div className="rounded-2xl border border-[#c8d8aa] bg-[#eef3df] p-6 text-center">
-                <CheckCircle2 className="mx-auto h-7 w-7 text-[#718e50]" />
+                <CheckCircle2 className="mx-auto h-7 w-7 text-success" />
                 <p className="mt-2 text-sm font-semibold">
                   Everything has a home.
                 </p>

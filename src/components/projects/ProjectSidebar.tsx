@@ -7,10 +7,12 @@ import { BsArrowRepeat } from "react-icons/bs";
 import { HiFolderOpen, HiPencil, HiPlus } from "react-icons/hi";
 import { toast } from "sonner";
 
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { getReadableTextColor } from "@/lib/color-contrast";
+import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { isSaasEnabled } from "@/lib/config";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/project-colors";
 import { cn } from "@/lib/utils";
@@ -169,7 +171,7 @@ export function ProjectSidebar() {
     <>
       <div
         className={cn(
-          "relative z-40 hidden h-full flex-none bg-[#fffdf2] transition-[width] duration-300 md:block",
+          "relative z-40 hidden h-full flex-none bg-card transition-[width] duration-300 md:block",
           isSidebarOpen ? "w-64" : "w-6"
         )}
       >
@@ -182,7 +184,7 @@ export function ProjectSidebar() {
           title={
             isSidebarOpen ? "Close projects sidebar" : "Open projects sidebar"
           }
-          className="absolute -right-[27px] top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-[#d4d9ba] bg-[#fffdf2] text-[#5f6848] transition-colors hover:bg-[#eef3df]"
+          className="absolute -right-[27px] top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-colors hover:bg-muted"
         >
           {isSidebarOpen ? (
             <ChevronLeft className="h-5 w-5" />
@@ -192,7 +194,7 @@ export function ProjectSidebar() {
         </button>
         <aside
           className={cn(
-            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-[#d4d9ba] bg-[#fffdf2] shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
+            "absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[8px_0_24px_rgba(70,75,50,0.1)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -320,6 +322,7 @@ export function ProjectSidebar() {
 }
 
 export function MobileProjectPicker() {
+  const { colorTheme } = useTheme();
   const { projects, activeProject, setActiveProject } = useProjectStore();
   const { tasks } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -351,7 +354,7 @@ export function MobileProjectPicker() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-1 rounded-lg bg-[#64734a] px-2.5 py-1.5 text-[11px] font-semibold text-white"
+            className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground"
           >
             <HiPlus className="h-3.5 w-3.5" /> New project
           </button>
@@ -365,8 +368,8 @@ export function MobileProjectPicker() {
             className={cn(
               "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
               !activeProject
-                ? "border-[#64734a] bg-[#64734a] text-white"
-                : "border-black/10 bg-white/70 text-[#414530]"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card/70 text-foreground"
             )}
           >
             All tasks
@@ -377,14 +380,19 @@ export function MobileProjectPicker() {
             className={cn(
               "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
               activeProject?.id === NO_PROJECT.id
-                ? "border-[#64734a] bg-[#eef3df] text-[#414530] ring-1 ring-[#64734a]"
-                : "border-black/10 bg-white/70 text-[#414530]"
+                ? "border-primary bg-muted text-foreground ring-1 ring-primary"
+                : "border-border bg-card/70 text-foreground"
             )}
           >
             No project · {unassignedTasksCount}
           </button>
           {activeProjects.map((project) => {
-            const tileColor = project.color || DEFAULT_PROJECT_COLOR;
+            const tileColor = resolveThemeLinkedColor(
+              "projects",
+              project.colorSlot,
+              project.color || DEFAULT_PROJECT_COLOR,
+              colorTheme.id
+            );
             const textColor = getReadableTextColor(tileColor);
             const count = tasks.filter(
               (task) =>
@@ -436,6 +444,7 @@ function ProjectItem({
   isSyncing,
   onSync,
 }: ProjectItemProps) {
+  const { colorTheme } = useTheme();
   const { setActiveProject } = useProjectStore();
   const { tasks } = useTaskStore();
   const { droppableProps, isOver } = useDroppableProject(project);
@@ -448,7 +457,12 @@ function ProjectItem({
 
   // Check if project has any task mappings
   const hasMappings = mappings.length > 0;
-  const tileColor = project.color || DEFAULT_PROJECT_COLOR;
+  const tileColor = resolveThemeLinkedColor(
+    "projects",
+    project.colorSlot,
+    project.color || DEFAULT_PROJECT_COLOR,
+    colorTheme.id
+  );
   const textColor = getReadableTextColor(tileColor);
 
   return (
