@@ -43,6 +43,12 @@ Local PostgreSQL 16 uses `127.0.0.1:5433` and database `sunnie_local`. See [loca
 
 The Compose `app` service still uses the upstream published FluidCalendar image. For Sunnie source development, run only the local database through the commands above and run Next.js locally.
 
+### Quick Start with Docker
+
+The inherited Compose stack can still launch the published upstream application for reference with `docker compose up -d`; it does not contain current Sunnie source changes. Copy `.env.example` to `.env` first and keep `NEXTAUTH_URL=http://localhost:3000` when using the default port mapping.
+
+**Note on the port:** the application container always listens on port 3000. A `PORT` value in `.env` does not change the container port declared under Compose `ports`. If you remap the host side—for example, `8080:3000`—also set `NEXTAUTH_URL` to that exact public origin, such as `http://localhost:8080`, or authentication callbacks will fail.
+
 ## Production and integrations
 
 Sunnie is one Next.js 15 / React 19 application with TypeScript, Tailwind, FullCalendar, Zustand, NextAuth, and Prisma 6 backed by PostgreSQL.
@@ -54,6 +60,36 @@ Schema changes require checked-in migrations. Do not substitute `prisma db push`
 Google integration requires OAuth configuration for the deployed origin and both sign-in and calendar callbacks. Apple Calendar uses an Apple app-specific password through CalDAV. See [integration and environment configuration in AGENTS.md](AGENTS.md#calendar-integrations) for the project-specific setup. Keep tokens, passwords, and webhook URLs out of source control.
 
 Sunnie's private deployment keeps SaaS features disabled. Redis workers, Kubernetes, Infisical, and upstream Docker publishing scripts remain inherited code and are not the normal Sunnie deployment workflow.
+
+## Google Cloud Setup
+
+Set `NEXTAUTH_URL` to the exact public URL where Sunnie is served. Register that same origin in Google Cloud and add both redirect URIs:
+
+```text
+https://your-sunnie-host.example/api/auth/callback/google
+https://your-sunnie-host.example/api/calendar/google
+```
+
+The consent screen must allow the scopes Sunnie requests:
+
+```text
+https://www.googleapis.com/auth/calendar
+https://www.googleapis.com/auth/calendar.events
+https://www.googleapis.com/auth/userinfo.email
+https://www.googleapis.com/auth/tasks
+```
+
+Google accepts `localhost` for local testing but rejects private IP addresses and `.local` hostnames as authorized web origins. Use a real HTTPS hostname when another device needs to complete OAuth. If the consent screen is in testing mode, add every Sunnie user as an approved test user.
+
+## Microsoft Outlook Setup
+
+Outlook support remains partially exposed from the upstream project. If it is configured, register this calendar-connection redirect URI in Microsoft Entra:
+
+```text
+https://your-sunnie-host.example/api/calendar/outlook
+```
+
+The redirect origin must match `NEXTAUTH_URL` exactly.
 
 ## Working on the project
 

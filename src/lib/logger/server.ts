@@ -120,6 +120,9 @@ export class ServerLogger {
   async writeBatch(entries: LogEntry[]): Promise<LogBatchResponse> {
     try {
       const settings = await this.getLogSettings();
+      if (settings.logLevel === "none") {
+        return { success: true, count: 0 };
+      }
       const now = newDate();
 
       // Filter entries based on log level

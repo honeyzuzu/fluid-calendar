@@ -4,6 +4,7 @@ import { getOutlookCredentials } from "@/lib/auth";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
+import { verifyOAuthState } from "@/lib/oauth-state";
 import {
   MICROSOFT_GRAPH_AUTH_ENDPOINTS,
   resolveOutlookAccountEmail,
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
 
     const searchParams = req.nextUrl.searchParams;
     const code = searchParams.get("code");
+    const state = searchParams.get("state");
     const error = searchParams.get("error");
 
     if (error) {
@@ -36,6 +38,12 @@ export async function GET(req: NextRequest) {
     if (!code) {
       return NextResponse.redirect(
         `${process.env.NEXTAUTH_URL}/settings?error=no-code`
+      );
+    }
+
+    if (!verifyOAuthState(state, userId, "outlook")) {
+      return NextResponse.redirect(
+        `${process.env.NEXTAUTH_URL}/settings?error=invalid-oauth-state`
       );
     }
 

@@ -136,6 +136,7 @@ export const useSettingsStore = create<SettingsStore>()(
       updateUserSettings: (settings) =>
         set((state) => {
           // Update local state
+          const previousSettings = state.user;
           const newSettings = { ...state.user, ...settings };
 
           // Save to database
@@ -144,7 +145,7 @@ export const useSettingsStore = create<SettingsStore>()(
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(newSettings),
+            body: JSON.stringify(settings),
           })
             .then((response) => {
               if (!response.ok) {
@@ -153,6 +154,19 @@ export const useSettingsStore = create<SettingsStore>()(
               window.dispatchEvent(new Event("sunnie:user-settings-updated"));
             })
             .catch((error) => {
+              set((current) => {
+                const rollback = { ...current.user };
+                for (const key of Object.keys(settings) as Array<
+                  keyof Settings["user"]
+                >) {
+                  if (current.user[key] === newSettings[key]) {
+                    Object.assign(rollback, {
+                      [key]: previousSettings[key],
+                    });
+                  }
+                }
+                return { user: rollback };
+              });
               logger.error(
                 "Failed to save user settings to database",
                 {

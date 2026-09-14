@@ -293,7 +293,7 @@ model Task {
   // Organization
   color     String? // Optional fixed custom task color
   colorSlot String? // Theme-linked task palette slot; null uses custom/automatic color
-  tags Tag[]
+  tags      Tag[]
 
   // Recurrence
   isRecurring       Boolean   @default(false)

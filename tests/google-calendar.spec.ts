@@ -46,9 +46,9 @@ async function verifyEventDeletion(
     try {
       const event = await getGoogleEvent(
         accountId,
+        userId,
         calendarId,
-        eventId,
-        userId
+        eventId
       );
       console.log(`Attempt ${attempt}: Event data:`, event);
 
@@ -126,15 +126,13 @@ test.describe("Google Calendar Integration", () => {
 
     // Select the calendar using its ID
     console.log("Selecting calendar by ID:", testCalendar.feedId);
-    await page.selectOption('[data-testid="calendar-select"]', {
-      value: testCalendar.feedId,
-    });
+    await calendarSelect.click();
+    await page
+      .getByRole("option", { name: new RegExp(testCalendar.feed.name) })
+      .click();
 
     // Verify the selection worked
-    const selectedText = await calendarSelect.evaluate(
-      (select: HTMLSelectElement) =>
-        select.options[select.selectedIndex]?.textContent
-    );
+    const selectedText = await calendarSelect.textContent();
     console.log("Selected calendar text:", selectedText);
 
     if (!selectedText?.includes(testCalendar.feed.name)) {
@@ -145,13 +143,10 @@ test.describe("Google Calendar Integration", () => {
 
     // Set to today's date
     const today = new Date();
-    await page.fill(
-      '[data-testid="event-start-date"]',
-      formatToLocalISOString(today)
-    );
+    await page.fill('[data-testid="event-start-date"]', formatLocalDate(today));
     await page.fill(
       '[data-testid="event-end-date"]',
-      formatToLocalISOString(new Date(today.getTime() + 3600000))
+      formatLocalDate(new Date(today.getTime() + 3600000))
     ); // 1 hour later
 
     // Save the event
@@ -274,19 +269,17 @@ test.describe("Google Calendar Integration", () => {
 
     // Select the calendar using its ID
     console.log("Selecting calendar by ID:", testCalendar.feedId);
-    await page.selectOption('[data-testid="calendar-select"]', {
-      value: testCalendar.feedId,
-    });
+    await calendarSelect.click();
+    await page
+      .getByRole("option", { name: new RegExp(testCalendar.feed.name) })
+      .click();
 
     // Set to today's date
     const today = new Date();
-    await page.fill(
-      '[data-testid="event-start-date"]',
-      formatToLocalISOString(today)
-    );
+    await page.fill('[data-testid="event-start-date"]', formatLocalDate(today));
     await page.fill(
       '[data-testid="event-end-date"]',
-      formatToLocalISOString(new Date(today.getTime() + 3600000))
+      formatLocalDate(new Date(today.getTime() + 3600000))
     ); // 1 hour later
 
     // Make it a recurring event
@@ -302,7 +295,8 @@ test.describe("Google Calendar Integration", () => {
 
     // Set weekly recurrence
     console.log("Setting weekly recurrence...");
-    await page.selectOption('[data-testid="recurrence-freq"]', "WEEKLY");
+    await page.locator('[data-testid="recurrence-freq"]').click();
+    await page.getByRole("option", { name: "Weekly" }).click();
 
     // Save the event
     await page.click('[data-testid="save-event-button"]');
@@ -398,11 +392,9 @@ test.describe("Google Calendar Integration", () => {
 });
 
 // Helper function to format date for input
-function formatToLocalISOString(date: Date) {
+function formatLocalDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${year}-${month}-${day}`;
 }

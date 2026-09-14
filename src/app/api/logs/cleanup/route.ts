@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { requireAdmin } from "@/lib/auth/api-auth";
 import { newDate } from "@/lib/date-utils";
 import { prisma } from "@/lib/prisma";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const authResponse = await requireAdmin(request);
+  if (authResponse) return authResponse;
+
   try {
     // Delete all expired logs
     const { count } = await prisma.log.deleteMany({

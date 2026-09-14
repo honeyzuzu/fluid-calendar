@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       !resetRequest.user ||
       !resetRequest.user.accounts?.[0]
     ) {
-      logger.warn("Invalid or expired reset token used", { token }, LOG_SOURCE);
+      logger.warn("Invalid or expired reset token used", {}, LOG_SOURCE);
       return NextResponse.json(
         { error: "Invalid or expired reset token" },
         { status: 400 }

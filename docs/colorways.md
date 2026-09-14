@@ -265,7 +265,9 @@ persisted `calendarStyle` chooses **Classic** or **Bujo**.
 - **Classic** preserves the clean, softly rounded Sunnie calendar.
 - **Bujo** uses a theme-selected paper grid, selectively handwritten decorative
   headings, hand-drawn grid borders, and marker, washi, outline, or sticky-note
-  item treatments.
+  item treatments. Paper patterns paint the visible calendar body; Winter's
+  outline events use their palette color for the border and text, while
+  sticky-note tasks include a folded paper corner.
 
 Themes declare semantic variants such as `dot-grid`, `lined-paper`,
 `graph-paper`, `marker`, `washi`, and `sticky-note`. Components and styles

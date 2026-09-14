@@ -42,10 +42,20 @@ export function UserSettings() {
   );
   const [isApplyingColorTheme, setIsApplyingColorTheme] = useState(false);
   const [colorThemeError, setColorThemeError] = useState<string | null>(null);
+  const [selectedCalendarStyle, setSelectedCalendarStyle] =
+    useState<CalendarStyleId>(getCalendarStyle(user.calendarStyle));
+  const [isApplyingCalendarStyle, setIsApplyingCalendarStyle] = useState(false);
+  const [calendarStyleError, setCalendarStyleError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     setSelectedColorTheme(user.colorTheme || "base");
   }, [user.colorTheme]);
+
+  useEffect(() => {
+    setSelectedCalendarStyle(getCalendarStyle(user.calendarStyle));
+  }, [user.calendarStyle]);
 
   const applyColorTheme = async (nextTheme: ColorThemeId) => {
     const previousTheme = user.colorTheme || "base";
@@ -96,6 +106,42 @@ export function UserSettings() {
       );
     } finally {
       setIsApplyingColorTheme(false);
+    }
+  };
+
+  const applyCalendarStyle = async (nextStyle: CalendarStyleId) => {
+    const previousStyle = getCalendarStyle(user.calendarStyle);
+    setSelectedCalendarStyle(nextStyle);
+    setIsApplyingCalendarStyle(true);
+    setCalendarStyleError(null);
+    useSettingsStore.setState((state) => ({
+      user: { ...state.user, calendarStyle: nextStyle },
+    }));
+    try {
+      const response = await fetch("/api/user-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ calendarStyle: nextStyle }),
+      });
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(result?.error || "Failed to apply calendar style");
+      }
+      window.dispatchEvent(new Event("sunnie:user-settings-updated"));
+    } catch (error) {
+      setSelectedCalendarStyle(previousStyle);
+      useSettingsStore.setState((state) => ({
+        user: { ...state.user, calendarStyle: previousStyle },
+      }));
+      setCalendarStyleError(
+        error instanceof Error
+          ? error.message
+          : "Failed to apply calendar style"
+      );
+    } finally {
+      setIsApplyingCalendarStyle(false);
     }
   };
 
@@ -318,10 +364,11 @@ export function UserSettings() {
       >
         <div className="space-y-2">
           <Select
-            value={getCalendarStyle(user.calendarStyle)}
+            value={selectedCalendarStyle}
             onValueChange={(value) =>
-              updateUserSettings({ calendarStyle: value as CalendarStyleId })
+              void applyCalendarStyle(value as CalendarStyleId)
             }
+            disabled={isApplyingCalendarStyle}
           >
             <SelectTrigger aria-label="Calendar style">
               <BookOpen className="mr-2 h-4 w-4" />
@@ -333,10 +380,20 @@ export function UserSettings() {
             </SelectContent>
           </Select>
           <p className="max-w-sm text-xs text-muted-foreground">
-            {getCalendarStyle(user.calendarStyle) === "bujo"
+            {selectedCalendarStyle === "bujo"
               ? `Paper-like ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.gridStyle.replaceAll("-", " ")} with decorative headings and ${getSunnieTheme(selectedColorTheme).visual.calendar.bujo.eventAppearance} events.`
               : "Sunnie's clean, softly rounded calendar with familiar event cards."}
           </p>
+          {calendarStyleError && (
+            <p className="text-xs font-medium text-destructive" role="alert">
+              {calendarStyleError}
+            </p>
+          )}
+          {isApplyingCalendarStyle && (
+            <p className="text-xs font-medium text-info" role="status">
+              Applying calendar style…
+            </p>
+          )}
         </div>
       </SettingRow>
 

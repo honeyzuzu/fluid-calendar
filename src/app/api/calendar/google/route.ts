@@ -10,6 +10,7 @@ import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { createAllDayDate, newDate, newDateFromYMD } from "@/lib/date-utils";
 import { createGoogleOAuthClient } from "@/lib/google";
 import { getGoogleCalendarClient } from "@/lib/google-calendar";
+import { verifyOAuthState } from "@/lib/oauth-state";
 import { prisma } from "@/lib/prisma";
 import { TokenManager } from "@/lib/token-manager";
 
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const codeParam = url.searchParams.get("code");
+    const stateParam = url.searchParams.get("state");
 
     if (!codeParam) {
       return NextResponse.json({ error: "No code provided" }, { status: 400 });
@@ -81,6 +83,12 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = auth.userId;
+    if (!verifyOAuthState(stateParam, userId, "google")) {
+      return NextResponse.json(
+        { error: "Invalid or expired OAuth state" },
+        { status: 400 }
+      );
+    }
 
     const oauth2Client = await createGoogleOAuthClient({
       redirectUrl: getAppUrl("/api/calendar/google"),

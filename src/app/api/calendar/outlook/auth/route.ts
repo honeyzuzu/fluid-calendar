@@ -1,13 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getOutlookCredentials } from "@/lib/auth";
+import { authenticateRequest } from "@/lib/auth/api-auth";
+import { createOAuthState } from "@/lib/oauth-state";
 import {
   MICROSOFT_GRAPH_AUTH_ENDPOINTS,
   MICROSOFT_GRAPH_SCOPES,
 } from "@/lib/outlook";
 
-export async function GET() {
+const LOG_SOURCE = "OutlookCalendarAuth";
+
+export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request, LOG_SOURCE);
+    if ("response" in auth) return auth.response;
+
     const { clientId } = await getOutlookCredentials();
     const redirectUrl = `${process.env.NEXTAUTH_URL}/api/calendar/outlook`;
 
@@ -19,6 +26,7 @@ export async function GET() {
       scope: MICROSOFT_GRAPH_SCOPES.join(" "),
       response_mode: "query",
       prompt: "consent",
+      state: createOAuthState(auth.userId, "outlook"),
     });
 
     const authUrl = `${

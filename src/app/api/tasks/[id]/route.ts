@@ -15,6 +15,10 @@ import {
 } from "@/lib/task-block-push";
 import { isValidTaskColor, isValidTaskColorSlot } from "@/lib/task-colors";
 import {
+  pickMutableTaskFields,
+  validateTaskRelations,
+} from "@/lib/task-relations";
+import {
   ChangeType,
   TaskChangeTracker,
 } from "@/lib/task-sync/task-change-tracker";
@@ -96,10 +100,19 @@ export async function PUT(
       return new NextResponse("Task not found", { status: 404 });
     }
 
-    const json = await request.json();
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tagIds, project, projectId, userId: _, ...updates } = json;
+    const json = (await request.json()) as Record<string, unknown>;
+    const tagIds = Array.isArray(json.tagIds)
+      ? [...new Set(json.tagIds)]
+      : json.tagIds;
+    const projectId = json.projectId;
+    const updates = pickMutableTaskFields(json);
+    const relationError = await validateTaskRelations(userId, {
+      projectId,
+      tagIds,
+    });
+    if (relationError) {
+      return NextResponse.json({ error: relationError }, { status: 400 });
+    }
 
     if (
       !isValidTaskColor(updates.color) ||
@@ -111,11 +124,7 @@ export async function PUT(
       );
     }
 
-    delete updates.completedAt;
-    delete updates.rolloverCount;
-    delete updates.rolledFromWeek;
-    const acknowledgeRollover = updates.acknowledgeRollover === true;
-    delete updates.acknowledgeRollover;
+    const acknowledgeRollover = json.acknowledgeRollover === true;
     if (updates.plannedWeekStart !== undefined) {
       const week =
         updates.plannedWeekStart === null
@@ -329,12 +338,18 @@ export async function PUT(
 
     // Find the project's task mapping if it exists
     let mappingId = null;
-    const targetProjectId = projectId || task.projectId;
+    const targetProjectId =
+      projectId === null
+        ? null
+        : typeof projectId === "string"
+          ? projectId
+          : task.projectId;
 
     if (targetProjectId) {
       const mapping = await prisma.taskListMapping.findFirst({
         where: {
           projectId: targetProjectId,
+          project: { userId },
         },
       });
       if (mapping) {
@@ -353,16 +368,16 @@ export async function PUT(
       },
       data: {
         ...updates,
-        ...(tagIds && {
+        ...(Array.isArray(tagIds) && {
           tags: {
             set: [], // First disconnect all tags
-            connect: tagIds.map((id: string) => ({ id })), // Then connect new ones
+            connect: tagIds.map((tagId) => ({ id: tagId as string })),
           },
         }),
         project:
           projectId === null
             ? { disconnect: true }
-            : projectId
+            : typeof projectId === "string"
               ? { connect: { id: projectId } }
               : undefined,
       },

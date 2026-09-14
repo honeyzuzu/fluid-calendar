@@ -11,6 +11,10 @@ import { prisma } from "@/lib/prisma";
 import { schedulePushTaskBlock } from "@/lib/task-block-push";
 import { isValidTaskColor, isValidTaskColorSlot } from "@/lib/task-colors";
 import {
+  pickMutableTaskFields,
+  validateTaskRelations,
+} from "@/lib/task-relations";
+import {
   ChangeType,
   TaskChangeTracker,
 } from "@/lib/task-sync/task-change-tracker";
@@ -121,8 +125,30 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.userId;
 
-    const json = await request.json();
-    const { tagIds, recurrenceRule, ...taskData } = json;
+    const json = (await request.json()) as Record<string, unknown>;
+    const tagIds = Array.isArray(json.tagIds)
+      ? [...new Set(json.tagIds)]
+      : json.tagIds;
+    const projectId = json.projectId;
+    const taskData = pickMutableTaskFields(json);
+    const recurrenceRule = taskData.recurrenceRule;
+    const relationError = await validateTaskRelations(userId, {
+      projectId,
+      tagIds,
+    });
+    if (relationError) {
+      return NextResponse.json({ error: relationError }, { status: 400 });
+    }
+    if (
+      typeof taskData.title !== "string" ||
+      !taskData.title.trim() ||
+      typeof taskData.status !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "Task title and status are required" },
+        { status: 400 }
+      );
+    }
     if (
       !isValidTaskColor(taskData.color) ||
       !isValidTaskColorSlot(taskData.colorSlot)
@@ -132,8 +158,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    delete taskData.rolloverCount;
-    delete taskData.rolledFromWeek;
     taskData.completedAt = taskData.status === "completed" ? newDate() : null;
     if (
       taskData.plannedWeekStart !== undefined &&
@@ -171,10 +195,11 @@ export async function POST(request: NextRequest) {
 
     // Find the project's task mapping if it exists
     let mappingId = null;
-    if (taskData.projectId) {
+    if (typeof projectId === "string") {
       const mapping = await prisma.taskListMapping.findFirst({
         where: {
-          projectId: taskData.projectId,
+          projectId,
+          project: { userId },
         },
       });
       if (mapping) {
@@ -185,15 +210,18 @@ export async function POST(request: NextRequest) {
     const task = await prisma.task.create({
       data: {
         ...taskData,
+        title: taskData.title.trim(),
+        status: taskData.status,
+        projectId: typeof projectId === "string" ? projectId : null,
         // Associate the task with the current user
         userId,
         // Tasks participate in auto-scheduling unless explicitly opted out.
         isAutoScheduled: taskData.isAutoScheduled ?? true,
         isRecurring: !!recurrenceRule,
         recurrenceRule: standardizedRecurrenceRule,
-        ...(tagIds && {
+        ...(Array.isArray(tagIds) && {
           tags: {
-            connect: tagIds.map((id: string) => ({ id })),
+            connect: tagIds.map((id) => ({ id: id as string })),
           },
         }),
       },
