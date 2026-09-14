@@ -6,7 +6,7 @@ Use this file for concrete work we have chosen to do. Put rough feature thoughts
 
 ## Current work
 
-- [ ] Complete the colorway overhaul defined in [the colorway worksheet](docs/colorways.md). All five colorways are registered. **Apply & refresh** now remaps recognized palette-linked data without touching provider events, scheduled task colors are aesthetic rather than priority-coded, and the primary navigation, Calendar, Tasks, Plan, Friends, Settings, and event editor consume theme tokens. Next, replace remaining inherited hardcoded Base colors on secondary surfaces and finish responsive visual QA.
+- [x] Colorway overhaul shipped in `6269b40`. All five colorways apply immediately, theme-linked feeds/events/projects/friends use stable slots that survive provider refreshes, custom colors remain fixed, palette names are visible, the four seasonal interface worlds are distinct, and intention motifs change with the active theme. Broader secondary-screen visual polish remains an optional future pass in [the colorway worksheet](docs/colorways.md).
 
 ## Maintenance candidates
 
