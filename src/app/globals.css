@@ -692,9 +692,23 @@ html[data-calendar-typography="handwritten-accent"]
 html[data-calendar-event-appearance="highlight"]
   .sunnie-calendar-frame
   .fc-event.calendar-event:not(.calendar-task):not(.calendar-event-all-day) {
-  border-radius: 0.3rem !important;
-  box-shadow: inset 0 -0.32em 0 rgba(255, 255, 255, 0.2) !important;
-  opacity: 0.9;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 0 1px, transparent 1.3px),
+    linear-gradient(
+      175deg,
+      transparent 58%,
+      rgba(255, 255, 255, 0.24) 59% 82%,
+      transparent 83%
+    ) !important;
+  background-size:
+    11px 11px,
+    100% 100% !important;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
+  border-radius: 0.65rem 0.5rem 0.7rem 0.48rem !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 1px 2px color-mix(in srgb, currentColor 10%, transparent) !important;
+  opacity: 0.94;
 }
 
 html[data-calendar-event-appearance="solid"]
@@ -716,10 +730,20 @@ html[data-calendar-event-appearance="soft"]
 html[data-calendar-event-appearance="washi"]
   .sunnie-calendar-frame
   .fc-event.calendar-event:not(.calendar-task):not(.calendar-event-all-day) {
-  border-radius: 0.15rem !important;
-  clip-path: polygon(1% 5%, 99% 0, 97% 96%, 2% 100%);
-  box-shadow: none !important;
-  opacity: 0.88;
+  border: 1px dashed color-mix(in srgb, currentColor 22%, transparent) !important;
+  border-radius: 0.42rem 0.3rem 0.46rem 0.34rem !important;
+  clip-path: polygon(
+    0 5%,
+    3% 0,
+    97% 3%,
+    100% 0,
+    99% 96%,
+    96% 100%,
+    4% 98%,
+    0 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+  opacity: 0.92;
 }
 
 html[data-calendar-event-appearance="outline"]
@@ -788,10 +812,32 @@ html[data-calendar-task-appearance="sticky-note"]
   .sunnie-calendar-frame
   .fc-event.calendar-task {
   overflow: hidden;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 13px,
+      rgba(255, 255, 255, 0.18) 13px 14px
+    ),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 52%) !important;
   border-radius: 0.25rem 0.6rem 0.35rem 0.5rem !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     2px 3px 0 color-mix(in srgb, var(--sunnie-ink, #3f432e) 12%, transparent) !important;
+}
+
+html[data-calendar-task-appearance="sticky-note"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-task::before {
+  position: absolute;
+  top: 0;
+  left: 36%;
+  z-index: 1;
+  width: 28%;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: rgba(255, 255, 255, 0.48);
+  content: "";
+  pointer-events: none;
 }
 
 html[data-calendar-task-appearance="sticky-note"]
@@ -814,10 +860,20 @@ html[data-calendar-task-appearance="sticky-note"]
 html[data-calendar-task-appearance="washi"]
   .sunnie-calendar-frame
   .fc-event.calendar-task {
-  border-radius: 0.15rem !important;
-  clip-path: polygon(1% 3%, 99% 0, 98% 97%, 2% 100%);
-  box-shadow: none !important;
-  opacity: 0.9;
+  border: 1px dashed color-mix(in srgb, currentColor 22%, transparent) !important;
+  border-radius: 0.42rem 0.3rem 0.46rem 0.34rem !important;
+  clip-path: polygon(
+    0 5%,
+    3% 0,
+    97% 3%,
+    100% 0,
+    99% 96%,
+    96% 100%,
+    4% 98%,
+    0 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+  opacity: 0.93;
 }
 
 html[data-calendar-task-appearance="outline"]
@@ -835,9 +891,15 @@ html[data-calendar-task-appearance="outline"]
 html[data-calendar-task-appearance="highlight"]
   .sunnie-calendar-frame
   .fc-event.calendar-task {
-  border-radius: 0.3rem !important;
-  box-shadow: inset 0 -0.32em 0 rgba(255, 255, 255, 0.2) !important;
-  opacity: 0.9;
+  background-image: linear-gradient(
+    175deg,
+    transparent 58%,
+    rgba(255, 255, 255, 0.24) 59% 82%,
+    transparent 83%
+  ) !important;
+  border-radius: 0.65rem 0.5rem 0.7rem 0.48rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+  opacity: 0.94;
 }
 
 html[data-calendar-all-day-appearance="solid"]
@@ -859,9 +921,20 @@ html[data-calendar-all-day-appearance="soft"]
 html[data-calendar-all-day-appearance="highlight"]
   .sunnie-calendar-frame
   .fc-event.calendar-event.calendar-event-all-day {
-  border-radius: 0.3rem !important;
-  box-shadow: inset 0 -0.32em 0 rgba(255, 255, 255, 0.2) !important;
-  opacity: 0.9;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 0 1px, transparent 1.3px),
+    linear-gradient(
+      175deg,
+      transparent 58%,
+      rgba(255, 255, 255, 0.24) 59% 82%,
+      transparent 83%
+    ) !important;
+  background-size:
+    11px 11px,
+    100% 100% !important;
+  border-radius: 0.65rem 0.5rem 0.7rem 0.48rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  opacity: 0.94;
 }
 
 html[data-calendar-all-day-appearance="outline"]
@@ -882,10 +955,35 @@ html[data-calendar-all-day-appearance="outline"]
 html[data-calendar-all-day-appearance="washi"]
   .sunnie-calendar-frame
   .fc-event.calendar-event.calendar-event-all-day {
-  border-radius: 0.15rem !important;
-  clip-path: polygon(1% 5%, 99% 0, 97% 96%, 2% 100%);
-  box-shadow: none !important;
-  opacity: 0.88;
+  border: 1px dashed color-mix(in srgb, currentColor 22%, transparent) !important;
+  border-radius: 0.42rem 0.3rem 0.46rem 0.34rem !important;
+  clip-path: polygon(
+    0 5%,
+    3% 0,
+    97% 3%,
+    100% 0,
+    99% 96%,
+    96% 100%,
+    4% 98%,
+    0 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+  opacity: 0.92;
+}
+
+html[data-calendar-event-appearance="washi"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event:not(.calendar-task):not(.calendar-event-all-day),
+html[data-calendar-task-appearance="washi"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-task,
+html[data-calendar-all-day-appearance="washi"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event.calendar-event-all-day {
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 50%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.16) 50%, transparent 50%) !important;
+  background-size: 12px 12px !important;
 }
 
 html[data-calendar-all-day-appearance="sticky-note"]

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Check, Plus } from "lucide-react";
+import { Check, Loader2, Plus } from "lucide-react";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,10 @@ interface SunnieColorPickerProps {
   value?: string | null;
   valueSlot?: string | null;
   fallbackColor?: string | null;
-  onChange: (color: string | null, colorSlot: string | null) => void;
+  onChange: (
+    color: string | null,
+    colorSlot: string | null
+  ) => void | Promise<void>;
   allowDefault?: boolean;
   defaultLabel?: string;
   className?: string;
@@ -40,14 +43,22 @@ export function SunnieColorPicker({
   const paletteColors = colorTheme.palettes[paletteName];
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const displayedColor = value || fallbackColor || paletteColors[0].value;
+  const [draftColor, setDraftColor] = useState<string | null>(value ?? null);
+  const [draftColorSlot, setDraftColorSlot] = useState<string | null>(
+    valueSlot ?? null
+  );
   const [customColor, setCustomColor] = useState(displayedColor);
-  const [hasUnappliedCustomColor, setHasUnappliedCustomColor] = useState(false);
-  const isPreset =
-    !!valueSlot ||
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const isDraftPreset =
+    !!draftColorSlot ||
     paletteColors.some(
-      (color) => color.value.toLowerCase() === value?.toLowerCase()
+      (color) => color.value.toLowerCase() === draftColor?.toLowerCase()
     );
   const presetValues = paletteColors.map((color) => color.value);
+  const hasUnappliedColor =
+    (draftColor || "").toLowerCase() !== (value || "").toLowerCase() ||
+    draftColorSlot !== (valueSlot ?? null);
 
   useEffect(() => {
     try {
@@ -71,11 +82,12 @@ export function SunnieColorPicker({
   }, []);
 
   useEffect(() => {
+    setDraftColor(value ?? null);
+    setDraftColorSlot(valueSlot ?? null);
     setCustomColor(displayedColor);
-    setHasUnappliedCustomColor(false);
-  }, [displayedColor]);
+  }, [displayedColor, value, valueSlot]);
 
-  const handleCustomColor = (color: string) => {
+  const rememberCustomColor = (color: string) => {
     setRecentColors((currentColors) => {
       const nextColors = addRecentColor(currentColors, color, presetValues);
       try {
@@ -88,19 +100,43 @@ export function SunnieColorPicker({
       }
       return nextColors;
     });
-    onChange(color, null);
+  };
+
+  const stageColor = (color: string | null, colorSlot: string | null) => {
+    setDraftColor(color);
+    setDraftColorSlot(colorSlot);
+    if (color) setCustomColor(color);
+    setApplyError(null);
   };
 
   const previewCustomColor = (color: string) => {
     setCustomColor(color);
-    setHasUnappliedCustomColor(
-      color.toLowerCase() !== displayedColor.toLowerCase()
-    );
+    stageColor(color, null);
   };
 
-  const applyCustomColor = () => {
-    handleCustomColor(customColor);
-    setHasUnappliedCustomColor(false);
+  const applyColor = async () => {
+    if (!hasUnappliedColor || isApplying) return;
+
+    setIsApplying(true);
+    setApplyError(null);
+    try {
+      await onChange(draftColor, draftColorSlot);
+      if (
+        draftColor &&
+        !draftColorSlot &&
+        !presetValues.some(
+          (preset) => preset.toLowerCase() === draftColor.toLowerCase()
+        )
+      ) {
+        rememberCustomColor(draftColor);
+      }
+    } catch (error) {
+      setApplyError(
+        error instanceof Error ? error.message : "Could not apply that color"
+      );
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -127,15 +163,15 @@ export function SunnieColorPicker({
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {paletteColors.map((color) => {
-            const selected = valueSlot
-              ? color.id === valueSlot
-              : color.value.toLowerCase() === value?.toLowerCase();
+            const selected = draftColorSlot
+              ? color.id === draftColorSlot
+              : color.value.toLowerCase() === draftColor?.toLowerCase();
 
             return (
               <button
                 key={color.id}
                 type="button"
-                onClick={() => onChange(color.value, color.id)}
+                onClick={() => stageColor(color.value, color.id)}
                 className={cn(
                   "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-black/10 px-1 py-2 text-[10px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 motion-reduce:transform-none",
                   selected &&
@@ -167,13 +203,15 @@ export function SunnieColorPicker({
           </p>
           <div className="flex flex-wrap gap-1" aria-label="Recent colors">
             {recentColors.map((color) => {
-              const selected = color.toLowerCase() === value?.toLowerCase();
+              const selected =
+                !draftColorSlot &&
+                color.toLowerCase() === draftColor?.toLowerCase();
 
               return (
                 <button
                   key={color}
                   type="button"
-                  onClick={() => onChange(color, null)}
+                  onClick={() => stageColor(color, null)}
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                     selected ? "border-foreground/70" : "border-background"
@@ -204,7 +242,7 @@ export function SunnieColorPicker({
           <span
             className={cn(
               "inline-flex h-9 items-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground",
-              value && !isPreset && "ring-2 ring-ring ring-offset-2"
+              draftColor && !isDraftPreset && "ring-2 ring-ring ring-offset-2"
             )}
           >
             <span
@@ -220,10 +258,16 @@ export function SunnieColorPicker({
         <Button
           type="button"
           size="sm"
-          onClick={applyCustomColor}
-          disabled={!hasUnappliedCustomColor}
+          onClick={() => void applyColor()}
+          disabled={!hasUnappliedColor || isApplying}
         >
-          Apply color
+          {isApplying ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Applying…
+            </>
+          ) : (
+            "Apply color"
+          )}
         </Button>
 
         {allowDefault && (
@@ -231,13 +275,21 @@ export function SunnieColorPicker({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onChange(null, null)}
-            disabled={!value}
+            onClick={() => stageColor(null, null)}
+            disabled={!draftColor && !draftColorSlot}
           >
             {defaultLabel}
           </Button>
         )}
       </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Choose a swatch or custom color, then apply it.
+      </p>
+      {applyError && (
+        <p className="text-xs font-medium text-destructive" role="alert">
+          {applyError}
+        </p>
+      )}
     </div>
   );
 }

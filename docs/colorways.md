@@ -313,11 +313,23 @@ placement or persistence. `plaid` is a reusable pattern primitive, while
 `scalloped` is a small decorative accent intended mainly for Spring rather than
 a general card shape.
 
+Base's concept pack includes garden, planning, and cozy-day motifs, with daisy,
+gingham, scalloped-border, strawberry-vine, and pastel-dot washi directions.
+Current Bujo items echo that stationery language with soft texture, tiny checks,
+ruled sticky notes, a small tape tab, and gentler hand-cut edges.
+
 This first version does not add sticker persistence, final custom theme artwork,
 or ambient activation animation. The registry includes explicit sticker,
 washi, illustration, and motion contracts so those can be added later. Future
 draggable stickers should be anchored relative to calendar dates or cells
 rather than raw screen pixels.
+
+Event, feed, and task color pickers stage preset, recent, default, and custom
+choices behind the same **Apply color** action. Feed colors update optimistically.
+A color-only event save updates the matching local occurrence or series
+immediately, avoids a full calendar reload, and rolls back if its Sunnie-local
+database update fails. Project colors already use the project form's Save action,
+while friend colors are browser-local and immediate.
 
 ## Calendar visual direction
 

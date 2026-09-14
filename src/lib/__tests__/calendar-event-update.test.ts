@@ -1,4 +1,7 @@
-import { getCalendarEventChangeKind } from "@/lib/calendar-event-update";
+import {
+  applyCalendarEventColor,
+  getCalendarEventChangeKind,
+} from "@/lib/calendar-event-update";
 
 import { CalendarEvent } from "@/types/calendar";
 
@@ -68,5 +71,57 @@ describe("calendar event update classification", () => {
         }
       )
     ).toEqual({ contentChanged: true, colorChanged: false });
+  });
+
+  it("applies a single color locally without touching sibling occurrences", () => {
+    const sibling = {
+      ...event,
+      id: "event-2",
+      isRecurring: true,
+      masterEventId: "master-1",
+    };
+    const updated = applyCalendarEventColor(
+      [{ ...event, isRecurring: true, masterEventId: "master-1" }, sibling],
+      { ...event, isRecurring: true, masterEventId: "master-1" },
+      "#C94F3D",
+      "event-2",
+      "single"
+    );
+
+    expect(updated[0]).toMatchObject({
+      color: "#C94F3D",
+      colorSlot: "event-2",
+    });
+    expect(updated[1].color).toBe(event.color);
+  });
+
+  it("applies a series color to master and related occurrences", () => {
+    const master = {
+      ...event,
+      id: "master-1",
+      externalEventId: "provider-series-1",
+      isRecurring: true,
+      isMaster: true,
+    };
+    const occurrence = {
+      ...event,
+      id: "occurrence-1",
+      externalEventId: "provider-occurrence-1",
+      recurringEventId: "provider-series-1",
+      masterEventId: "master-1",
+      isRecurring: true,
+    };
+    const unrelated = { ...event, id: "unrelated" };
+    const updated = applyCalendarEventColor(
+      [master, occurrence, unrelated],
+      occurrence,
+      "#C94F3D",
+      "event-2",
+      "series"
+    );
+
+    expect(updated[0].colorSlot).toBe("event-2");
+    expect(updated[1].colorSlot).toBe("event-2");
+    expect(updated[2].colorSlot).toBeUndefined();
   });
 });

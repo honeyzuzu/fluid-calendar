@@ -395,10 +395,23 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
   },
 
   updateFeed: async (id, updates) => {
-    try {
-      const feed = get().feeds.find((f) => f.id === id);
-      if (!feed) return;
+    const feed = get().feeds.find((candidate) => candidate.id === id);
+    if (!feed) return;
 
+    // Feed color changes used to appear only after the provider request
+    // completed. Apply them optimistically so the explicit picker action has
+    // immediate visual feedback, then roll back only the edited fields if the
+    // request fails.
+    const previousValues = Object.fromEntries(
+      Object.keys(updates).map((key) => [key, feed[key as keyof CalendarFeed]])
+    ) as Partial<CalendarFeed>;
+    set((state) => ({
+      feeds: state.feeds.map((candidate) =>
+        candidate.id === id ? { ...candidate, ...updates } : candidate
+      ),
+    }));
+
+    try {
       // For Google Calendar feeds, use the Google Calendar API
       if (feed.type === "GOOGLE") {
         const response = await fetch(`/api/calendar/google/${id}`, {
@@ -422,14 +435,12 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to update feed in database");
         }
       }
-
-      // Update local state after successful database update
+    } catch (error) {
       set((state) => ({
-        feeds: state.feeds.map((feed) =>
-          feed.id === id ? { ...feed, ...updates } : feed
+        feeds: state.feeds.map((candidate) =>
+          candidate.id === id ? { ...candidate, ...previousValues } : candidate
         ),
       }));
-    } catch (error) {
       console.error("Failed to update feed:", error);
       throw error;
     }

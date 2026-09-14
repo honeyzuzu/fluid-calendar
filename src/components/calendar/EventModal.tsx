@@ -28,7 +28,10 @@ import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
-import { getCalendarEventChangeKind } from "@/lib/calendar-event-update";
+import {
+  applyCalendarEventColor,
+  getCalendarEventChangeKind,
+} from "@/lib/calendar-event-update";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
@@ -323,19 +326,64 @@ export function EventModal({
         const changes = getCalendarEventChangeKind(event, eventData);
         if (!changes.contentChanged) {
           if (changes.colorChanged) {
-            const response = await fetch(`/api/events/${event.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                color: eventData.color,
-                colorSlot: eventData.colorSlot,
-                mode: event.isRecurring ? editMode || "series" : "single",
-              }),
-            });
-            if (!response.ok) {
-              throw new Error("Failed to save the event color");
+            const calendarStore = useCalendarStore.getState();
+            const previousEvents = calendarStore.events;
+            const colorMode = event.isRecurring
+              ? editMode || "series"
+              : "single";
+            const optimisticEvents = applyCalendarEventColor(
+              previousEvents,
+              { ...event, id: event.id },
+              eventData.color ?? null,
+              eventData.colorSlot || null,
+              colorMode
+            );
+            const previousColorsById = new Map(
+              previousEvents.flatMap((previousEvent, index) => {
+                const optimisticEvent = optimisticEvents[index];
+                return optimisticEvent.color !== previousEvent.color ||
+                  optimisticEvent.colorSlot !== previousEvent.colorSlot
+                  ? [
+                      [
+                        previousEvent.id,
+                        {
+                          color: previousEvent.color,
+                          colorSlot: previousEvent.colorSlot,
+                        },
+                      ] as const,
+                    ]
+                  : [];
+              })
+            );
+            calendarStore.setEvents(optimisticEvents);
+            try {
+              const response = await fetch(`/api/events/${event.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  color: eventData.color,
+                  colorSlot: eventData.colorSlot,
+                  mode: colorMode,
+                }),
+              });
+              if (!response.ok) {
+                throw new Error("Failed to save the event color");
+              }
+            } catch (error) {
+              calendarStore.setEvents(
+                useCalendarStore.getState().events.map((currentEvent) => {
+                  const previous = previousColorsById.get(currentEvent.id);
+                  return previous
+                    ? {
+                        ...currentEvent,
+                        color: previous.color,
+                        colorSlot: previous.colorSlot,
+                      }
+                    : currentEvent;
+                })
+              );
+              throw error;
             }
-            await useCalendarStore.getState().loadFromDatabase();
           }
         } else {
           await updateEvent(event.id, eventData, editMode);

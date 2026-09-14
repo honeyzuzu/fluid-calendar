@@ -66,3 +66,36 @@ export function getCalendarEventChangeKind(
 
   return { contentChanged, colorChanged };
 }
+
+/** Apply a local color override using the same single/series scope as the API. */
+export function applyCalendarEventColor(
+  events: CalendarEvent[],
+  target: Partial<CalendarEvent> & { id: string },
+  color: string | null,
+  colorSlot: string | null,
+  mode: "single" | "series"
+) {
+  const masterDatabaseId = target.isMaster ? target.id : target.masterEventId;
+  const providerSeriesId = target.isMaster
+    ? target.externalEventId
+    : target.recurringEventId;
+
+  return events.map((candidate) => {
+    const isTarget = candidate.id === target.id;
+    const isRelatedSeriesRow =
+      mode === "series" &&
+      target.isRecurring &&
+      candidate.feedId === target.feedId &&
+      (isTarget ||
+        (!!masterDatabaseId &&
+          (candidate.id === masterDatabaseId ||
+            candidate.masterEventId === masterDatabaseId)) ||
+        (!!providerSeriesId &&
+          (candidate.externalEventId === providerSeriesId ||
+            candidate.recurringEventId === providerSeriesId)));
+
+    return isTarget || isRelatedSeriesRow
+      ? { ...candidate, color, colorSlot }
+      : candidate;
+  });
+}

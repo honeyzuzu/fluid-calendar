@@ -67,6 +67,12 @@ export const STICKER_PACKS = {
       { id: "chick", preview: "🐥" },
       { id: "pencil", preview: "✏️" },
       { id: "tea", preview: "☕" },
+      { id: "notebook", preview: "📒" },
+      { id: "garden-basket", preview: "🧺" },
+      { id: "butterfly", preview: "🦋" },
+      { id: "heart", preview: "💛" },
+      { id: "rainbow", preview: "🌈" },
+      { id: "flower-pot", preview: "🪴" },
     ],
     conceptOnly: true,
   },
@@ -132,6 +138,9 @@ export const WASHI_PACKS = {
   "sunnie-sunny-garden": [
     "yellow daisy tape",
     "sage tiny-check tape",
+    "cream gingham tape",
+    "scalloped garden border",
+    "tiny strawberry vine",
     "pastel rainbow dots",
   ],
   "spring-fresh-air": [

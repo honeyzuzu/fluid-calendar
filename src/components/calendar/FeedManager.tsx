@@ -154,9 +154,10 @@ export function FeedManager() {
                         colorTheme.id
                       )}
                       valueSlot={feed.colorSlot}
-                      onChange={(color, colorSlot) => {
+                      onChange={async (color, colorSlot) => {
                         if (color) {
-                          void updateFeed(feed.id, { color, colorSlot });
+                          await updateFeed(feed.id, { color, colorSlot });
+                          setColorFeedId(null);
                         }
                       }}
                     />
