@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { AlertCircle } from "lucide-react";
+import { Info } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -105,24 +105,25 @@ export function AccountManager() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {!integrationStatus.google.configured && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Missing Google Credentials</AlertTitle>
+          {!isLoading && !integrationStatus.google.configured && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>
+                Google Calendar isn&apos;t available in this Sunnie workspace
+              </AlertTitle>
               <AlertDescription>
-                Please contact your administrator to configure Google Calendar
-                integration.
+                Apple Calendar and other CalDAV calendars are ready to connect.
+                Your Sunnie host can let you know if Google becomes available.
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={handleGoogleConnect}
-              disabled={!integrationStatus.google.configured || isLoading}
-            >
-              Connect Google Calendar
-            </Button>
+            {(isLoading || integrationStatus.google.configured) && (
+              <Button onClick={handleGoogleConnect} disabled={isLoading}>
+                Connect Google Calendar
+              </Button>
+            )}
             <Button
               onClick={(event) => openCalDAVForm("apple", event.currentTarget)}
             >

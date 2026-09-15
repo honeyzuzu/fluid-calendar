@@ -29,6 +29,7 @@ import {
   Sunrise,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DailyRise,
@@ -54,6 +55,11 @@ import {
   localDateKey,
   randomIntentionQuote,
 } from "@/lib/daily-intention";
+import {
+  collectScheduleChanges,
+  formatScheduleSummary,
+  restoreScheduleChanges,
+} from "@/lib/schedule-feedback";
 import { cn } from "@/lib/utils";
 
 import { useSettingsStore } from "@/store/settings";
@@ -181,6 +187,7 @@ async function expectJson<T>(response: Response): Promise<T> {
 }
 
 export default function PlanPage() {
+  const timeFormat = useSettingsStore((state) => state.user.timeFormat);
   const plannerColorTheme = getColorTheme(
     useSettingsStore((state) => state.user.colorTheme)
   );
@@ -784,7 +791,7 @@ export default function PlanPage() {
     setScheduling(scope);
     setError(null);
     try {
-      await fetch("/api/tasks/schedule-all", {
+      const updatedTasks = await fetch("/api/tasks/schedule-all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -793,7 +800,48 @@ export default function PlanPage() {
           rangeEnd: rangeEnd.toISOString(),
         }),
       }).then((response) => expectJson<TaskRecord[]>(response));
+      const changes = collectScheduleChanges(candidates, updatedTasks);
       await load();
+      if (changes.length === 0) {
+        toast.info("Your current schedule already fits", {
+          description: formatScheduleSummary(
+            changes,
+            userTimeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timeFormat,
+            scope === "day" ? "Selected day" : "Selected week"
+          ),
+        });
+      } else {
+        const taskLabel = changes.length === 1 ? "task" : "tasks";
+        toast.success(`${changes.length} ${taskLabel} scheduled`, {
+          description: formatScheduleSummary(
+            changes,
+            userTimeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timeFormat,
+            scope === "day" ? "Selected day" : "Selected week"
+          ),
+          action: {
+            label: "Undo",
+            onClick: () => {
+              void restoreScheduleChanges(changes)
+                .then(async (restoredCount) => {
+                  await load();
+                  if (restoredCount === changes.length) {
+                    toast.success("Schedule restored");
+                  } else {
+                    toast.info("Some newer changes were kept", {
+                      description:
+                        "Sunnie restored only the blocks that had not changed since scheduling.",
+                    });
+                  }
+                })
+                .catch(() =>
+                  toast.error("Sunnie couldn't restore that schedule")
+                );
+            },
+          },
+        });
+      }
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -825,17 +873,17 @@ export default function PlanPage() {
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
-        <header className="sunnie-plan-hero relative mb-6 overflow-hidden rounded-[2rem] border border-border p-5 shadow-[var(--shadow-raised)] sm:p-7">
-          <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border-[28px] border-white/20" />
+        <header className="sunnie-plan-hero relative mb-5 overflow-hidden rounded-[2rem] border border-border p-4 shadow-[var(--shadow-raised)] sm:p-5">
+          <div className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full border-[22px] border-white/20" />
           <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[color:var(--sunnie-warm-glow)] opacity-15 blur-2xl" />
-          <div className="relative flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
+          <div className="relative flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div className="min-w-0 max-w-2xl">
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/55 px-3 py-1.5">
                   <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
                 </span>
               </div>
-              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-5xl">
+              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-4xl">
                 {view === "today"
                   ? "Shape a day that feels like yours."
                   : view === "week"
@@ -843,8 +891,9 @@ export default function PlanPage() {
                     : "Look back kindly, then begin again."}
               </h1>
               {view !== "review" && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-secondary-foreground">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-secondary-foreground">
                   <span className="rounded-full bg-card/60 px-3 py-1.5 font-medium">
+                    {!isRitualDate && "Viewing "}
                     {selectedDate.toLocaleDateString(undefined, {
                       weekday: "long",
                       month: "long",
@@ -1608,6 +1657,7 @@ export default function PlanPage() {
         <div className={cn((view !== "review" || loading) && "hidden")}>
           <MoodGarden
             initialMonth={selectedDate}
+            onStartCheckIn={openRitual}
             refreshKey={moodEntries
               .map((entry) => `${entry.phase}:${entry.updatedAt}`)
               .join("|")}

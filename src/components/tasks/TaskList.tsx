@@ -275,6 +275,7 @@ export function TaskList({
             task={task}
             onEdit={onEdit}
             onDelete={onDelete}
+            onStatusChange={onStatusChange}
           />
         ))}
         {sortedTasks.length === 0 && (

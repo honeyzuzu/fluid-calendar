@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import dynamic from "next/dynamic";
 
 import { SunnieSun } from "@/components/brand/SunnieSun";
+import { AboutSettings } from "@/components/settings/AboutSettings";
 import { AccountManager } from "@/components/settings/AccountManager";
 import { AutoScheduleSettings } from "@/components/settings/AutoScheduleSettings";
 import { CalendarSettings } from "@/components/settings/CalendarSettings";
@@ -58,7 +59,8 @@ type SettingsTab =
   | "admin-dashboard"
   | "notifications"
   | "presence"
-  | "theme-lab";
+  | "theme-lab"
+  | "about";
 
 export default function SettingsPage() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -82,6 +84,7 @@ export default function SettingsPage() {
   const tabs = useMemo(() => {
     const baseTabs = [
       { id: "user", label: "User" },
+      { id: "about", label: "About Sunnie" },
       { id: "calendar", label: "Calendar" },
       { id: "auto-schedule", label: "Auto-Schedule" },
       { id: "accounts", label: "Accounts" },
@@ -119,7 +122,10 @@ export default function SettingsPage() {
   const tabGroups = useMemo(
     () =>
       [
-        { label: "Personal", tabs: tabs.filter((tab) => tab.id === "user") },
+        {
+          label: "Personal",
+          tabs: tabs.filter((tab) => ["user", "about"].includes(tab.id)),
+        },
         {
           label: "Planning",
           tabs: tabs.filter((tab) =>
@@ -144,6 +150,7 @@ export default function SettingsPage() {
             (tab) =>
               ![
                 "user",
+                "about",
                 "calendar",
                 "auto-schedule",
                 "accounts",
@@ -180,6 +187,7 @@ export default function SettingsPage() {
         "notifications",
         "presence",
         "theme-lab",
+        "about",
       ];
 
       if (allPossibleTabIds.includes(hash)) {
@@ -245,6 +253,8 @@ export default function SettingsPage() {
         return <AccountManager />;
       case "user":
         return <UserSettings />;
+      case "about":
+        return <AboutSettings />;
       case "calendar":
         return <CalendarSettings />;
       case "auto-schedule":

@@ -843,18 +843,19 @@ export function FocusSession({
               Nice work protecting that time
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Finish the task, edit what changed, or continue with another
-              round.
+              You protected {focusMinutes} minutes for {taskTitle}. Finish the
+              task if it&apos;s ready, or choose what would help next.
             </p>
             <RoundTaskActions
               onCompleteTask={onCompleteTask}
               onEditTask={onEditTask}
+              emphasizeCompletion
             />
             <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={startAnotherRound}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/70 px-4 py-3 text-sm font-semibold text-secondary-foreground"
               >
                 <Play className="h-4 w-4 fill-current" /> Another focus round
               </button>
@@ -999,16 +1000,23 @@ function friendlyValue(value?: string | null) {
 function RoundTaskActions({
   onCompleteTask,
   onEditTask,
+  emphasizeCompletion = false,
 }: {
   onCompleteTask: () => void;
   onEditTask: () => void;
+  emphasizeCompletion?: boolean;
 }) {
   return (
     <div className="mx-auto mt-4 grid max-w-md gap-2 sm:grid-cols-2">
       <button
         type="button"
         onClick={onCompleteTask}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground shadow-[var(--shadow-pressed)]"
+        className={cn(
+          "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold shadow-[var(--shadow-pressed)]",
+          emphasizeCompletion
+            ? "bg-primary text-primary-foreground"
+            : "bg-accent text-accent-foreground"
+        )}
       >
         <Check className="h-4 w-4" /> Complete task
       </button>

@@ -32,11 +32,6 @@ export function NotificationSettings() {
           </label>
         </div>
       </SettingRow>
-
-      <div className="mt-4 text-sm text-muted-foreground">
-        More notification settings coming soon! You&apos;ll be able to customize
-        event reminders, updates, and more.
-      </div>
     </SettingsSection>
   );
 }

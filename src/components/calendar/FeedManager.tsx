@@ -219,9 +219,17 @@ export function FeedManager() {
             </div>
           ))}
           {feeds.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No calendars added yet
-            </p>
+            <div className="rounded-xl border border-dashed border-border bg-muted/45 px-3 py-4 text-center">
+              <p className="text-sm font-semibold text-foreground">
+                No calendars connected yet
+              </p>
+              <Link
+                href="/settings#accounts"
+                className="mt-2 inline-flex rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+              >
+                Connect a calendar
+              </Link>
+            </div>
           )}
         </div>
 

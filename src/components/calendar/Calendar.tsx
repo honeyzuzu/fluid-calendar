@@ -3,8 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
-import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
+import {
+  CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
 
 import { DayView } from "@/components/calendar/DayView";
 import { FeedManager } from "@/components/calendar/FeedManager";
@@ -433,6 +440,25 @@ export function Calendar({
 
         {/* Calendar Grid */}
         <div className="relative z-0 flex-1 overflow-hidden bg-background p-1.5 sm:p-3">
+          {feeds.length === 0 && (
+            <div className="absolute left-1/2 top-5 z-20 flex w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-2xl border border-border bg-card/95 p-3 shadow-[var(--shadow-raised)] backdrop-blur-sm">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-primary">
+                <CalendarPlus className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Bring your calendar in</p>
+                <p className="text-xs text-muted-foreground">
+                  See real commitments while Sunnie plans around them.
+                </p>
+              </div>
+              <Link
+                href="/settings#accounts"
+                className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+              >
+                Connect
+              </Link>
+            </div>
+          )}
           <div className="sunnie-calendar-frame h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[var(--shadow-paper)]">
             {view === "day" ? (
               <DayView currentDate={currentDate} onDateClick={setDate} />

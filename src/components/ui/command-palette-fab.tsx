@@ -6,8 +6,11 @@ import { Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import { usePrimaryShortcutLabel } from "@/hooks/use-primary-shortcut";
+
 export function CommandPaletteFab() {
   const [isVisible, setIsVisible] = useState(false);
+  const commandShortcut = usePrimaryShortcutLabel();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,9 +28,11 @@ export function CommandPaletteFab() {
 
   const openCommandPalette = () => {
     // Simulate Cmd+K / Ctrl+K
+    const isMac = commandShortcut === "⌘K";
     const event = new KeyboardEvent("keydown", {
       key: "k",
-      metaKey: true,
+      metaKey: isMac,
+      ctrlKey: !isMac,
       bubbles: true,
     });
     document.dispatchEvent(event);
@@ -45,7 +50,7 @@ export function CommandPaletteFab() {
           : "pointer-events-none translate-y-10 opacity-0"
       )}
       aria-label="Open command palette"
-      title="Search or run a command (⌘K)"
+      title={`Search or run a command (${commandShortcut})`}
     >
       <Search className="h-5 w-5" />
     </button>

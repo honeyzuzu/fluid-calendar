@@ -1,38 +1,42 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-import { usePathname } from "next/navigation";
-
-import { inter } from "@/lib/fonts";
-import { getTitleFromPathname } from "@/lib/utils/page-title";
-
-import "../app/globals.css";
+import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 export default function Loading() {
-  // Use client-side rendering to avoid hydration issues
-  const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-    // Set document title on the client side
-    const title = getTitleFromPathname(pathname);
-    document.title = `Loading ${title}`;
-    return () => {
-      document.title = title;
-    };
-  }, [pathname]);
-
-  // Only render the full content after mounting on the client
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-      <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500"></div>
-      <p className={inter.className}>Loading...</p>
+    <div
+      role="status"
+      aria-label="Loading page"
+      className="min-h-full w-full min-w-0 overflow-hidden bg-background px-3 py-5 min-[380px]:px-4 sm:px-5 lg:p-8"
+    >
+      <span className="sr-only">Loading page…</span>
+      <div className="mx-auto w-full max-w-[1440px] space-y-5">
+        <header className="rounded-[var(--radius-hero)] border border-border bg-card/70 p-5 shadow-[var(--shadow-paper)] sm:p-6">
+          <SunnieSkeleton className="h-3 w-32" />
+          <SunnieSkeleton className="mt-4 h-9 w-[min(34rem,78%)]" />
+          <SunnieSkeleton className="mt-3 h-4 w-[min(26rem,60%)]" />
+        </header>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+          <section className="space-y-4 rounded-[var(--radius-card)] border border-border bg-card/75 p-4 shadow-[var(--shadow-paper)] sm:p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-2">
+                <SunnieSkeleton className="h-5 w-40" />
+                <SunnieSkeleton className="h-3 w-64 max-w-full" />
+              </div>
+              <SunnieSkeleton className="h-9 w-24" />
+            </div>
+            <SunnieSkeleton className="h-12 w-full" />
+            <SunnieSkeleton className="h-24 w-full" />
+            <SunnieSkeleton className="h-24 w-full" />
+          </section>
+
+          <aside className="space-y-4 rounded-[var(--radius-card)] border border-border bg-card/70 p-4 shadow-[var(--shadow-paper)] sm:p-5">
+            <SunnieSkeleton className="h-5 w-32" />
+            <SunnieSkeleton className="h-12 w-full" />
+            <SunnieSkeleton className="h-12 w-full" />
+            <SunnieSkeleton className="h-32 w-full" />
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }

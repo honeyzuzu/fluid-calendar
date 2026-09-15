@@ -356,11 +356,11 @@ export function TaskCaptureWorkspace({
               )}
 
               <section className="rounded-2xl border border-border bg-accent/65 p-5 shadow-[var(--shadow-paper)]">
-                <h2 className="font-semibold">No AI needed yet</h2>
+                <h2 className="font-semibold">Simple on purpose</h2>
                 <p className="mt-2 text-sm leading-6 text-secondary-foreground">
                   Sunnie turns each line into a task exactly as you wrote it.
-                  That keeps this fast, private, and free. Later, optional AI
-                  could split a long messy paragraph or suggest details.
+                  That keeps capture fast, private, and predictable: one line
+                  always becomes one task.
                 </p>
               </section>
 

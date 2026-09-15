@@ -10,6 +10,7 @@ import {
   ListTodo,
   MoreHorizontal,
   Search,
+  Settings,
   Sparkles,
   UsersRound,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
+import { usePrimaryShortcutLabel } from "@/hooks/use-primary-shortcut";
 import { usePendingFriendRequests } from "@/hooks/usePendingFriendRequests";
 
 import { useShortcutsStore } from "@/store/shortcuts";
@@ -38,13 +40,16 @@ export function AppNav({ className }: AppNavProps) {
   const pathname = usePathname();
   const { setOpen: setShortcutsOpen } = useShortcutsStore();
   const hasPendingFriendRequest = usePendingFriendRequests();
+  const commandShortcut = usePrimaryShortcutLabel();
 
   // Function to trigger command palette
   const openCommandPalette = () => {
     // Simulate Cmd+K / Ctrl+K
+    const isMac = commandShortcut === "⌘K";
     const event = new KeyboardEvent("keydown", {
       key: "k",
-      metaKey: true,
+      metaKey: isMac,
+      ctrlKey: !isMac,
       bubbles: true,
     });
     document.dispatchEvent(event);
@@ -71,7 +76,10 @@ export function AppNav({ className }: AppNavProps) {
       icon: Lightbulb,
     },
   ];
-  const moreLinks = [{ href: "/friends", label: "Friends", icon: UsersRound }];
+  const moreLinks = [
+    { href: "/friends", label: "Friends", icon: UsersRound },
+    { href: "/settings", label: "Settings", icon: Settings },
+  ];
   const moreIsActive = moreLinks.some((link) => pathname === link.href);
 
   return (
@@ -178,12 +186,12 @@ export function AppNav({ className }: AppNavProps) {
                 aria-label="Search or run a command"
                 onClick={openCommandPalette}
                 className="hidden min-h-10 items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:flex"
-                title="Search or run a command (⌘K)"
+                title={`Search or run a command (${commandShortcut})`}
               >
                 <Search className="h-4 w-4" />
                 <span className="hidden xl:inline">Search</span>
                 <kbd className="ml-1 hidden rounded bg-muted px-1 py-0.5 text-xs sm:inline">
-                  ⌘K
+                  {commandShortcut}
                 </kbd>
               </button>
               <button

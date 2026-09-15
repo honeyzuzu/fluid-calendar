@@ -18,6 +18,7 @@ import { shouldShowCommandEmptyState } from "@/lib/command-palette-state";
 import { cn, formatShortcut } from "@/lib/utils";
 
 import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
+import { usePrimaryShortcutLabel } from "@/hooks/use-primary-shortcut";
 import { useCommands } from "@/hooks/useCommands";
 
 interface CommandPaletteProps {
@@ -30,6 +31,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const [showAllCommands, setShowAllCommands] = useState(false);
   const { searchCommands, executeCommand, getAllCommands } = useCommands();
   const restoreFocus = useDialogReturnFocus(open);
+  const commandShortcut = usePrimaryShortcutLabel();
 
   // Get filtered commands based on search or show all commands
   const commands = useMemo(() => {
@@ -102,8 +104,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               )}
               {!search && (
                 <kbd className="hidden items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground sm:flex">
-                  <span className="text-xs">⌘</span>
-                  <span>K</span>
+                  {commandShortcut}
                 </kbd>
               )}
               <Dialog.Close
@@ -117,8 +118,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Command.List className="max-h-[300px] overflow-y-auto p-2">
               {!search && !showAllCommands && (
                 <div className="px-2 py-3 text-sm text-muted-foreground">
-                  <p className="mb-2">
-                    Start typing to search commands or try these:
+                  <p className="mb-2 font-medium text-foreground">
+                    Suggested commands
                   </p>
                   <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button

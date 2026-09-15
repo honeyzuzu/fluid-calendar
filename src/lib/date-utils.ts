@@ -46,6 +46,41 @@ export function formatDate(date: Date): string {
   }).format(validDate);
 }
 
+type ClockFormat = "12h" | "24h";
+
+/**
+ * Formats a stored instant in the account's chosen display time zone.
+ * Keep user-facing schedule text on this path instead of relying on the
+ * browser's local zone, which can differ while travelling or during QA.
+ */
+export function formatTimeInTimeZone(
+  value: Date | string | number,
+  timeZone?: string | null,
+  clockFormat: ClockFormat = "12h"
+): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: clockFormat === "12h",
+    ...(timeZone && { timeZone }),
+  }).format(newDate(value));
+}
+
+export function formatDateTimeInTimeZone(
+  value: Date | string | number,
+  timeZone?: string | null,
+  clockFormat: ClockFormat = "12h"
+): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: clockFormat === "12h",
+    ...(timeZone && { timeZone }),
+  }).format(newDate(value));
+}
+
 export function roundDateUp(date: Date, minutes?: number | undefined): Date {
   if (minutes === undefined) {
     minutes = 30;

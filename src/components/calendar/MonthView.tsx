@@ -10,6 +10,7 @@ import type {
 import type { DateSelectArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import luxon3Plugin from "@fullcalendar/luxon3";
 import FullCalendar from "@fullcalendar/react";
 import { toast } from "sonner";
 
@@ -367,7 +368,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     <div className="relative h-full">
       <FullCalendar
         ref={calendarRef}
-        plugins={[dayGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, interactionPlugin, luxon3Plugin]}
         initialView="dayGridMonth"
         headerToolbar={false}
         initialDate={currentDate}
@@ -375,7 +376,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         dayMaxEvents={true}
         expandRows={true}
         stickyHeaderDates={true}
-        timeZone="local"
+        timeZone={userSettings.timeZone || "local"}
         displayEventEnd={true}
         firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
         height="100%"

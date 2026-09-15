@@ -5,7 +5,7 @@ import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 
-import { LogOut, Settings, Sun } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,11 @@ export function UserMenu() {
   if (status === "loading") {
     return (
       <div
-        className="flex items-center gap-2 text-sm text-muted-foreground"
+        className="h-8 w-8 animate-pulse rounded-full border border-border bg-muted"
         role="status"
+        aria-label="Loading account"
         aria-live="polite"
-      >
-        <Sun className="h-4 w-4 animate-spin text-primary" />
-        <span className="hidden sm:inline">Loading account...</span>
-      </div>
+      />
     );
   }
 

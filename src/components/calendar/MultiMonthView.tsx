@@ -7,6 +7,7 @@ import type {
 } from "@fullcalendar/core";
 import type { DateSelectArg } from "@fullcalendar/core";
 import interactionPlugin from "@fullcalendar/interaction";
+import luxon3Plugin from "@fullcalendar/luxon3";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import FullCalendar from "@fullcalendar/react";
 
@@ -318,7 +319,7 @@ export function MultiMonthView({
     <div className="h-full">
       <FullCalendar
         ref={calendarRef}
-        plugins={[multiMonthPlugin, interactionPlugin]}
+        plugins={[multiMonthPlugin, interactionPlugin, luxon3Plugin]}
         initialView="multiMonthYear"
         headerToolbar={false}
         initialDate={currentDate}
@@ -327,7 +328,7 @@ export function MultiMonthView({
         multiMonthMaxColumns={3}
         expandRows={true}
         stickyHeaderDates={true}
-        timeZone="local"
+        timeZone={userSettings.timeZone || "local"}
         displayEventEnd={true}
         firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
         height="100%"

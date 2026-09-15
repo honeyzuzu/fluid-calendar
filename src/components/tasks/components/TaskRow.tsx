@@ -17,8 +17,10 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 
-import { format, newDate } from "@/lib/date-utils";
+import { formatTimeInTimeZone, newDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+
+import { useSettingsStore } from "@/store/settings";
 
 import { Task, TaskStatus } from "@/types/task";
 
@@ -46,6 +48,7 @@ export function TaskRow({
   onInlineEdit,
 }: TaskRowProps) {
   const { draggableProps, isDragging } = useDraggableTask(task);
+  const { user: userSettings } = useSettingsStore();
   const isFutureTask = isUpcomingTask(task);
 
   return (
@@ -246,8 +249,23 @@ export function TaskRow({
               )}
               {task.scheduledStart && task.scheduledEnd && (
                 <span className="text-sm text-primary">
-                  {format(newDate(task.scheduledStart), "MMM d, p")} -{" "}
-                  {format(newDate(task.scheduledEnd), "p")}
+                  {new Intl.DateTimeFormat(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    timeZone: userSettings.timeZone,
+                  }).format(newDate(task.scheduledStart))}
+                  {" · "}
+                  {formatTimeInTimeZone(
+                    task.scheduledStart,
+                    userSettings.timeZone,
+                    userSettings.timeFormat
+                  )}
+                  {" – "}
+                  {formatTimeInTimeZone(
+                    task.scheduledEnd,
+                    userSettings.timeZone,
+                    userSettings.timeFormat
+                  )}
                 </span>
               )}
             </div>

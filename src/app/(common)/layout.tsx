@@ -7,7 +7,6 @@ import dynamic from "next/dynamic";
 
 import { DndProvider } from "@/components/dnd/DndProvider";
 import { AppNav } from "@/components/navigation/AppNav";
-import { VersionBadge } from "@/components/navigation/VersionBadge";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { DailyIntentionBanner } from "@/components/planning/DailyIntentionBanner";
 import { DailyRhythmPrompt } from "@/components/planning/DailyRhythmPrompt";
@@ -146,11 +145,6 @@ export default function RootLayout({
             <main className="relative z-[1] flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
               <NotificationProvider>{children}</NotificationProvider>
             </main>
-            <footer className="relative z-[1] hidden flex-none border-t border-border bg-muted/90 px-4 py-2 lg:block">
-              <div className="flex justify-end">
-                <VersionBadge />
-              </div>
-            </footer>
             <Toaster />
           </DndProvider>
         </PrivacyProvider>

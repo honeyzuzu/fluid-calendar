@@ -7,6 +7,7 @@ import type {
 } from "@fullcalendar/core";
 import type { DateSelectArg } from "@fullcalendar/core";
 import interactionPlugin from "@fullcalendar/interaction";
+import luxon3Plugin from "@fullcalendar/luxon3";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 
@@ -330,7 +331,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     <div className="h-full [&_.fc-daygrid-day-events]:!min-h-0 [&_.fc-daygrid-day-frame]:!min-h-0 [&_.fc-timegrid-axis-cushion]:!py-1 [&_.fc-timegrid-slot-label]:!py-1 [&_.fc-timegrid-slot]:!h-[35px]">
       <FullCalendar
         ref={calendarRef}
-        plugins={[timeGridPlugin, interactionPlugin]}
+        plugins={[timeGridPlugin, interactionPlugin, luxon3Plugin]}
         initialView="timeGridWeek"
         headerToolbar={false}
         initialDate={currentDate}
@@ -344,7 +345,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
         slotEventOverlap={true}
         stickyHeaderDates={true}
         slotDuration="00:30:00"
-        timeZone="local"
+        timeZone={userSettings.timeZone || "local"}
         displayEventEnd={true}
         eventTimeFormat={{
           hour: userSettings.timeFormat === "12h" ? "numeric" : "2-digit",

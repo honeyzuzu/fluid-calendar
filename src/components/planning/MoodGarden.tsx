@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ChevronLeft, ChevronRight, Flower2, Sprout } from "lucide-react";
 
-import { SunniePanel, SunnieSkeleton } from "@/components/ui/sunnie";
+import {
+  SunnieEmptyState,
+  SunniePanel,
+  SunnieSkeleton,
+} from "@/components/ui/sunnie";
 
 import { MOOD_STATES } from "@/lib/moods";
 
@@ -25,9 +29,11 @@ function moodLabel(value: MoodValue) {
 export function MoodGarden({
   initialMonth,
   refreshKey,
+  onStartCheckIn,
 }: {
   initialMonth: Date;
   refreshKey: string;
+  onStartCheckIn?: (phase: "rise" | "unwind") => void;
 }) {
   const [month, setMonth] = useState(
     () => new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1)
@@ -141,6 +147,33 @@ export function MoodGarden({
           <p className="rounded-2xl border border-destructive/25 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
           </p>
+        ) : entries.length === 0 ? (
+          <SunnieEmptyState
+            icon={<Sprout />}
+            title="Plant the first moment in your garden"
+            description="A quick morning or evening check-in is enough. Nothing resets if you skip a day."
+            className="min-h-52 border-0 bg-muted/45 py-7"
+            action={
+              onStartCheckIn ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onStartCheckIn("rise")}
+                    className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm"
+                  >
+                    Start Daily Rise
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onStartCheckIn("unwind")}
+                    className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-secondary-foreground"
+                  >
+                    Start Daily Unwind
+                  </button>
+                </div>
+              ) : undefined
+            }
+          />
         ) : (
           <>
             <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-muted-foreground">

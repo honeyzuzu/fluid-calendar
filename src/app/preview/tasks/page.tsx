@@ -1,11 +1,11 @@
 import {
   CalendarClock,
-  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   Circle,
   Folder,
   GripVertical,
+  MoreHorizontal,
   Plus,
   Search,
   Sparkles,
@@ -156,17 +156,24 @@ export default function TasksPreviewPage() {
                 key={task.title}
                 className="rounded-2xl border border-[#e4dfc9] bg-[#fffdf7] p-4 shadow-[0_2px_7px_rgba(72,70,48,0.07)]"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-1.5">
-                    <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-black/25" />
-                    <h2 className="font-bold">{task.title}</h2>
-                  </div>
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[#879c66]" />
+                <div className="flex min-w-0 items-start gap-2">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[#879c66]">
+                    <Circle className="h-5 w-5" />
+                  </span>
+                  <h2 className="min-w-0 flex-1 pt-2 text-sm font-bold">
+                    {task.title}
+                  </h2>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center text-black/30">
+                    <GripVertical className="h-4 w-4" />
+                  </span>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center text-black/40">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-black/45">
                   {task.description}
                 </p>
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                <div className="mt-4 flex flex-wrap items-center gap-2 pl-11 text-[11px] font-semibold">
                   <span className={`rounded-full px-2.5 py-1 ${task.color}`}>
                     {task.energy}
                   </span>

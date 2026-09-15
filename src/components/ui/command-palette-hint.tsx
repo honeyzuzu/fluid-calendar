@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 
 import { Search, X } from "lucide-react";
 
+import { usePrimaryShortcutLabel } from "@/hooks/use-primary-shortcut";
+
 export function CommandPaletteHint() {
   const [isVisible, setIsVisible] = useState(false);
+  const commandShortcut = usePrimaryShortcutLabel();
 
   useEffect(() => {
     // Check if the user has seen the hint before
@@ -31,9 +34,11 @@ export function CommandPaletteHint() {
   const openCommandPalette = () => {
     dismissHint();
     // Simulate Cmd+K / Ctrl+K
+    const isMac = commandShortcut === "⌘K";
     const event = new KeyboardEvent("keydown", {
       key: "k",
-      metaKey: true,
+      metaKey: isMac,
+      ctrlKey: !isMac,
       bubbles: true,
     });
     document.dispatchEvent(event);
@@ -59,9 +64,10 @@ export function CommandPaletteHint() {
         </div>
 
         <p className="mb-3 text-sm text-foreground">
-          Press <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">⌘K</kbd>{" "}
-          (or{" "}
-          <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">Ctrl+K</kbd>)
+          Press{" "}
+          <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            {commandShortcut}
+          </kbd>{" "}
           to open the command palette and quickly access features.
         </p>
 
