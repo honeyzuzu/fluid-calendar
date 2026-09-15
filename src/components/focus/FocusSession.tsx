@@ -47,6 +47,7 @@ import {
   nextPhaseAfterTimer,
   petMessage,
   phaseAfterEndingEarly,
+  startingPhaseForSetup,
 } from "@/lib/focus-session";
 import { cn } from "@/lib/utils";
 
@@ -235,7 +236,7 @@ export function FocusSession({
         const saved = JSON.parse(storedSession) as Partial<PersistedFocusState>;
         if (saved.taskId === taskId && saved.phase) {
           setPhase(saved.phase);
-          setSetupMinutes(saved.setupMinutes || 5);
+          setSetupMinutes(saved.setupMinutes ?? 5);
           setFocusMinutes(saved.focusMinutes || 25);
           setBreakMinutes(saved.breakMinutes || 5);
           setChecklist(saved.checklist || {});
@@ -506,6 +507,18 @@ export function FocusSession({
     }
   };
 
+  const startPlannedRound = () => {
+    startTimer(startingPhaseForSetup(setupMinutes));
+  };
+
+  const finishTaskEarly = () => {
+    setIsRunning(false);
+    setEndsAt(null);
+    setRemainingSeconds(0);
+    setRoundReward({ status: "not-awarded", reason: "ended-early" });
+    onCompleteTask();
+  };
+
   const startAnotherRound = () => {
     startTimer("focus");
   };
@@ -652,14 +665,16 @@ export function FocusSession({
                   Plan your whole round
                 </p>
                 <h3 className="mt-1 text-lg font-bold text-foreground">
-                  Setup first, then Sunnie starts focus automatically
+                  {setupMinutes === 0
+                    ? "Start focusing whenever you're ready"
+                    : "Setup first, then Sunnie starts focus automatically"}
                 </h3>
               </div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground">
-              {setupMinutes} min setup → {focusMinutes} min focus →{" "}
-              {breakMinutes} min break
+              {setupMinutes === 0 ? "No setup" : `${setupMinutes} min setup`} →{" "}
+              {focusMinutes} min focus → {breakMinutes} min break
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
@@ -732,10 +747,15 @@ export function FocusSession({
 
             <button
               type="button"
-              onClick={() => startTimer("setup")}
+              onClick={startPlannedRound}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] hover:brightness-95 sm:w-auto"
             >
-              <Sparkles className="h-4 w-4" /> Start setup, then focus
+              {setupMinutes === 0 ? (
+                <Play className="h-4 w-4 fill-current" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {setupMinutes === 0 ? "Start focus" : "Start setup, then focus"}
             </button>
           </div>
         )}
@@ -749,6 +769,9 @@ export function FocusSession({
             onPause={pauseTimer}
             onResume={resumeTimer}
             onEnd={endCurrentPhase}
+            endLabel="Back to round plan"
+            onPrimaryAction={() => startTimer("focus")}
+            primaryActionLabel="Ready to start!"
             subtaskPlan={subtaskPlan}
             nextLabel={`Focus starts next · ${focusMinutes} minutes`}
           />
@@ -763,6 +786,9 @@ export function FocusSession({
             onPause={pauseTimer}
             onResume={resumeTimer}
             onEnd={endCurrentPhase}
+            endLabel="End focus early"
+            onPrimaryAction={finishTaskEarly}
+            primaryActionLabel="I finished the task"
             subtaskPlan={subtaskPlan}
             nextLabel={`Break next · ${breakMinutes} minutes`}
           />
@@ -774,7 +800,10 @@ export function FocusSession({
               <Sun className="h-7 w-7 fill-[var(--sunnie-warm-glow)]" />
             </span>
             <h3 className="mt-3 text-xl font-bold text-foreground">
-              Focus round complete!
+              {roundReward.status === "not-awarded" &&
+              roundReward.reason === "ended-early"
+                ? "Focus round ended"
+                : "Focus round complete!"}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {roundReward.status === "saving" && "Saving your sun drop…"}
@@ -830,6 +859,7 @@ export function FocusSession({
             onPause={pauseTimer}
             onResume={resumeTimer}
             onEnd={endCurrentPhase}
+            endLabel="End break"
             isBreak
           />
         )}
@@ -1078,6 +1108,9 @@ function TimerControls({
   onPause,
   onResume,
   onEnd,
+  endLabel,
+  onPrimaryAction,
+  primaryActionLabel,
   isBreak = false,
   subtaskPlan,
   nextLabel,
@@ -1089,6 +1122,9 @@ function TimerControls({
   onPause: () => void;
   onResume: () => void;
   onEnd: () => void;
+  endLabel: string;
+  onPrimaryAction?: () => void;
+  primaryActionLabel?: string;
   isBreak?: boolean;
   subtaskPlan?: string;
   nextLabel?: string;
@@ -1127,11 +1163,25 @@ function TimerControls({
         </div>
       </div>
       <div className="mt-5 flex flex-wrap justify-center gap-2">
+        {onPrimaryAction && primaryActionLabel && (
+          <button
+            type="button"
+            onClick={onPrimaryAction}
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)]"
+          >
+            <Check className="h-4 w-4" /> {primaryActionLabel}
+          </button>
+        )}
         <button
           type="button"
           onClick={isRunning ? onPause : onResume}
           disabled={!isRunning && remainingSeconds === 0}
-          className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] disabled:opacity-50"
+          className={cn(
+            "inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold disabled:opacity-50",
+            onPrimaryAction
+              ? "border border-border bg-card text-secondary-foreground"
+              : "bg-primary text-primary-foreground shadow-[var(--shadow-pressed)]"
+          )}
         >
           {isRunning ? (
             <Pause className="h-4 w-4 fill-current" />
@@ -1145,7 +1195,7 @@ function TimerControls({
           onClick={onEnd}
           className="inline-flex items-center gap-2 rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold text-secondary-foreground"
         >
-          <Square className="h-3.5 w-3.5 fill-current" /> End early
+          <Square className="h-3.5 w-3.5 fill-current" /> {endLabel}
         </button>
       </div>
     </div>

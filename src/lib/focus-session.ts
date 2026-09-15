@@ -60,7 +60,7 @@ export const FOCUS_PETS: FocusPet[] = [
   },
 ];
 
-export const SETUP_DURATIONS = [5, 10] as const;
+export const SETUP_DURATIONS = [0, 5, 10] as const;
 export const FOCUS_DURATIONS = [15, 25, 45, 60] as const;
 export const BREAK_DURATIONS = [5, 10, 15] as const;
 
@@ -83,6 +83,10 @@ export function nextPhaseAfterTimer(phase: FocusPhase): FocusPhase {
   if (phase === "focus") return "break-ready";
   if (phase === "break") return "complete";
   return phase;
+}
+
+export function startingPhaseForSetup(setupMinutes: number): "setup" | "focus" {
+  return setupMinutes === 0 ? "focus" : "setup";
 }
 
 export function phaseAfterEndingEarly(phase: FocusPhase): FocusPhase {

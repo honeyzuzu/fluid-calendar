@@ -1,9 +1,11 @@
 import {
   FOCUS_PETS,
+  SETUP_DURATIONS,
   formatFocusTime,
   nextPhaseAfterTimer,
   petMessage,
   phaseAfterEndingEarly,
+  startingPhaseForSetup,
 } from "@/lib/focus-session";
 
 describe("focus sessions", () => {
@@ -23,6 +25,12 @@ describe("focus sessions", () => {
     expect(nextPhaseAfterTimer("setup")).toBe("focus");
     expect(nextPhaseAfterTimer("focus")).toBe("break-ready");
     expect(nextPhaseAfterTimer("break")).toBe("complete");
+  });
+
+  it("allows setup to be skipped without abandoning the focus round", () => {
+    expect(SETUP_DURATIONS).toContain(0);
+    expect(startingPhaseForSetup(0)).toBe("focus");
+    expect(startingPhaseForSetup(5)).toBe("setup");
   });
 
   it("gives every pet a distinct, encouraging identity", () => {

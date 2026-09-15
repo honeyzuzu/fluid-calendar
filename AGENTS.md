@@ -239,6 +239,7 @@ server validation may still wait for confirmation.
 - New-task capture starts with title, weekly pool, and duration. Dates, scheduling controls, project, tags, color, and recurrence stay behind an optional details disclosure; the modal has one intentional scroller, a stable footer, inline save errors, and an optional create-another loop. Editing opens the full form immediately.
 - Task cards keep a large leading completion toggle visible, use the title as the edit affordance, reserve dragging for the grip, and place destructive actions in a persistent overflow menu.
 - The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
+- Focus setup may be 0, 5, or 10 minutes. A running setup can advance immediately with “Ready to start”; during focus, “I finished the task” completes the task while “End focus early” stops the round without completing it. Phase-specific labels replace the ambiguous shared “End early” action.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 - Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.
 - Project creation validates and trims its input on the server. A failed save leaves the dialog open and shows a retryable error instead of silently failing; successful projects appear immediately at the top of the project list.
