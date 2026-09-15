@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { projectCreateSchema } from "@/lib/project-input";
 
 import { ProjectStatus } from "@/types/project";
 
@@ -66,13 +67,24 @@ export async function POST(request: NextRequest) {
     const userId = auth.userId;
 
     const json = await request.json();
+    const parsed = projectCreateSchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: parsed.error.issues[0]?.message || "Check the project details",
+        },
+        { status: 400 }
+      );
+    }
+
+    const input = parsed.data;
     const project = await prisma.project.create({
       data: {
-        name: json.name,
-        description: json.description,
-        color: json.color,
-        colorSlot: json.colorSlot,
-        status: json.status || ProjectStatus.ACTIVE,
+        name: input.name,
+        description: input.description,
+        color: input.color,
+        colorSlot: input.colorSlot,
+        status: input.status,
         // Associate the project with the current user
         userId,
       },
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(project);
+    return NextResponse.json(project, { status: 201 });
   } catch (error) {
     logger.error(
       "Error creating project:",

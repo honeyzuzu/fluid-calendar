@@ -43,6 +43,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   const [color, setColor] = useState(DEFAULT_PROJECT_COLOR);
   const [colorSlot, setColorSlot] = useState<string | null>("project-1");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
       setColor(defaultProjectColor);
       setColorSlot("project-1");
     }
+    if (isOpen) setSubmitError(null);
   }, [project, isOpen, defaultProjectColor, colorTheme.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +73,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     if (!name.trim()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       if (project) {
         await updateProject(project.id, {
@@ -91,6 +94,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
       onClose();
     } catch (error) {
       console.error("Error saving project:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Sunnie couldn't save that project. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +106,12 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open && !isSubmitting) onClose();
+        }}
+      >
         <DialogContent className="sm:max-w-[450px]">
           {isSubmitting && <LoadingOverlay />}
           <DialogHeader>
@@ -113,6 +126,14 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {submitError && (
+              <div
+                role="alert"
+                className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                {submitError}
+              </div>
+            )}
             <div>
               <Label htmlFor="name">Name</Label>
               <Input

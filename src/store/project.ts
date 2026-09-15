@@ -24,6 +24,18 @@ interface ProjectState {
   unarchiveProject: (id: string) => Promise<Project>;
 }
 
+async function responseError(response: Response, fallback: string) {
+  const body = await response.text();
+  if (!body) return fallback;
+
+  try {
+    const parsed = JSON.parse(body) as { error?: unknown };
+    return typeof parsed.error === "string" ? parsed.error : fallback;
+  } catch {
+    return body === "Internal Server Error" ? fallback : body;
+  }
+}
+
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -54,9 +66,16 @@ export const useProjectStore = create<ProjectState>()(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(project),
           });
-          if (!response.ok) throw new Error("Failed to create project");
+          if (!response.ok) {
+            throw new Error(
+              await responseError(
+                response,
+                "Sunnie couldn't create that project. Please try again."
+              )
+            );
+          }
           const newProject = await response.json();
-          set((state) => ({ projects: [...state.projects, newProject] }));
+          set((state) => ({ projects: [newProject, ...state.projects] }));
           return newProject;
         } catch (error) {
           set({ error: error as Error });
