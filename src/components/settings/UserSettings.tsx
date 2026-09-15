@@ -287,6 +287,7 @@ export function UserSettings() {
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  aria-label={theme.name}
                   aria-disabled={isApplyingColorTheme}
                   onClick={() => void applyColorTheme(theme.id)}
                   className={`relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -320,16 +321,18 @@ export function UserSettings() {
                     </span>
                   </span>
                   <span
-                    className="flex items-center justify-between gap-2 text-sm font-bold"
+                    className="flex min-h-10 items-start justify-between gap-2 text-sm font-bold"
                     style={{ color: theme.core.ink }}
                   >
-                    <span className="inline-flex min-w-0 items-center gap-2">
+                    <span className="inline-flex min-w-0 items-start gap-2">
                       <ThemeMotifIcon
                         motif={theme.motif.intentionIcon}
                         className="h-4 w-4 shrink-0"
                         aria-hidden="true"
                       />
-                      <span className="truncate">{theme.name}</span>
+                      <span className="break-words leading-5">
+                        {theme.name}
+                      </span>
                     </span>
                     {selected && <Check className="h-4 w-4 shrink-0" />}
                   </span>

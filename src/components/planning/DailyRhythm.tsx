@@ -120,7 +120,7 @@ function MoodPicker({
                 className="mx-auto h-5 w-5"
                 style={{ color: `hsl(var(--mood-${option.value}))` }}
               />
-              <span className="mt-1 block truncate text-[9px] text-muted-foreground sm:text-[10px]">
+              <span className="mt-1 block min-h-6 break-words text-[9px] leading-3 text-muted-foreground sm:text-[10px]">
                 {option.label}
               </span>
             </button>

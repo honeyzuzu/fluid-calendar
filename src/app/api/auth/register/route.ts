@@ -75,6 +75,13 @@ export async function POST(req: NextRequest) {
             timeZone: "UTC",
           },
         },
+        autoScheduleSettings: {
+          create: {
+            workDays: JSON.stringify([1, 2, 3, 4, 5]),
+            workHourStart: 9,
+            workHourEnd: 17,
+          },
+        },
       },
     });
 

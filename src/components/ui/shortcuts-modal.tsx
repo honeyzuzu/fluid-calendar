@@ -5,12 +5,15 @@ import { commandRegistry } from "@/lib/commands/registry";
 import { Command } from "@/lib/commands/types";
 import { formatShortcut } from "@/lib/utils";
 
+import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
+
 interface ShortcutsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
+  const restoreFocus = useDialogReturnFocus(isOpen);
   // Group commands by section
   const commandsBySection = commandRegistry.getAll().reduce(
     (acc, command) => {
@@ -29,13 +32,22 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg">
+        <Dialog.Content
+          onCloseAutoFocus={restoreFocus}
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg"
+        >
           <div className="mb-4 flex items-center justify-between">
             <Dialog.Title className="text-lg font-semibold text-foreground">
               Keyboard Shortcuts
             </Dialog.Title>
-            <Dialog.Close className="rounded-full p-1.5 hover:bg-muted">
-              <X className="h-5 w-5 text-foreground" />
+            <Dialog.Description className="sr-only">
+              Available keyboard shortcuts for Sunnie Planner.
+            </Dialog.Description>
+            <Dialog.Close
+              aria-label="Close keyboard shortcuts"
+              className="rounded-full p-1.5 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X aria-hidden="true" className="h-5 w-5 text-foreground" />
             </Dialog.Close>
           </div>
 

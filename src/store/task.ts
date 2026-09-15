@@ -19,6 +19,7 @@ interface TaskState {
   filters: TaskFilters;
   loading: boolean;
   error: Error | null;
+  schedulingError: Error | null;
 
   // Task actions
   fetchTasks: () => Promise<void>;
@@ -91,6 +92,7 @@ export const useTaskStore = create<TaskState>()(
       filters: {},
       loading: false,
       error: null,
+      schedulingError: null,
 
       // Task actions
       fetchTasks: async () => {
@@ -369,7 +371,7 @@ export const useTaskStore = create<TaskState>()(
       },
 
       triggerScheduleAllTasks: async () => {
-        set({ loading: true, error: null });
+        set({ loading: true, schedulingError: null });
         try {
           // For open source version, call scheduleAllTasks directly
           if (!isSaasEnabled) {
@@ -432,7 +434,7 @@ export const useTaskStore = create<TaskState>()(
             setupSSE();
           }
         } catch (error) {
-          set({ error: error as Error });
+          set({ schedulingError: error as Error });
           throw error;
         } finally {
           set({ loading: false });
@@ -441,13 +443,22 @@ export const useTaskStore = create<TaskState>()(
 
       // Auto-scheduling actions
       scheduleAllTasks: async () => {
-        set({ loading: true, error: null });
+        set({ loading: true, schedulingError: null });
         try {
           const response = await fetch("/api/tasks/schedule-all", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
-          if (!response.ok) throw new Error("Failed to schedule tasks");
+          if (!response.ok) {
+            const data = (await response.json().catch(() => null)) as {
+              error?: unknown;
+            } | null;
+            throw new Error(
+              typeof data?.error === "string"
+                ? data.error
+                : "Sunnie couldn't schedule these tasks. Your task changes are safe; review Auto-Schedule settings and try again."
+            );
+          }
           const updatedTasks = await response.json();
 
           // Get current tasks from store
@@ -466,7 +477,7 @@ export const useTaskStore = create<TaskState>()(
           set({ tasks: mergedTasks });
           return updatedTasks;
         } catch (error) {
-          set({ error: error as Error });
+          set({ schedulingError: error as Error });
           throw error;
         } finally {
           set({ loading: false });

@@ -258,7 +258,6 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           });
         } catch (error) {
           console.error("Failed to parse recurrence rule:", error);
-          console.log("recurrenceRule:", event.recurrenceRule);
           // If we can't parse the rule, just show the original event
           if (eventStart <= end && eventEnd >= start) {
             expandedEvents.push({

@@ -84,6 +84,15 @@ export async function POST(request: Request) {
         },
       }),
 
+      prisma.autoScheduleSettings.create({
+        data: {
+          userId: adminUser.id,
+          workDays: JSON.stringify([1, 2, 3, 4, 5]),
+          workHourStart: 9,
+          workHourEnd: 17,
+        },
+      }),
+
       // Create calendar settings
       prisma.calendarSettings.create({
         data: {
@@ -104,6 +113,7 @@ export async function POST(request: Request) {
         data: {
           userId: adminUser.id,
           emailNotifications: true,
+          dailyEmailEnabled: false,
           eventInvites: true,
           eventUpdates: true,
           eventCancellations: true,

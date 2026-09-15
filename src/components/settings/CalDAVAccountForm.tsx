@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,9 @@ interface CalDAVAccountFormProps {
   onCancel?: () => void;
 }
 
+type RequiredField = "serverUrl" | "username" | "password";
+type FieldErrors = Partial<Record<RequiredField, string>>;
+
 /**
  * Form component for adding a new CalDAV account
  * Collects server URL, username, password, and optional path
@@ -57,13 +60,20 @@ export function CalDAVAccountForm({
     path: "", // Optional path for some CalDAV servers
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [testResults, setTestResults] = useState<TestResult | null>(null);
+  const serverUrlRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "serverUrl" || name === "username" || name === "password") {
+      setFieldErrors((current) => ({ ...current, [name]: undefined }));
+    }
 
     // Clear error when user makes changes
     if (errorMessage) {
@@ -76,12 +86,38 @@ export function CalDAVAccountForm({
     }
   };
 
+  const validateRequiredFields = () => {
+    const nextErrors: FieldErrors = {};
+    if (!formData.serverUrl.trim())
+      nextErrors.serverUrl = "Enter the CalDAV server URL.";
+    if (!formData.username.trim())
+      nextErrors.username = isApple
+        ? "Enter your Apple Account email."
+        : "Enter your CalDAV username.";
+    if (!formData.password)
+      nextErrors.password = isApple
+        ? "Enter an Apple app-specific password."
+        : "Enter your CalDAV password.";
+
+    setFieldErrors(nextErrors);
+    const firstMissing = (
+      ["serverUrl", "username", "password"] as RequiredField[]
+    ).find((field) => nextErrors[field]);
+    if (!firstMissing) return true;
+
+    setErrorMessage("Check the highlighted fields, then try again.");
+    const refs = {
+      serverUrl: serverUrlRef,
+      username: usernameRef,
+      password: passwordRef,
+    };
+    window.requestAnimationFrame(() => refs[firstMissing].current?.focus());
+    return false;
+  };
+
   const handleTest = async () => {
     // Validate form
-    if (!formData.serverUrl || !formData.username || !formData.password) {
-      setErrorMessage("Please fill in all required fields");
-      return;
-    }
+    if (!validateRequiredFields()) return;
 
     try {
       setIsTesting(true);
@@ -150,10 +186,7 @@ export function CalDAVAccountForm({
     setErrorMessage(null);
 
     // Validate form
-    if (!formData.serverUrl || !formData.username || !formData.password) {
-      setErrorMessage("Please fill in all required fields");
-      return;
-    }
+    if (!validateRequiredFields()) return;
 
     try {
       setIsSubmitting(true);
@@ -298,10 +331,14 @@ export function CalDAVAccountForm({
             : "Add a calendar from Fastmail, Nextcloud, or another CalDAV provider."}
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <CardContent className="space-y-4">
           {errorMessage && (
-            <div className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+            >
               {errorMessage}
             </div>
           )}
@@ -331,13 +368,26 @@ export function CalDAVAccountForm({
                 Server URL <span className="text-destructive">*</span>
               </Label>
               <Input
+                ref={serverUrlRef}
                 id="serverUrl"
                 name="serverUrl"
                 placeholder="https://caldav.example.com"
                 value={formData.serverUrl}
                 onChange={handleChange}
                 required
+                aria-invalid={Boolean(fieldErrors.serverUrl)}
+                aria-describedby={
+                  fieldErrors.serverUrl ? "serverUrl-error" : undefined
+                }
               />
+              {fieldErrors.serverUrl && (
+                <p
+                  id="serverUrl-error"
+                  className="mt-1 text-sm text-destructive"
+                >
+                  {fieldErrors.serverUrl}
+                </p>
+              )}
               <p className="mt-1 text-sm text-muted-foreground">
                 For Fastmail: https://caldav.fastmail.com
               </p>
@@ -353,13 +403,23 @@ export function CalDAVAccountForm({
               <span className="text-destructive">*</span>
             </Label>
             <Input
+              ref={usernameRef}
               id="username"
               name="username"
               placeholder="your.email@example.com"
               value={formData.username}
               onChange={handleChange}
               required
+              aria-invalid={Boolean(fieldErrors.username)}
+              aria-describedby={
+                fieldErrors.username ? "username-error" : undefined
+              }
             />
+            {fieldErrors.username && (
+              <p id="username-error" className="mt-1 text-sm text-destructive">
+                {fieldErrors.username}
+              </p>
+            )}
             <p className="mt-1 text-sm text-muted-foreground">
               {isApple
                 ? "Use the email address you sign into iCloud with."
@@ -376,6 +436,7 @@ export function CalDAVAccountForm({
               <span className="text-destructive">*</span>
             </Label>
             <Input
+              ref={passwordRef}
               id="password"
               name="password"
               type="password"
@@ -383,7 +444,16 @@ export function CalDAVAccountForm({
               value={formData.password}
               onChange={handleChange}
               required
+              aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={
+                fieldErrors.password ? "password-error" : undefined
+              }
             />
+            {fieldErrors.password && (
+              <p id="password-error" className="mt-1 text-sm text-destructive">
+                {fieldErrors.password}
+              </p>
+            )}
             <p className="mt-1 text-sm text-muted-foreground">
               {isApple
                 ? "Paste the password generated by Apple, not your regular password."

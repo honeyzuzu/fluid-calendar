@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+import Link from "next/link";
+
+import { Clock3, Sparkles } from "lucide-react";
+
 import { TaskModal } from "@/components/tasks/TaskModal";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -26,8 +30,33 @@ export function FocusedTask({ task }: FocusedTaskProps) {
 
   if (!task) {
     return (
-      <div className="flex h-full flex-col items-center justify-center">
-        <p className="text-lg text-muted-foreground">No task selected</p>
+      <div className="flex h-full flex-col items-center justify-center px-4 py-10 text-center">
+        <div className="relative grid h-28 w-28 place-items-center rounded-[2.25rem] border border-border bg-accent/70 shadow-[var(--shadow-paper)]">
+          <span className="text-5xl" aria-hidden="true">
+            🐱
+          </span>
+          <Sparkles className="absolute -right-2 -top-2 h-7 w-7 text-primary" />
+        </div>
+        <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+          A gentle focus ritual
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground sm:text-3xl">
+          Choose a task to begin
+        </h1>
+        <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+          Pick a task from the queue, settle in with a short setup, then focus
+          beside your companion. Sunnie will protect the timer and remind you to
+          take a real break.
+        </p>
+        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card/75 px-4 py-3 text-xs font-semibold text-secondary-foreground">
+          <Clock3 className="h-4 w-4 text-primary" /> Setup → focus → break
+        </div>
+        <Link
+          href="/tasks"
+          className="mt-5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm"
+        >
+          Add a task
+        </Link>
       </div>
     );
   }

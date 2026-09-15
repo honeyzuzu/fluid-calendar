@@ -65,9 +65,6 @@ class CommandRegistryImpl {
             `Command ${commandId} needs to navigate but no router was provided`
           );
           return; // Don't execute the command if we can't navigate
-        } else {
-          // If navigateIfNeeded is false, log a warning
-          console.log(`Not navigating, command may not work as expected`);
         }
       }
     }

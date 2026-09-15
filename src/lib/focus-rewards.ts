@@ -6,6 +6,12 @@ export interface FocusRewardDetail {
   amount: number;
 }
 
+export interface FocusRewardResult {
+  awarded: number;
+  balance: number;
+  reason: "awarded" | "saved-locally";
+}
+
 export function completionEarnsSunDrop(
   previousStatus: string | undefined,
   nextStatus: string | undefined
@@ -102,7 +108,9 @@ export async function loadSunDrops(localMinimum = 0): Promise<number | null> {
   }
 }
 
-export async function awardSunDrops(amount = 1): Promise<number | null> {
+export async function awardSunDrops(
+  amount = 1
+): Promise<FocusRewardResult | null> {
   if (typeof window === "undefined") return null;
   const safeAmount = Math.max(1, Math.min(10, Math.floor(amount)));
 
@@ -113,8 +121,9 @@ export async function awardSunDrops(amount = 1): Promise<number | null> {
       body: JSON.stringify({ amount: safeAmount }),
     });
     if (!response.ok) throw new Error("Unable to save sun drops");
-    const reward = (await response.json()) as { sunDrops: number };
-    return cacheAndAnnounceSunDrops(reward.sunDrops, safeAmount);
+    const reward = (await response.json()) as FocusRewardResult;
+    cacheAndAnnounceSunDrops(reward.balance, reward.awarded);
+    return reward;
   } catch {
     const reward = addSunDropsToPreferences(
       window.localStorage.getItem(FOCUS_PREFERENCES_KEY),
@@ -126,6 +135,10 @@ export async function awardSunDrops(amount = 1): Promise<number | null> {
         detail: { sunDrops: reward.sunDrops, amount: safeAmount },
       })
     );
-    return reward.sunDrops;
+    return {
+      awarded: safeAmount,
+      balance: reward.sunDrops,
+      reason: "saved-locally",
+    };
   }
 }

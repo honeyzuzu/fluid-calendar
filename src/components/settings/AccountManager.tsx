@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AlertCircle } from "lucide-react";
 
@@ -38,6 +38,7 @@ export function AccountManager() {
     }
   );
   const [isLoading, setIsLoading] = useState(true);
+  const calDAVTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     refreshAccounts();
@@ -80,8 +81,18 @@ export function AccountManager() {
   }, []);
 
   const handleCalDAVSuccess = () => {
-    setCalDAVMode(null);
+    closeCalDAVForm();
     refreshAccounts();
+  };
+
+  const openCalDAVForm = (mode: CalDAVMode, trigger: HTMLButtonElement) => {
+    calDAVTriggerRef.current = trigger;
+    setCalDAVMode(mode);
+  };
+
+  const closeCalDAVForm = () => {
+    setCalDAVMode(null);
+    window.requestAnimationFrame(() => calDAVTriggerRef.current?.focus());
   };
 
   return (
@@ -112,10 +123,17 @@ export function AccountManager() {
             >
               Connect Google Calendar
             </Button>
-            <Button onClick={() => setCalDAVMode("apple")}>
+            <Button
+              onClick={(event) => openCalDAVForm("apple", event.currentTarget)}
+            >
               Connect Apple Calendar
             </Button>
-            <Button onClick={() => setCalDAVMode("generic")} variant="outline">
+            <Button
+              onClick={(event) =>
+                openCalDAVForm("generic", event.currentTarget)
+              }
+              variant="outline"
+            >
               Other calendar (CalDAV)
             </Button>
           </div>
@@ -126,7 +144,7 @@ export function AccountManager() {
                 <CalDAVAccountForm
                   preset={calDAVMode}
                   onSuccess={handleCalDAVSuccess}
-                  onCancel={() => setCalDAVMode(null)}
+                  onCancel={closeCalDAVForm}
                 />
               </CardContent>
             </Card>

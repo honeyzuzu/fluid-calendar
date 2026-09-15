@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
+import { useSession } from "next-auth/react";
+
 import {
   Check,
   Clock3,
@@ -54,6 +56,7 @@ async function readResponse<T>(response: Response): Promise<T> {
 }
 
 export default function FriendsPage() {
+  const { data: session } = useSession();
   const [connections, setConnections] = useState<FriendConnection[]>([]);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -197,8 +200,12 @@ export default function FriendsPage() {
         {error && (
           <div className="mb-5 flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <span>{error}</span>
-            <button onClick={() => setError(null)}>
-              <X className="h-4 w-4" />
+            <button
+              type="button"
+              aria-label="Dismiss friends error"
+              onClick={() => setError(null)}
+            >
+              <X aria-hidden="true" className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -206,22 +213,36 @@ export default function FriendsPage() {
         <SunniePanel className="mb-5">
           <h2 className="font-semibold">Add a friend</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            They need an account on this server first. Enable public signup in
-            Settings → Admin → Users while friends register, then disable it
-            again.
+            {session?.user?.role === "admin"
+              ? "They need an account on this server first. You can briefly enable signup under Settings → Admin → Users while they register, then close it again."
+              : "They need an account on this Sunnie server first. If they do not have one, ask the person who runs Sunnie to briefly open signup for them."}
           </p>
           <form
             onSubmit={invite}
             className="mt-4 flex max-w-xl flex-col gap-2 sm:flex-row"
           >
-            <Input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="friend@example.com"
-              className="min-w-0 flex-1"
-            />
-            <Button type="submit" disabled={saving || !email.trim()}>
+            <div className="min-w-0 flex-1">
+              <label
+                htmlFor="friend-account-email"
+                className="mb-1.5 block text-sm font-semibold"
+              >
+                Friend&apos;s account email
+              </label>
+              <Input
+                id="friend-account-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="friend@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={saving || !email.trim()}
+              className="sm:self-end"
+            >
               <MailPlus className="h-4 w-4" />
               Request
             </Button>

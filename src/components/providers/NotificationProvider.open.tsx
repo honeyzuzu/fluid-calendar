@@ -33,10 +33,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   // No-op notification function for open source version
-  const showNotification = (_notification: Notification) => {
-    // Do nothing in open source version
-    console.log("NotificationProvider: showNotification called", _notification);
-  };
+  const showNotification: NotificationContextType["showNotification"] = () =>
+    undefined;
 
   return (
     <NotificationContext.Provider value={{ showNotification }}>

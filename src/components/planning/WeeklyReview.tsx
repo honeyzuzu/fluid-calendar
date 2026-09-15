@@ -568,9 +568,9 @@ export function WeeklyReview({
                   ] as const
                 ).map(([key, label]) => (
                   <label key={key} className="text-sm font-medium">
-                    {label}
+                    {label}{" "}
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      Optional
+                      Optional.
                     </span>
                     <textarea
                       maxLength={5000}

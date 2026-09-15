@@ -193,10 +193,6 @@ export class ClientLogger {
       source,
       timestamp: newDate(),
     };
-    if (!this.enableDBLogging) {
-      console.log(entry);
-    }
-
     this.buffer.push(entry);
 
     // If buffer exceeds max size, force a flush

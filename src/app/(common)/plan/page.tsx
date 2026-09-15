@@ -1230,9 +1230,22 @@ export default function PlanPage() {
                   <h2 className="mt-1 text-xl font-semibold">
                     Today&apos;s tasks
                   </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Real tasks saved to your account.
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <p>Real tasks saved to your account.</p>
+                    {todayTasks.length > 0 && (
+                      <p
+                        aria-live="polite"
+                        className="font-semibold text-primary"
+                      >
+                        {
+                          todayTasks.filter(
+                            (task) => task.status === "completed"
+                          ).length
+                        }
+                        /{todayTasks.length} complete
+                      </p>
+                    )}
+                  </div>
                   <form onSubmit={createTask} className="mt-4 flex gap-2">
                     <input
                       value={newTaskTitle}
@@ -1263,6 +1276,17 @@ export default function PlanPage() {
                     >
                       <div className="flex items-start gap-3">
                         <button
+                          type="button"
+                          aria-label={
+                            task.status === "completed"
+                              ? `Mark ${task.title} incomplete`
+                              : `Mark ${task.title} complete`
+                          }
+                          title={
+                            task.status === "completed"
+                              ? "Mark incomplete"
+                              : "Mark complete"
+                          }
                           onClick={() =>
                             updateTask(task.id, {
                               status:
@@ -1271,7 +1295,7 @@ export default function PlanPage() {
                                   : "completed",
                             })
                           }
-                          className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border ${task.status === "completed" ? "border-success bg-success text-success-foreground" : "border-border"}`}
+                          className={`mt-0.5 grid h-6 w-6 place-items-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${task.status === "completed" ? "animate-[sunnie-sun-pop_500ms_ease-out] border-success bg-success text-success-foreground motion-reduce:animate-none" : "border-border hover:border-primary"}`}
                         >
                           {task.status === "completed" && (
                             <Check className="h-3 w-3" />

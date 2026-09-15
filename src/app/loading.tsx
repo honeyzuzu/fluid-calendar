@@ -19,6 +19,9 @@ export default function Loading() {
     // Set document title on the client side
     const title = getTitleFromPathname(pathname);
     document.title = `Loading ${title}`;
+    return () => {
+      document.title = title;
+    };
   }, [pathname]);
 
   // Only render the full content after mounting on the client

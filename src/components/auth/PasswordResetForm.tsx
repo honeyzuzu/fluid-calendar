@@ -93,10 +93,6 @@ export function PasswordResetForm() {
         description: "Please check your email for further instructions.",
       });
 
-      // In development, show the reset link
-      if (process.env.NODE_ENV === "development" && result.debug) {
-        console.log("Debug - Reset URL:", result.debug.resetUrl);
-      }
     } catch (error) {
       logger.error(
         "Error requesting password reset",

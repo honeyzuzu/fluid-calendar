@@ -158,6 +158,8 @@ Provider access tokens and CalDAV app-specific passwords are persisted through `
 - Friend relationships must be accepted.
 - Sharing defaults to `BUSY_ONLY`; each side controls what the other may see.
 - Shared friend calendar/focus blocks are loaded by authenticated `/api/friends/events` requests.
+- Authentication middleware rebuilds sign-in and callback URLs from the configured public app origin (`NEXTAUTH_URL`, with `AUTH_URL` as a fallback) so an internal Railway host cannot leak into OAuth redirects.
+- Friends setup copy reflects Sunnie's private deployment: admins are sent to the admin user settings to open signup temporarily, while non-admins are told to ask the server owner.
 - Do not weaken user ownership filters in API queries. Task, calendar, account, friend, and setting operations must remain scoped to the authenticated user.
 
 ## Calendar Integrations
@@ -211,6 +213,8 @@ server validation may still wait for confirmation.
 - Below 1024px, primary app destinations use the fixed mobile icon bar instead of squeezing or dropping the desktop navigation. Between 1024px and 1280px, the top navigation remains compact and icon-only.
 - The detailed Tasks table is reserved for windows at least 1800px wide. Smaller desktop widths use a dense two-, three-, or four-column card grid while mobile stays single-column, so cards do not become wastefully wide and users are not forced to discover a hidden horizontal scrollbar.
 - Saved colorway, Calendar style, and motion preferences are cached per user and prepainted by the root layout, preventing a Base/Classic/full-motion flash before React hydrates. Server settings hydrate the client store without issuing a preference write, and non-admin Settings screens do not probe admin-only status routes.
+- Mobile Settings uses a native section picker while desktop retains the settings card navigation. Dialogs expose descriptions, keep one intentional content scroller, and restore focus to the control that opened them.
+- Daily summary email is opt-in for new accounts. `NotificationSettings` records the latest consent timestamp and source when the preference is changed; the migration preserves existing users' saved choices while changing the database default to off.
 - Core application surfaces use shared semantic page, paper, panel, toolbar, chip, segmented-control, empty-state, and skeleton primitives. Geometry-preserving skeletons replace full-page spinners while initial data loads.
 - The upstream support banner has been removed from the calendar.
 
@@ -247,7 +251,7 @@ server validation may still wait for confirmation.
 - The Brain dump view inside `/tasks` turns each non-empty line or common list item into a separate auto-schedulable task; repeated lines in the same dump are ignored. `/brain-dump` remains only as a compatibility redirect.
 - Brain Dump is deterministic and does not require an AI provider. Users should put one thought on each line; optional AI paragraph interpretation is a possible later enhancement.
 - Unsaved brain-dump text is retained only in that browser's local storage. Submitted items become normal database-backed tasks.
-- Task Tune-up cycles flashcard-style through every active task that is missing a duration, due date, priority, or energy level, including tasks created elsewhere in Sunnie. Due date uses the native date picker and is required before saving a tune-up card.
+- Task Tune-up cycles flashcard-style through every active task that is missing a duration, due date, priority, or energy level, including tasks created elsewhere in Sunnie. Due date uses the native date picker and is required before saving a tune-up card. Each card names its remaining requirements, and changing its weekly pool never clears an entered due date.
 - Each tune-up card also exposes task status. Completed tasks are excluded from the tune-up queue.
 
 ### Daily and weekly planning
@@ -305,8 +309,8 @@ server validation may still wait for confirmation.
 - Calendar event reads are range-scoped. The browser requests the visible range with a seven-day buffer, caches loaded ranges, deduplicates rows, and preserves recurring masters needed by the visible occurrences. The authenticated API requires bounded start/end parameters and rejects ranges longer than 400 days. Plan also uses bounded event reads rather than loading a user's complete history.
 - Bujo Month exposes a theme-aware Sticker Book. Stickers persist per owner and calendar date in `CalendarSticker`, place optimistically, and can be selected only while sticker editing is active so idle artwork does not block calendar events. Direct drag/scale/rotate controls are lazy-loaded with the Bujo sticker layer; accessible size, rotation, keyboard movement, delete, undo, and failure rollback paths are also provided. Transform changes persist only when the interaction ends.
 - Opening Calendar triggers a background sync shortly after hydration. While the tab remains visible, Google/CalDAV feeds and friend availability refresh every five minutes; returning to a stale tab refreshes them as well. The header refresh control runs the same combined pass and exposes the exact last-refresh time on hover.
-- Calendar header controls wrap into a deliberate second row below very wide desktop widths. Navigation arrows are not duplicated, the date truncates safely, and the control row scrolls only when a phone is too narrow, preventing buttons and labels from collapsing into one another.
-- The calendar feed sidebar becomes an overlay below 1280px so it cannot crush the calendar canvas. Its persistent right/left edge arrows open and close it on desktop, constrained windows, and mobile; the old hamburger toggle is removed.
+- Calendar header controls wrap into a deliberate second row below very wide desktop widths. Navigation arrows are not duplicated, the date truncates safely, and compact controls wrap without forcing page-level horizontal scrolling. Previous/next labels follow the selected view, and month/year selectors expose their pressed state.
+- The calendar feed sidebar becomes an overlay below 1280px so it cannot crush the calendar canvas. Its persistent right/left edge arrows open and close it on desktop, constrained windows, and mobile; the old hamburger toggle is removed. Hydration re-closes the overlay at constrained widths so a saved desktop preference cannot obscure mobile Calendar.
 - Calendar feeds have configurable colors.
 - Individual events may have a Sunnie-only color override that survives Google and CalDAV resync.
 - The shared event, feed, and task color picker stages palette swatches, recent colors, defaults, and custom colors behind one explicit Apply color action. The event palette offers eight curated Base colors rather than the former 12, followed by a clear `+` custom-color control.
@@ -328,6 +332,7 @@ server validation may still wait for confirmation.
 - Focus mode begins with one combined round-planning screen: users choose a 5- or 10-minute setup, 15-, 25-, 45-, or 60-minute focus round, and 5-, 10-, or 15-minute break at the same time. The UI clearly previews the complete sequence, and focus starts automatically when setup ends.
 - Focus timers survive refreshes in the same browser, update the browser-tab countdown, support pause/resume/end-early controls, and play the selected chime when setup, focus, or break time ends. Users can preview and choose Soft sunrise, Garden bells, or Cozy wooden, and can disable timer sounds.
 - The setup checklist covers a drink/snack, workspace, subtasks, and distractions. The user's subtask outline remains visible during setup and focus instead of disappearing between phases.
+- Ending setup early cancels the setup instead of advancing into focus. A completed focus round shows a reward only after the server confirms the award, while an early-ended focus round uses truthful no-reward copy. The no-task state explains the ritual and links directly to task creation.
 - Users can choose among six built-in emoji focus pets. Completed focus rounds earn non-punitive “sun drops,” and the pet changes its encouragement across setup, focus, pause, and break phases.
 - Completing any previously unfinished task awards one sun drop, including completion from Tasks, Calendar, Focus, or the Focus sidebar. The authenticated total is stored in `UserSettings.sunDrops` and syncs across devices; local storage is only a cache/offline fallback and migrates an existing browser total upward once. Marking a task incomplete does not remove the earned drop, and repeatedly saving an already-completed task does not award duplicates.
 - A custom pet or inspiration photo up to 750 KB can be stored only in that browser's local storage; it is never uploaded to Sunnie or shared across devices.

@@ -85,6 +85,13 @@ export function nextPhaseAfterTimer(phase: FocusPhase): FocusPhase {
   return phase;
 }
 
+export function phaseAfterEndingEarly(phase: FocusPhase): FocusPhase {
+  if (phase === "setup") return "setup-ready";
+  if (phase === "focus") return "break-ready";
+  if (phase === "break") return "complete";
+  return phase;
+}
+
 export function petMessage(
   phase: FocusPhase,
   pet: FocusPet,
@@ -101,7 +108,7 @@ export function petMessage(
     case "focus":
       return pet.encouragement;
     case "break-ready":
-      return `${pet.name} saved a sun drop for you. Time to breathe.`;
+      return `${pet.name} made it to a stopping point with you. Time to breathe.`;
     case "break":
       return `${pet.name} says breaks are part of good work, too.`;
     case "complete":

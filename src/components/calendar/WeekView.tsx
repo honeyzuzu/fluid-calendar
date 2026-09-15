@@ -178,7 +178,6 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   // Update items when loading state changes, feeds change, or tasks change
   useEffect(() => {
     if (!isLoading && calendarRef.current) {
-      console.log("Updating calendar items due to dependency change");
       const calendar = calendarRef.current.getApi();
       handleDatesSet({
         start: calendar.view.activeStart,

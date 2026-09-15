@@ -179,18 +179,7 @@ export function useCommands() {
             const filteredCommand = allCommands.find(
               (cmd) => cmd.shortcut === combo && !isCommandValidForPath(cmd)
             );
-            if (filteredCommand) {
-              console.log(
-                "Command found but filtered out:",
-                filteredCommand.id,
-                "for combo:",
-                combo,
-                "requiredPath:",
-                filteredCommand.context?.requiredPath,
-                "navigateIfNeeded:",
-                filteredCommand.context?.navigateIfNeeded
-              );
-            }
+            if (filteredCommand) pressedKeys = [];
           }
         }
       }

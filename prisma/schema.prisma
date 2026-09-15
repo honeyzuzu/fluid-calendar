@@ -486,18 +486,20 @@ model CalendarSettings {
 }
 
 model NotificationSettings {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailNotifications    Boolean  @default(true)
-  dailyEmailEnabled     Boolean  @default(true) // Controls whether the user receives daily email updates
-  eventInvites          Boolean  @default(true)
-  eventUpdates          Boolean  @default(true)
-  eventCancellations    Boolean  @default(true)
-  eventReminders        Boolean  @default(true)
-  defaultReminderTiming String   @default("[30]") // JSON string of minutes before event
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                      String    @id @default(cuid())
+  userId                  String    @unique
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications      Boolean   @default(true)
+  dailyEmailEnabled       Boolean   @default(false) // Non-essential recurring email requires explicit opt-in
+  dailyEmailOptedInAt     DateTime?
+  dailyEmailConsentSource String?
+  eventInvites            Boolean   @default(true)
+  eventUpdates            Boolean   @default(true)
+  eventCancellations      Boolean   @default(true)
+  eventReminders          Boolean   @default(true)
+  defaultReminderTiming   String    @default("[30]") // JSON string of minutes before event
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   @@index([userId])
 }

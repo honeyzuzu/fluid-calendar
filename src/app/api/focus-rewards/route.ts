@@ -51,7 +51,11 @@ export async function POST(request: NextRequest) {
     select: { sunDrops: true },
   });
 
-  return NextResponse.json(rewards);
+  return NextResponse.json({
+    awarded: amount,
+    balance: rewards.sunDrops,
+    reason: "awarded",
+  });
 }
 
 export async function PATCH(request: NextRequest) {

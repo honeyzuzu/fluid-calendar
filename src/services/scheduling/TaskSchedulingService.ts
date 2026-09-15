@@ -112,13 +112,16 @@ export async function scheduleAllTasksForUser(
     logger.info("Starting task scheduling for user", { userId }, LOG_SOURCE);
 
     // If settings are not provided, fetch them from the database
-    const userSettings = await prisma.autoScheduleSettings.findUnique({
+    const userSettings = await prisma.autoScheduleSettings.upsert({
       where: { userId },
+      update: {},
+      create: {
+        userId,
+        workDays: JSON.stringify([1, 2, 3, 4, 5]),
+        workHourStart: 9,
+        workHourEnd: 17,
+      },
     });
-
-    if (!userSettings) {
-      throw new Error("Auto-schedule settings not found for user");
-    }
 
     // Get all tasks marked for auto-scheduling that are not locked
     await rollUnfinishedTasks(userId, await planningTimeZone(userId));

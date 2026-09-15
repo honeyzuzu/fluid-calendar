@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -104,6 +105,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
             <DialogTitle>
               {project ? "Edit Project" : "Create Project"}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {project
+                ? "Update this project's name, description, and color."
+                : "Create a project with a name, description, and color."}
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">

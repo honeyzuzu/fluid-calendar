@@ -17,6 +17,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -473,9 +474,8 @@ export function TaskSyncSettings() {
         return;
       }
 
-      const data = await response.json();
+      await response.json();
       toast.success("Sync job scheduled");
-      console.log("Sync job:", data);
     } catch (error) {
       console.error("Error triggering sync:", error);
       toast.error("Failed to trigger sync");
@@ -517,9 +517,8 @@ export function TaskSyncSettings() {
         return;
       }
 
-      const data = await response.json();
+      await response.json();
       toast.success("Sync job scheduled");
-      console.log("Sync job:", data);
     } catch (error) {
       console.error("Error triggering sync:", error);
       toast.error("Failed to trigger sync");
@@ -585,6 +584,10 @@ export function TaskSyncSettings() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Add Task Provider</DialogTitle>
+                        <DialogDescription>
+                          Choose a connected account and give this task source a
+                          recognizable name.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -901,8 +904,11 @@ export function TaskSyncSettings() {
           label="No Compatible Accounts"
           description="Connect Google or a compatible CalDAV account to sync tasks"
         >
-          <div className="text-sm text-muted-foreground">
-            Go to the Accounts tab to connect a compatible account.
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>Connect an account before setting up task synchronization.</p>
+            <Button asChild size="sm">
+              <a href="#accounts">Connect an account</a>
+            </Button>
           </div>
         </SettingRow>
       ) : (

@@ -55,9 +55,12 @@ export function useAutoSchedule() {
               : "You can see the new time blocks on the Calendar page.",
         }
       );
-    } catch {
+    } catch (error) {
       toast.error("Auto-scheduling failed", {
-        description: "Please try again or review your Auto-Schedule Settings.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Your tasks are safe. Please try again or review Auto-Schedule Settings.",
       });
     }
   };

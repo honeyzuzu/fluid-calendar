@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import Link from "next/link";
+
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -125,12 +128,10 @@ function buildRecurrenceRule(freq: string, interval: number, byDay: string[]) {
   // Add BYDAY for weekly recurrence
   if (freq === FREQUENCIES.WEEKLY && byDay.length > 0) {
     // byDay should already be in RRule format (MO, TU, etc.)
-    console.log("Building RRule with weekdays:", byDay);
     parts.push(`BYDAY=${byDay.join(",")}`);
   }
 
   const rule = parts.join(";");
-  console.log("Built RRule:", rule);
   return rule;
 }
 
@@ -193,6 +194,8 @@ export function EventModal({
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const enabledFeeds = feeds.filter((feed) => feed.enabled);
+  const needsCalendarConnection = !event?.id && enabledFeeds.length === 0;
   const [formError, setFormError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(
     Boolean(event?.location || event?.description || event?.isRecurring)
@@ -532,11 +535,49 @@ export function EventModal({
           {isSubmitting && <LoadingOverlay />}
           <DialogHeader className="flex-none space-y-1.5 border-b border-border bg-card px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
             <DialogTitle>{event?.id ? "Edit Event" : "New Event"}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {event?.id
+                ? "Update this calendar event."
+                : "Create an event on a connected calendar."}
+            </DialogDescription>
           </DialogHeader>
+
+          {needsCalendarConnection && (
+            <div className="flex min-h-0 flex-1 flex-col justify-between gap-5 overflow-y-auto px-4 py-5 sm:px-6">
+              <div className="rounded-2xl border border-dashed border-border bg-muted p-6 text-center">
+                <CalendarDays className="mx-auto h-8 w-8 text-primary" />
+                <h3 className="mt-3 font-semibold">Connect a calendar first</h3>
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                  Events need a writable calendar. You can connect Google, Apple
+                  Calendar, or another CalDAV calendar in Settings, or use a
+                  Sunnie task when you only need a local time block.
+                </p>
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button asChild>
+                  <Link href="/tasks" onClick={onClose}>
+                    Create a task instead
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/settings#accounts" onClick={onClose}>
+                    Connect a calendar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
 
           <form
             onSubmit={handleSubmit}
-            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+            aria-hidden={needsCalendarConnection}
+            className={cn(
+              "min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+              needsCalendarConnection ? "hidden" : "flex"
+            )}
           >
             <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
               {formError && (
@@ -588,13 +629,11 @@ export function EventModal({
                     <SelectValue placeholder="Select a calendar" />
                   </SelectTrigger>
                   <SelectContent>
-                    {feeds
-                      .filter((feed) => feed.enabled)
-                      .map((feed) => (
-                        <SelectItem key={feed.id} value={feed.id}>
-                          {feed.name} {feed.type === "GOOGLE" ? "(Google)" : ""}
-                        </SelectItem>
-                      ))}
+                    {enabledFeeds.map((feed) => (
+                      <SelectItem key={feed.id} value={feed.id}>
+                        {feed.name} {feed.type === "GOOGLE" ? "(Google)" : ""}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

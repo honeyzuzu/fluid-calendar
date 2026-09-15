@@ -53,15 +53,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(tasksWithRelations);
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown scheduling error";
     logger.error(
       "Error scheduling tasks:",
       {
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
       },
       LOG_SOURCE
     );
     return NextResponse.json(
-      { error: "Failed to schedule tasks" },
+      {
+        error:
+          "Sunnie couldn't schedule these tasks. Your task changes are safe; review Auto-Schedule settings and try again.",
+        code: "AUTO_SCHEDULE_FAILED",
+      },
       { status: 500 }
     );
   }

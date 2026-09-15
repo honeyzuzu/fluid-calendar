@@ -2,6 +2,8 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { publicRequestUrl } from "@/lib/auth/public-request-url";
+
 // List of public routes that don't require authentication
 const publicRoutes = [
   "/setup",
@@ -88,7 +90,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect /login to /auth/signin to prevent redirect loops
   if (pathname === "/login") {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+    return NextResponse.redirect(publicRequestUrl(request, "/auth/signin", ""));
   }
 
   // Special handling for the setup page to prevent loops with auth
@@ -129,9 +131,13 @@ export async function middleware(request: NextRequest) {
 
       // Redirect authenticated users to /calendar, unauthenticated to /auth/signin
       if (token) {
-        return NextResponse.redirect(new URL("/calendar", request.url));
+        return NextResponse.redirect(
+          publicRequestUrl(request, "/calendar", "")
+        );
       } else {
-        return NextResponse.redirect(new URL("/auth/signin", request.url));
+        return NextResponse.redirect(
+          publicRequestUrl(request, "/auth/signin", "")
+        );
       }
     }
 
@@ -157,8 +163,8 @@ export async function middleware(request: NextRequest) {
 
   // If there's no token, redirect to the sign-in page
   if (!token) {
-    const url = new URL("/auth/signin", request.url);
-    url.searchParams.set("callbackUrl", encodeURI(request.url));
+    const url = publicRequestUrl(request, "/auth/signin", "");
+    url.searchParams.set("callbackUrl", publicRequestUrl(request).toString());
     return NextResponse.redirect(url);
   }
 
@@ -166,7 +172,7 @@ export async function middleware(request: NextRequest) {
   if (adminRoutes.some((route) => pathname.startsWith(route))) {
     // If the user is not an admin, redirect to the home page
     if (token.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(publicRequestUrl(request, "/", ""));
     }
   }
 

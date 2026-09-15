@@ -22,6 +22,7 @@ import { WeekPicker } from "@/components/planning/WeekPicker";
 import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 import { needsTaskTuneUp, parseBrainDump } from "@/lib/brain-dump";
+import { getMissingTuneUpFields } from "@/lib/tune-up-form";
 import { cn } from "@/lib/utils";
 
 import { EnergyLevel, Priority, TaskStatus } from "@/types/task";
@@ -111,7 +112,11 @@ export function TaskCaptureWorkspace({
     );
     setEnergyLevel(currentTask.energyLevel ?? "");
     setDueDate(currentTask.dueDate?.slice(0, 10) ?? "");
-  }, [currentTask]);
+    // Reset a draft only when the card changes. A background refresh may
+    // replace the task object while the user is editing; it must not erase a
+    // due date when they choose a planning week.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTask?.id]);
 
   useEffect(() => {
     if (currentIndex >= tuneUpTasks.length) {
@@ -278,7 +283,15 @@ export function TaskCaptureWorkspace({
                 </span>
               </div>
 
+              <label
+                htmlFor="brain-dump-tasks"
+                className="mt-5 block text-sm font-semibold text-foreground"
+              >
+                Tasks to capture
+              </label>
               <textarea
+                id="brain-dump-tasks"
+                aria-describedby="brain-dump-help"
                 value={draft}
                 onChange={(event) => {
                   setDraft(event.target.value);
@@ -296,13 +309,16 @@ export function TaskCaptureWorkspace({
                 placeholder={
                   "Book dentist appointment\nReply to Maya\nOutline September goals\nPick up cat food"
                 }
-                className="mt-5 min-h-[300px] w-full resize-y rounded-2xl border border-border bg-card p-4 text-base leading-8 outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-ring/20 sm:min-h-[360px]"
+                className="mt-2 min-h-[300px] w-full resize-y rounded-2xl border border-border bg-card p-4 text-base leading-8 outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-ring/20 sm:min-h-[360px]"
                 maxLength={16000}
                 autoFocus
               />
 
               <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">
+                <p
+                  id="brain-dump-help"
+                  className="text-xs text-muted-foreground"
+                >
                   Your unsaved draft stays in this browser. Ctrl/⌘ + Enter also
                   creates the tasks.
                 </p>
@@ -537,9 +553,13 @@ function TaskTuneUp({
     );
   }
 
-  const ready = Boolean(
-    duration && Number(duration) > 0 && priority && energyLevel && dueDate
-  );
+  const missingFields = getMissingTuneUpFields({
+    duration,
+    priority,
+    energyLevel,
+    dueDate,
+  });
+  const ready = missingFields.length === 0;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
@@ -641,9 +661,25 @@ function TaskTuneUp({
                 value={dueDate}
                 onChange={(event) => onDueDateChange(event.target.value)}
                 className={selectClassName}
+                required
               />
             </TuneField>
           </div>
+
+          <p
+            id="tune-up-readiness"
+            aria-live="polite"
+            className={cn(
+              "mt-4 rounded-xl px-3 py-2 text-xs font-medium",
+              ready
+                ? "bg-success/10 text-success"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {ready
+              ? "Ready to save."
+              : `Still needed: ${missingFields.join(", ")}.`}
+          </p>
 
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex justify-center gap-2 sm:justify-start">
@@ -666,6 +702,7 @@ function TaskTuneUp({
             <button
               type="submit"
               disabled={!ready || saving}
+              aria-describedby="tune-up-readiness"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-40"
             >
               {saving ? (

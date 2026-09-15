@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       create: {
         userId,
         emailNotifications: true,
-        dailyEmailEnabled: true,
+        dailyEmailEnabled: false,
         eventInvites: true,
         eventUpdates: true,
         eventCancellations: true,
@@ -77,6 +77,10 @@ export async function PATCH(request: NextRequest) {
       defaultReminderTiming: updates.defaultReminderTiming
         ? JSON.stringify(updates.defaultReminderTiming)
         : undefined,
+      dailyEmailOptedInAt:
+        updates.dailyEmailEnabled === true ? new Date() : undefined,
+      dailyEmailConsentSource:
+        updates.dailyEmailEnabled === true ? "settings" : undefined,
     };
 
     const settings = await prisma.notificationSettings.upsert({

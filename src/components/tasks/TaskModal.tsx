@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -252,13 +253,21 @@ export function TaskModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[500px]">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] min-h-0 flex-col overflow-hidden sm:max-h-[90dvh] sm:max-w-[500px]">
         {isSubmitting && <LoadingOverlay />}
         <DialogHeader>
           <DialogTitle>{task ? "Edit Task" : "New Task"}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {task
+              ? "Update this task's planning details."
+              : "Add a task and its planning details."}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className="min-h-0 space-y-4 overflow-y-auto overscroll-contain pr-1"
+        >
           <div>
             <Label htmlFor="title">Title</Label>
             <Input

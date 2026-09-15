@@ -3,6 +3,7 @@ import {
   formatFocusTime,
   nextPhaseAfterTimer,
   petMessage,
+  phaseAfterEndingEarly,
 } from "@/lib/focus-session";
 
 describe("focus sessions", () => {
@@ -10,6 +11,12 @@ describe("focus sessions", () => {
     expect(formatFocusTime(1500)).toBe("25:00");
     expect(formatFocusTime(61)).toBe("01:01");
     expect(formatFocusTime(-4)).toBe("00:00");
+  });
+
+  it("cancels setup and never treats an early focus end as completion", () => {
+    expect(phaseAfterEndingEarly("setup")).toBe("setup-ready");
+    expect(phaseAfterEndingEarly("focus")).toBe("break-ready");
+    expect(phaseAfterEndingEarly("break")).toBe("complete");
   });
 
   it("moves through setup, focus, and break phases", () => {

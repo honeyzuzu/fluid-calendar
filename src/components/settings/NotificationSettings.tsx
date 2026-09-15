@@ -12,7 +12,7 @@ export function NotificationSettings() {
     >
       <SettingRow
         label="Daily Email Updates"
-        description="Receive a daily email with your upcoming meetings and tasks"
+        description="Optional: receive one morning email summarizing upcoming meetings and tasks. Transactional account messages stay separate."
       >
         <div className="space-y-2">
           <label className="flex items-center">
@@ -26,7 +26,9 @@ export function NotificationSettings() {
               }
               className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
             />
-            <span className="ml-2 text-sm">Enable daily email updates</span>
+            <span className="ml-2 text-sm">
+              Send me the optional daily planning email
+            </span>
           </label>
         </div>
       </SettingRow>

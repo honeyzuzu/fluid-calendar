@@ -304,7 +304,33 @@ export default function SettingsPage() {
       </div>
       <div className="flex min-w-0 flex-col lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">
-          <Card className="overflow-x-auto">
+          <div className="sticky top-2 z-20 lg:hidden">
+            <label
+              htmlFor="settings-section"
+              className="mb-1.5 block text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
+            >
+              Settings section
+            </label>
+            <select
+              id="settings-section"
+              value={activeTab}
+              onChange={(event) =>
+                setActiveTab(event.target.value as SettingsTab)
+              }
+              className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-[var(--shadow-paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {tabGroups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.tabs.map((tab) => (
+                    <option key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+          <Card className="hidden lg:block">
             <nav className="flex gap-2 p-1 lg:block lg:space-y-4">
               {tabGroups.map((group) => (
                 <div

@@ -14,8 +14,10 @@ import {
   Zap,
 } from "lucide-react";
 
+import { shouldShowCommandEmptyState } from "@/lib/command-palette-state";
 import { cn, formatShortcut } from "@/lib/utils";
 
+import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
 import { useCommands } from "@/hooks/useCommands";
 
 interface CommandPaletteProps {
@@ -27,6 +29,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const [search, setSearch] = useState("");
   const [showAllCommands, setShowAllCommands] = useState(false);
   const { searchCommands, executeCommand, getAllCommands } = useCommands();
+  const restoreFocus = useDialogReturnFocus(open);
 
   // Get filtered commands based on search or show all commands
   const commands = useMemo(() => {
@@ -62,7 +65,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-[20%] z-50 w-[calc(100vw-1.5rem)] max-w-[640px] -translate-x-1/2">
+        <Dialog.Content
+          onCloseAutoFocus={restoreFocus}
+          className="fixed left-1/2 top-[20%] z-50 w-[calc(100vw-1.5rem)] max-w-[640px] -translate-x-1/2"
+        >
           <Dialog.Title className="sr-only">Command Menu</Dialog.Title>
           <Dialog.Description className="sr-only">
             Search commands and navigate the application
@@ -185,9 +191,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 </div>
               )}
 
-              <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-                No results found. Try a different search term.
-              </Command.Empty>
+              {shouldShowCommandEmptyState(search, commands.length) && (
+                <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
+                  No results found. Try a different search term.
+                </Command.Empty>
+              )}
 
               {(commands.length > 0 || showAllCommands) &&
                 Object.entries(groupedCommands).map(

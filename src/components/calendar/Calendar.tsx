@@ -13,9 +13,13 @@ import { MultiMonthView } from "@/components/calendar/MultiMonthView";
 import { WeekView } from "@/components/calendar/WeekView";
 import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
 
+import {
+  getCalendarHeading,
+  getCalendarNavigationUnit,
+} from "@/lib/calendar-view-labels";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { isSaasEnabled } from "@/lib/config";
-import { addDays, formatDate, newDate, subDays } from "@/lib/date-utils";
+import { addDays, newDate, subDays } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
 import { useAutoSchedule } from "@/hooks/use-auto-schedule";
@@ -159,8 +163,23 @@ export function Calendar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Persisted desktop state hydrates after the first render. Re-apply the
+  // compact layout then so it cannot reopen over the calendar canvas.
+  useEffect(() => {
+    if (isHydrated && window.matchMedia("(max-width: 1279px)").matches) {
+      setSidebarOpen(false);
+    }
+  }, [isHydrated, setSidebarOpen]);
+
+  const navigationUnit = getCalendarNavigationUnit(view);
+  const calendarHeading = getCalendarHeading(view, currentDate);
+
   const handlePrevWeek = () => {
-    if (view === "month" || view === "multiMonth") {
+    if (view === "multiMonth") {
+      const newDate = new Date(currentDate);
+      newDate.setFullYear(newDate.getFullYear() - 1);
+      setDate(newDate);
+    } else if (view === "month") {
       const newDate = new Date(currentDate);
       newDate.setMonth(newDate.getMonth() - 1);
       setDate(newDate);
@@ -171,7 +190,11 @@ export function Calendar({
   };
 
   const handleNextWeek = () => {
-    if (view === "month" || view === "multiMonth") {
+    if (view === "multiMonth") {
+      const newDate = new Date(currentDate);
+      newDate.setFullYear(newDate.getFullYear() + 1);
+      setDate(newDate);
+    } else if (view === "month") {
       const newDate = new Date(currentDate);
       newDate.setMonth(newDate.getMonth() + 1);
       setDate(newDate);
@@ -239,7 +262,8 @@ export function Calendar({
       {isSidebarOpen && (
         <button
           type="button"
-          aria-label="Close calendar sidebar"
+          aria-hidden="true"
+          tabIndex={-1}
           onClick={() => setSidebarOpen(false)}
           className="absolute inset-0 z-40 bg-foreground/25 backdrop-blur-[1px] xl:hidden"
         />
@@ -250,10 +274,10 @@ export function Calendar({
         {/* Lifetime Access Banner */}
         <LifetimeAccessBanner />
         {/* Header */}
-        <header className="sunnie-calendar-toolbar relative z-30 flex flex-none flex-col gap-2 overflow-visible border-b border-border bg-card/85 px-3 py-2.5 backdrop-blur-md md:flex-row md:flex-wrap md:items-center md:gap-3 md:px-5 md:py-3">
+        <header className="sunnie-calendar-toolbar relative z-30 flex flex-none flex-col gap-2 overflow-visible border-b border-border bg-card/85 py-2.5 pl-10 pr-3 backdrop-blur-md md:flex-row md:flex-wrap md:items-center md:gap-3 md:px-5 md:py-3">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
             <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
-              {formatDate(currentDate)}
+              {calendarHeading}
             </h1>
 
             <div className="flex shrink-0 items-center gap-1 md:hidden">
@@ -261,7 +285,8 @@ export function Calendar({
                 onClick={handlePrevWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
                 data-testid="calendar-prev-week"
-                title="Previous period"
+                title={`Previous ${navigationUnit}`}
+                aria-label={`Previous ${navigationUnit}`}
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -269,14 +294,15 @@ export function Calendar({
                 onClick={handleNextWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
                 data-testid="calendar-next-week"
-                title="Next period"
+                title={`Next ${navigationUnit}`}
+                aria-label={`Next ${navigationUnit}`}
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto md:flex-1 md:gap-2 md:overflow-visible">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-1 md:flex-1 md:flex-nowrap md:gap-2">
             <button
               onClick={() => setDate(newDate())}
               className="shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted md:px-3"
@@ -305,7 +331,8 @@ export function Calendar({
                 onClick={handlePrevWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
                 data-testid="calendar-prev-week"
-                title="Previous Week (←)"
+                title={`Previous ${navigationUnit} (←)`}
+                aria-label={`Previous ${navigationUnit} (←)`}
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -313,19 +340,20 @@ export function Calendar({
                 onClick={handleNextWeek}
                 className="rounded-lg p-1.5 text-foreground hover:bg-muted"
                 data-testid="calendar-next-week"
-                title="Next Week (→)"
+                title={`Next ${navigationUnit} (→)`}
+                aria-label={`Next ${navigationUnit} (→)`}
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
             <h1 className="hidden min-w-0 flex-1 truncate text-lg font-semibold text-foreground md:block xl:text-xl">
-              {formatDate(currentDate)}
+              {calendarHeading}
             </h1>
           </div>
 
           {/* View Switching Buttons */}
-          <div className="flex w-full shrink-0 items-center justify-start gap-1 overflow-x-auto border-t border-border/70 pt-2 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:overflow-visible 2xl:border-0 2xl:pt-0">
+          <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-1 border-t border-border/70 pt-2 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:flex-nowrap 2xl:border-0 2xl:pt-0">
             <button
               type="button"
               onClick={() => void refreshCalendars()}
@@ -344,12 +372,16 @@ export function Calendar({
               className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 md:mr-2"
             >
               <Plus className="h-4 w-4" />
-              <span className="md:hidden lg:inline">Add event</span>
+              <span className="hidden sm:inline md:hidden lg:inline">
+                Add event
+              </span>
               <span className="hidden md:inline lg:hidden">Add</span>
+              <span className="sr-only sm:hidden">Add event</span>
             </button>
             <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-border/80 bg-muted/45 p-1">
               <button
                 onClick={() => setView("day")}
+                aria-pressed={view === "day"}
                 className={cn(
                   "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                   view === "day"
@@ -361,6 +393,7 @@ export function Calendar({
               </button>
               <button
                 onClick={() => setView("week")}
+                aria-pressed={view === "week"}
                 className={cn(
                   "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                   view === "week"
@@ -372,6 +405,7 @@ export function Calendar({
               </button>
               <button
                 onClick={() => setView("month")}
+                aria-pressed={view === "month"}
                 className={cn(
                   "rounded-lg px-2.5 py-1.5 text-sm font-medium md:px-3",
                   view === "month"
@@ -383,6 +417,7 @@ export function Calendar({
               </button>
               <button
                 onClick={() => setView("multiMonth")}
+                aria-pressed={view === "multiMonth"}
                 className={cn(
                   "hidden rounded-lg px-3 py-1.5 text-sm font-medium md:block",
                   view === "multiMonth"

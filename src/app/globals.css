@@ -215,6 +215,22 @@
   @apply h-full;
 }
 
+/* FullCalendar owns the single useful scroll surface in each view. Hide the
+   native increment/decrement buttons that Windows Chromium can stack on its
+   synchronized internal scrollers, while leaving the scrollbars themselves
+   usable. */
+.sunnie-calendar-frame .fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sunnie-border) 78%, transparent)
+    transparent;
+}
+
+.sunnie-calendar-frame .fc-scroller::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .fc .fc-toolbar {
   @apply p-4;
 }

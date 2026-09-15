@@ -32,6 +32,7 @@ import {
   FOCUS_PREFERENCES_KEY,
   FOCUS_REWARD_EVENT,
   FocusRewardDetail,
+  FocusRewardResult,
   awardSunDrops,
   loadSunDrops,
 } from "@/lib/focus-rewards";
@@ -45,6 +46,7 @@ import {
   formatFocusTime,
   nextPhaseAfterTimer,
   petMessage,
+  phaseAfterEndingEarly,
 } from "@/lib/focus-session";
 import { cn } from "@/lib/utils";
 
@@ -114,7 +116,18 @@ type PersistedFocusState = {
   isRunning: boolean;
   checklist: Record<string, boolean>;
   subtaskPlan: string;
+  roundReward: RoundReward;
 };
+
+type RoundReward =
+  | { status: "idle" }
+  | { status: "saving" }
+  | {
+      status: "awarded";
+      balance: number;
+      savedLocally: boolean;
+    }
+  | { status: "not-awarded"; reason: "ended-early" | "save-failed" };
 
 interface FocusSessionProps {
   taskId: string;
@@ -157,6 +170,9 @@ export function FocusSession({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [chimeId, setChimeId] = useState<ChimeId>("sunrise");
   const [sunDrops, setSunDrops] = useState(0);
+  const [roundReward, setRoundReward] = useState<RoundReward>({
+    status: "idle",
+  });
   const [imageError, setImageError] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const finishingRef = useRef(false);
@@ -166,6 +182,30 @@ export function FocusSession({
     [petId]
   );
   const usesCustomPet = petId === "custom" && customPetImage;
+
+  const finishQualifiedFocusRound = useCallback(() => {
+    setIsRunning(false);
+    setEndsAt(null);
+    setRemainingSeconds(0);
+    setPhase("break-ready");
+    setRoundReward({ status: "saving" });
+
+    void awardSunDrops(1)
+      .then((result: FocusRewardResult | null) => {
+        if (!result) {
+          setRoundReward({ status: "not-awarded", reason: "save-failed" });
+          return;
+        }
+        setRoundReward({
+          status: "awarded",
+          balance: result.balance,
+          savedLocally: result.reason === "saved-locally",
+        });
+      })
+      .catch(() => {
+        setRoundReward({ status: "not-awarded", reason: "save-failed" });
+      });
+  }, []);
 
   useEffect(() => {
     try {
@@ -200,6 +240,7 @@ export function FocusSession({
           setBreakMinutes(saved.breakMinutes || 5);
           setChecklist(saved.checklist || {});
           setSubtaskPlan(saved.subtaskPlan || "");
+          setRoundReward(saved.roundReward || { status: "idle" });
           if (saved.isRunning && saved.endsAt) {
             const restored = Math.max(
               0,
@@ -216,8 +257,7 @@ export function FocusSession({
                 setEndsAt(Date.now() + focusSeconds * 1000);
                 setIsRunning(true);
               } else if (saved.phase === "focus") {
-                void accountSunDrops.then(() => awardSunDrops(1));
-                setPhase(nextPhaseAfterTimer(saved.phase));
+                void accountSunDrops.then(finishQualifiedFocusRound);
               } else {
                 setPhase(nextPhaseAfterTimer(saved.phase));
               }
@@ -234,7 +274,7 @@ export function FocusSession({
     } finally {
       setHydrated(true);
     }
-  }, [taskId]);
+  }, [finishQualifiedFocusRound, taskId]);
 
   useEffect(() => {
     const handleReward = (event: Event) => {
@@ -294,6 +334,7 @@ export function FocusSession({
       isRunning,
       checklist,
       subtaskPlan,
+      roundReward,
     };
     try {
       window.localStorage.setItem(SESSION_KEY, JSON.stringify(state));
@@ -309,6 +350,7 @@ export function FocusSession({
     isRunning,
     phase,
     remainingSeconds,
+    roundReward,
     setupMinutes,
     subtaskPlan,
     taskId,
@@ -383,8 +425,11 @@ export function FocusSession({
         setEndsAt(Date.now() + focusSeconds * 1000);
         setIsRunning(true);
       } else {
-        if (phase === "focus") void awardSunDrops(1);
-        setPhase(nextPhaseAfterTimer(phase));
+        if (phase === "focus") {
+          finishQualifiedFocusRound();
+        } else {
+          setPhase(nextPhaseAfterTimer(phase));
+        }
       }
       window.setTimeout(() => {
         finishingRef.current = false;
@@ -394,7 +439,14 @@ export function FocusSession({
     tick();
     const interval = window.setInterval(tick, 500);
     return () => window.clearInterval(interval);
-  }, [endsAt, focusMinutes, isRunning, phase, playGentleChime]);
+  }, [
+    endsAt,
+    finishQualifiedFocusRound,
+    focusMinutes,
+    isRunning,
+    phase,
+    playGentleChime,
+  ]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -419,6 +471,7 @@ export function FocusSession({
     setRemainingSeconds(seconds);
     setEndsAt(Date.now() + seconds * 1000);
     setIsRunning(true);
+    if (timerPhase === "focus") setRoundReward({ status: "idle" });
   };
 
   const pauseTimer = () => {
@@ -440,11 +493,17 @@ export function FocusSession({
     setIsRunning(false);
     setEndsAt(null);
     if (phase === "setup") {
-      startTimer("focus");
+      setPhase(phaseAfterEndingEarly(phase));
+      setRemainingSeconds(setupMinutes * 60);
       return;
     }
     setRemainingSeconds(0);
-    setPhase(phase === "focus" ? "break-ready" : nextPhaseAfterTimer(phase));
+    if (phase === "focus") {
+      setRoundReward({ status: "not-awarded", reason: "ended-early" });
+      setPhase(phaseAfterEndingEarly(phase));
+    } else {
+      setPhase(phaseAfterEndingEarly(phase));
+    }
   };
 
   const startAnotherRound = () => {
@@ -718,8 +777,19 @@ export function FocusSession({
               Focus round complete!
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              You earned a sun drop. If the task is done, finish it here; if
-              your plan changed, update it before the next round.
+              {roundReward.status === "saving" && "Saving your sun drop…"}
+              {roundReward.status === "awarded" &&
+                `You earned a sun drop. Your balance is ${roundReward.balance}.${
+                  roundReward.savedLocally
+                    ? " It is safe on this device and will sync with your account."
+                    : ""
+                }`}
+              {roundReward.status === "not-awarded" &&
+                (roundReward.reason === "ended-early"
+                  ? "This round ended early, so no sun drop was added. The time you protected still counts."
+                  : "Sunnie couldn't confirm a sun drop for this round. Your focus session is still safe.")}
+              {roundReward.status === "idle" &&
+                "Your focus round is complete. Take a breath before deciding what comes next."}
             </p>
             <RoundTaskActions
               onCompleteTask={onCompleteTask}

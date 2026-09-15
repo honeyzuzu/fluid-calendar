@@ -38,6 +38,7 @@ export default function TasksPage() {
     tasks,
     tags,
     error,
+    schedulingError,
     fetchTasks,
     fetchTags,
     createTask,
@@ -118,6 +119,12 @@ export default function TasksPage() {
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTask(taskId, { status });
+      if (status === TaskStatus.COMPLETED) {
+        const title = tasks.find((task) => task.id === taskId)?.title;
+        toast.success("A sunny step forward ☀️", {
+          description: title ? `${title} is complete.` : "Task complete.",
+        });
+      }
     } catch {
       toast.error("Sunnie couldn't save that change", {
         description: "The task was restored to its previous status.",
@@ -138,7 +145,6 @@ export default function TasksPage() {
   const handleInlineEdit = async (task: Task) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, tags, createdAt, updatedAt, project, ...updates } = task;
-    console.log("Updating task:", { id, updates });
     try {
       await updateTask(id, updates);
     } catch (error) {
@@ -312,6 +318,19 @@ export default function TasksPage() {
           {workspace === "tasks" && error && (
             <Alert variant="destructive" className="mt-4">
               <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+          )}
+          {workspace === "tasks" && !error && schedulingError && (
+            <Alert className="mt-4 border-warning/40 bg-warning/10 text-foreground">
+              <AlertDescription>
+                {schedulingError.message}{" "}
+                <Link
+                  href="/settings#auto-schedule"
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  Review settings
+                </Link>
+              </AlertDescription>
             </Alert>
           )}
         </div>
