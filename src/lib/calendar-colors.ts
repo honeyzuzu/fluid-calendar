@@ -60,21 +60,33 @@ export function getCalendarDisplayColor(
 // render time so a sidebar change is visible before background refreshes end.
 export function applyFeedColorsToCalendarItems<
   T extends {
+    id: string;
     backgroundColor: string;
     borderColor: string;
     extendedProps?: ExtendedEventProps;
   },
->(items: T[], feeds: CalendarFeed[], themeId: ColorThemeId): T[] {
+>(
+  items: T[],
+  feeds: CalendarFeed[],
+  themeId: ColorThemeId,
+  currentEvents: Array<
+    Pick<CalendarEvent, "id" | "feedId" | "color" | "colorSlot">
+  >
+): T[] {
+  const currentEventsById = new Map(
+    currentEvents.map((event) => [event.id, event])
+  );
   return items.map((item) => {
     const source = item.extendedProps as
       | (ExtendedEventProps & Partial<CalendarEvent>)
       | undefined;
     if (!source?.feedId || source.isTask || source.isFriendEvent) return item;
+    const currentEvent = currentEventsById.get(item.id);
     const color = getCalendarDisplayColor(
       {
-        feedId: source.feedId,
-        color: source.color,
-        colorSlot: source.colorSlot,
+        feedId: currentEvent?.feedId || source.feedId,
+        color: currentEvent ? currentEvent.color : source.color,
+        colorSlot: currentEvent ? currentEvent.colorSlot : source.colorSlot,
       },
       feeds,
       themeId

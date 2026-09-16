@@ -15,21 +15,25 @@ describe("calendar feed colors", () => {
     ];
     const items = [
       {
+        id: "event-1",
         backgroundColor: "#9BC7D9",
         borderColor: "#9BC7D9",
         extendedProps: { feedId: "feed-1" },
       },
       {
+        id: "event-2",
         backgroundColor: "#123456",
         borderColor: "#123456",
         extendedProps: { feedId: "feed-1", color: "#123456" },
       },
       {
+        id: "task-1",
         backgroundColor: "#abcdef",
         borderColor: "#abcdef",
         extendedProps: { feedId: "tasks", isTask: true },
       },
       {
+        id: "friend-1",
         backgroundColor: "#fedcba",
         borderColor: "#fedcba",
         extendedProps: { isFriendEvent: true },
@@ -39,7 +43,11 @@ describe("calendar feed colors", () => {
     const recolored = applyFeedColorsToCalendarItems(
       items,
       [{ ...feeds[0], color: "#E9A66F" }],
-      "base"
+      "base",
+      [
+        { id: "event-1", feedId: "feed-1" },
+        { id: "event-2", feedId: "feed-1", color: "#123456" },
+      ]
     );
 
     expect(recolored.map((item) => item.backgroundColor)).toEqual([
@@ -49,5 +57,11 @@ describe("calendar feed colors", () => {
       "#fedcba",
     ]);
     expect(recolored[0].borderColor).toBe("#E9A66F");
+
+    const updatedEvent = applyFeedColorsToCalendarItems(items, feeds, "base", [
+      { id: "event-1", feedId: "feed-1", color: "#C98772" },
+      { id: "event-2", feedId: "feed-1", color: "#123456" },
+    ]);
+    expect(updatedEvent[0].backgroundColor).toBe("#C98772");
   });
 });

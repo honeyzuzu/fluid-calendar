@@ -100,9 +100,16 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
       extendedProps?: ExtendedEventProps;
     }>
   >([]);
+  const currentCalendarEvents = useCalendarStore((state) => state.events);
   const displayedEvents = useMemo(
-    () => applyFeedColorsToCalendarItems(events, feeds, activeColorTheme.id),
-    [events, feeds, activeColorTheme.id]
+    () =>
+      applyFeedColorsToCalendarItems(
+        events,
+        feeds,
+        activeColorTheme.id,
+        currentCalendarEvents
+      ),
+    [events, feeds, activeColorTheme.id, currentCalendarEvents]
   );
   const calendarRef = useRef<FullCalendar>(null);
   const tasks = useTaskStore((state) => state.tasks);
