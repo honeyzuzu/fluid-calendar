@@ -14,7 +14,6 @@ import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { getReadableTextColor } from "@/lib/color-contrast";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
@@ -176,7 +175,7 @@ export function ProjectSidebar() {
     <>
       <div
         className={cn(
-          "relative z-40 hidden h-full flex-none bg-card transition-[width] duration-300 md:block",
+          "relative z-40 hidden flex-none flex-col self-stretch bg-card transition-[width] duration-300 md:flex",
           isSidebarOpen ? "w-64" : "w-6"
         )}
       >
@@ -199,7 +198,7 @@ export function ProjectSidebar() {
         </button>
         <aside
           className={cn(
-            "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-card shadow-[var(--shadow-raised)] transition-transform duration-300",
+            "sunnie-theme-sidebar-pattern relative z-50 flex min-h-0 w-64 flex-1 flex-col border-r border-border bg-card shadow-[var(--shadow-raised)] transition-transform duration-300",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -241,7 +240,7 @@ export function ProjectSidebar() {
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
             {loading && projects.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-sm text-muted-foreground">
@@ -311,7 +310,7 @@ export function ProjectSidebar() {
                 </div>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </aside>
       </div>
 

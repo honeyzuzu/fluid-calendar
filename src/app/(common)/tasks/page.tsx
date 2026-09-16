@@ -46,7 +46,8 @@ export default function TasksPage() {
     deleteTask,
     createTag,
   } = useTaskStore();
-  const { fetchProjects, activeProject } = useProjectStore();
+  const { fetchProjects, activeProject, setActiveProject, projects } =
+    useProjectStore();
   const { isOpen, setOpen } = useTaskModalStore();
 
   const [workspace, setWorkspace] = useState<TasksWorkspace>("tasks");
@@ -95,7 +96,25 @@ export default function TasksPage() {
 
   const handleUpdateTask = async (task: NewTask) => {
     if (selectedTask) {
-      await updateTask(selectedTask.id, task);
+      let switchedProject = false;
+      if (activeProject && task.projectId !== undefined) {
+        const remainsVisible =
+          activeProject.id === "no-project"
+            ? !task.projectId
+            : task.projectId === activeProject.id;
+        if (!remainsVisible) {
+          setActiveProject(
+            projects.find((project) => project.id === task.projectId) || null
+          );
+          switchedProject = true;
+        }
+      }
+      try {
+        await updateTask(selectedTask.id, task);
+      } catch (error) {
+        if (switchedProject) setActiveProject(activeProject);
+        throw error;
+      }
     }
   };
 
