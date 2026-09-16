@@ -31,9 +31,15 @@ interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   project?: Project;
+  onCreated?: (project: Project) => void;
 }
 
-export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
+export function ProjectModal({
+  isOpen,
+  onClose,
+  project,
+  onCreated,
+}: ProjectModalProps) {
   const { colorTheme } = useTheme();
   const projectColors = colorTheme.palettes.projects;
   const defaultProjectColor = projectColors[0]?.value || DEFAULT_PROJECT_COLOR;
@@ -83,13 +89,14 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
           colorSlot,
         });
       } else {
-        await createProject({
+        const createdProject = await createProject({
           name: name.trim(),
           description: description.trim() || undefined,
           color,
           colorSlot,
           status: ProjectStatus.ACTIVE,
         });
+        onCreated?.(createdProject);
       }
       onClose();
     } catch (error) {

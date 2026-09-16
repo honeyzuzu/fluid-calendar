@@ -242,13 +242,13 @@ export function ProjectSidebar() {
           </div>
 
           <ScrollArea className="flex-1 p-4">
-            {loading ? (
+            {loading && projects.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-sm text-muted-foreground">
                   Loading projects...
                 </div>
               </div>
-            ) : error ? (
+            ) : error && projects.length === 0 ? (
               <div className="p-2 text-sm text-destructive">
                 {error.message}
               </div>
@@ -322,6 +322,7 @@ export function ProjectSidebar() {
           setSelectedProject(undefined);
         }}
         project={selectedProject}
+        onCreated={() => setIsSidebarOpen(true)}
       />
     </>
   );
@@ -428,6 +429,7 @@ export function MobileProjectPicker() {
       <ProjectModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onCreated={() => setIsExpanded(true)}
       />
     </div>
   );
