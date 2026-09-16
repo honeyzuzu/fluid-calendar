@@ -155,6 +155,7 @@ export function EventModal({
   const { feeds, addEvent, updateEvent, removeEvent } = useCalendarStore();
   const { calendar } = useSettingsStore();
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const activeDraftRef = useRef<{ eventId?: string } | null>(null);
   const [showRecurrenceDialog, setShowRecurrenceDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editMode, setEditMode] = useState<"single" | "series">();
@@ -201,9 +202,18 @@ export function EventModal({
     Boolean(event?.location || event?.description || event?.isRecurring)
   );
 
-  // Reset form when modal opens
+  // Feed sync and settings hydration can change these dependencies while the
+  // dialog is open. Initialize only for a new draft or a different event.
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
+      activeDraftRef.current = null;
+      return;
+    }
+    if (
+      !activeDraftRef.current ||
+      activeDraftRef.current.eventId !== event?.id
+    ) {
+      activeDraftRef.current = { eventId: event?.id };
       setTitle(event?.title || "");
       setDescription(event?.description || "");
       setLocation(event?.location || "");

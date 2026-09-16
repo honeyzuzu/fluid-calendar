@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   DatesSetArg,
@@ -13,7 +13,10 @@ import FullCalendar from "@fullcalendar/react";
 
 import { TaskModal } from "@/components/tasks/TaskModal";
 
-import { getCalendarDisplayColor } from "@/lib/calendar-colors";
+import {
+  applyFeedColorsToCalendarItems,
+  getCalendarDisplayColor,
+} from "@/lib/calendar-colors";
 import {
   getSelectionRange,
   getTapSelectionRange,
@@ -83,6 +86,10 @@ export function MultiMonthView({
       extendedProps?: ExtendedEventProps;
     }>
   >([]);
+  const displayedEvents = useMemo(
+    () => applyFeedColorsToCalendarItems(events, feeds, activeColorTheme.id),
+    [events, feeds, activeColorTheme.id]
+  );
   const calendarRef = useRef<FullCalendar>(null);
   const tasks = useTaskStore((state) => state.tasks);
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
@@ -323,7 +330,7 @@ export function MultiMonthView({
         initialView="multiMonthYear"
         headerToolbar={false}
         initialDate={currentDate}
-        events={events}
+        events={displayedEvents}
         dayMaxEvents={true}
         multiMonthMaxColumns={3}
         expandRows={true}

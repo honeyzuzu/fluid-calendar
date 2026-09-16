@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
 
@@ -16,7 +16,10 @@ import { toast } from "sonner";
 
 import { TaskModal } from "@/components/tasks/TaskModal";
 
-import { getCalendarDisplayColor } from "@/lib/calendar-colors";
+import {
+  applyFeedColorsToCalendarItems,
+  getCalendarDisplayColor,
+} from "@/lib/calendar-colors";
 import { getEventEditability } from "@/lib/calendar-drag";
 import {
   getSelectionRange,
@@ -97,6 +100,10 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
       extendedProps?: ExtendedEventProps;
     }>
   >([]);
+  const displayedEvents = useMemo(
+    () => applyFeedColorsToCalendarItems(events, feeds, activeColorTheme.id),
+    [events, feeds, activeColorTheme.id]
+  );
   const calendarRef = useRef<FullCalendar>(null);
   const tasks = useTaskStore((state) => state.tasks);
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
@@ -372,7 +379,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         initialView="dayGridMonth"
         headerToolbar={false}
         initialDate={currentDate}
-        events={events}
+        events={displayedEvents}
         dayMaxEvents={true}
         expandRows={true}
         stickyHeaderDates={true}

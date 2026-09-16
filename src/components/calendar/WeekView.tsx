@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   DatesSetArg,
@@ -13,7 +13,10 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 
 import { TaskModal } from "@/components/tasks/TaskModal";
 
-import { getCalendarDisplayColor } from "@/lib/calendar-colors";
+import {
+  applyFeedColorsToCalendarItems,
+  getCalendarDisplayColor,
+} from "@/lib/calendar-colors";
 import { getEventEditability } from "@/lib/calendar-drag";
 import {
   getSelectionRange,
@@ -84,6 +87,10 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       extendedProps?: ExtendedEventProps;
     }>
   >([]);
+  const displayedEvents = useMemo(
+    () => applyFeedColorsToCalendarItems(events, feeds, activeColorTheme.id),
+    [events, feeds, activeColorTheme.id]
+  );
   const calendarRef = useRef<FullCalendar>(null);
   const tasks = useTaskStore((state) => state.tasks);
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
@@ -335,7 +342,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
         initialView="timeGridWeek"
         headerToolbar={false}
         initialDate={currentDate}
-        events={events}
+        events={displayedEvents}
         nowIndicator={true}
         allDaySlot={true}
         slotMinTime="00:00:00"

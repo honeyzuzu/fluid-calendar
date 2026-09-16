@@ -4,7 +4,11 @@ import {
   resolveThemeLinkedColor,
 } from "@/lib/color-themes";
 
-import { CalendarEvent, CalendarFeed } from "@/types/calendar";
+import {
+  CalendarEvent,
+  CalendarFeed,
+  ExtendedEventProps,
+} from "@/types/calendar";
 
 export interface SunnieEventColor {
   name: string;
@@ -50,4 +54,31 @@ export function getCalendarDisplayColor(
     feed?.color,
     themeId
   );
+}
+
+// FullCalendar items are cached separately from feeds. Reapply feed colors at
+// render time so a sidebar change is visible before background refreshes end.
+export function applyFeedColorsToCalendarItems<
+  T extends {
+    backgroundColor: string;
+    borderColor: string;
+    extendedProps?: ExtendedEventProps;
+  },
+>(items: T[], feeds: CalendarFeed[], themeId: ColorThemeId): T[] {
+  return items.map((item) => {
+    const source = item.extendedProps as
+      | (ExtendedEventProps & Partial<CalendarEvent>)
+      | undefined;
+    if (!source?.feedId || source.isTask || source.isFriendEvent) return item;
+    const color = getCalendarDisplayColor(
+      {
+        feedId: source.feedId,
+        color: source.color,
+        colorSlot: source.colorSlot,
+      },
+      feeds,
+      themeId
+    );
+    return { ...item, backgroundColor: color, borderColor: color };
+  });
 }
