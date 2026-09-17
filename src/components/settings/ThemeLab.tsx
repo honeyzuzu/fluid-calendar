@@ -30,6 +30,7 @@ import {
   ThemeLabThemeId,
   VISUAL_TEST_THEME,
   WASHI_PACKS,
+  WASHI_PATTERNS,
   getCalendarPresentation,
   getPlannerThemeCssVariables,
   getThemeDomAttributes,
@@ -256,6 +257,17 @@ export function ThemeLab() {
                 )
               }
               options={TYPOGRAPHY_STYLES.map(optionFromValue)}
+            />
+            <LabSelect
+              label="Washi pattern"
+              value={presentation.washiPattern}
+              onChange={(value) =>
+                updatePresentation(
+                  "washiPattern",
+                  value as CalendarPresentation["washiPattern"]
+                )
+              }
+              options={WASHI_PATTERNS.map(optionFromValue)}
             />
           </CardContent>
         </Card>

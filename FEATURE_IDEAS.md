@@ -29,6 +29,13 @@ When useful, explore:
 
 We can fill these in together. A rough bullet is enough to begin.
 
+- **Original thought (2026-09-16):** “rework the colorways/themes available in sunnie planner” and the base pieces “like washi tape, or outline” to look more like the Pinterest board, with “a natural look” and “a cuter more handdrawn feel.” “Washi tape does not necessarily mean gingham.”
+
+  - **Why it matters:** Decoration should feel like varied stationery collected for a journal, rather than a single repeated check pattern or flat UI skin.
+  - **Implemented first version:** Warmer app surfaces for the five saved colorways, theme-specific botanical/floral/striped/kraft/starry tape, an independent tape pattern primitive, a paper-label item treatment, and Theme Lab controls to mix the pieces. Existing theme IDs and item palette slots remain stable.
+  - **Open questions:** Which references from the board should anchor a next round of sticker artwork? Should tape and outline eventually be personal choices in regular Settings, or remain curated by theme? How dense should decoration be on a busy month calendar?
+  - **Later possibilities:** More original sticker sheets, small border styles, and item-level stationery choices after checking readability on dense calendars and phones.
+
 - **Original thought:** Add seasonal/color theme packs for the entire app. The planner theme should update Sunnie's overall colors and the coordinated colors available for calendar, task, project, and friend items. Add three new themes and preserve the current colors as the Base theme. Make the calendar feel prettier and less dated. Replace the custom color picker's editing-style bubbles with a clear `+` button.
 
   - **Why it matters:** The whole planner should feel intentionally styled rather than like separate features using unrelated hardcoded colors.

@@ -1,6 +1,6 @@
 # Sunnie colorway worksheet
 
-Last reviewed: 2026-09-14.
+Last reviewed: 2026-09-16.
 
 Sunnie has five planner colorways: the existing **Sunnie Base** plus four
 owner-supplied seasonal themes: **Spring — Fresh Air**, **Summer — Sun-Kissed**,
@@ -41,19 +41,29 @@ intention motif is a sprout.
 
 ## Seasonal interface worlds
 
-The seasonal themes deliberately change the atmosphere of the whole planner,
-not only its item palettes. Their interface identities and intention motifs are:
+The seasonal themes change the atmosphere of the whole planner, not only its
+item palettes. The September 2026 board-inspired pass warmed the app surfaces
+and softened each primary color while keeping the 44-color slot contract and
+saved theme IDs intact. Item palette slots retain their existing values.
+Their interface identities and intention motifs are:
 
-| Theme  | Interface world                | Primary   | Accent    | Intention motif |
-| ------ | ------------------------------ | --------- | --------- | --------------- |
-| Spring | Blush and lilac garden         | `#9B7190` | `#DCA7B1` | Flower          |
-| Summer | Butter and aqua seaside        | `#438B91` | `#F0C95A` | Sun             |
-| Autumn | Parchment, apple, and pumpkin  | `#874F3F` | `#D58A45` | Falling leaf    |
-| Winter | Icy lavender and midnight blue | `#526582` | `#A99BC5` | Snowflake       |
+| Theme  | Interface world               | Primary   | Accent    | Intention motif |
+| ------ | ----------------------------- | --------- | --------- | --------------- |
+| Spring | Blush paper and wildflowers   | `#805E72` | `#D8A5A9` | Flower          |
+| Summer | Linen and farmers market      | `#4F786F` | `#E9BE65` | Sun             |
+| Autumn | Parchment, apple, and pumpkin | `#755A47` | `#C58F5D` | Falling leaf    |
+| Winter | Wool linen and evergreen      | `#4B676B` | `#B7A1B4` | Snowflake       |
 
-The canvas/surface families are blush for Spring, buttery cream for Summer,
-parchment and oat for Autumn, and cool blue-gray/lavender for Winter. Warm and
-cool glows reinforce each environment throughout theme-aware hero surfaces.
+The canvas/surface families are blush for Spring, buttery linen for Summer,
+parchment and oat for Autumn, and cool bone for Winter. Warm and cool glows
+reinforce each environment throughout theme-aware hero surfaces.
+
+Bujo uses a separate stationery pattern for each theme's washi items:
+botanical sprigs for Base, wildflowers for Spring, painted stripes for Summer,
+kraft fibers for Autumn, and starlight for Winter. Theme Lab also exposes plain
+and tiny-check tape. Washi pattern is independent from whether an event, task,
+or all-day item uses the washi appearance. The paper-label item treatment adds
+a softly irregular cut-paper edge and a faint offset shadow.
 
 ## Available theme: Autumn — Golden Hour
 
@@ -67,9 +77,9 @@ slots in `src/lib/color-themes.ts`.
 
 Its intention cards and reminders use a falling-leaf motif.
 
-The supplied primary/on-primary pair passes WCAG AA normal-text contrast. The
-pumpkin accent keeps its supplied dark companion for decorative and large text;
-small accent controls automatically use Sunnie's accessible near-black fallback.
+The revised bark primary and its pale foreground pass WCAG AA normal-text
+contrast. Small accent controls still use Sunnie's accessible fallback when
+their decorative color pair is too soft.
 
 ## Available theme: Spring — Fresh Air
 
@@ -83,9 +93,8 @@ The exact 44 names and hexes are registered under the stable slots in
 
 Its intention cards and reminders use a first-flower motif.
 
-Dusty Mauve with the supplied pale foreground measures 3.89:1. Both supplied
-colors remain intact; small primary controls automatically use an accessible
-near-black fallback.
+The revised plum primary and its pale foreground pass the normal-text contrast
+check, so small primary controls can use the intended light text.
 
 ## Available theme: Summer — Sun-Kissed
 
@@ -99,9 +108,8 @@ slots in `src/lib/color-themes.ts`.
 
 Its intention cards and reminders use a sun motif.
 
-Sea Glass Turquoise with the supplied pale foreground measures 3.88:1, so small
-primary controls use the automatic accessible near-black fallback while both
-supplied colors remain available unchanged.
+The revised sea-glass primary and its pale foreground pass the normal-text
+contrast check. The original item palette colors remain available by slot.
 
 ## Available theme: Winter — Candlelight & Snow
 
@@ -115,8 +123,8 @@ friends. The exact 44 names and hexes are registered under the stable slots in
 
 Its intention cards and reminders use a snowflake motif.
 
-The supplied slate-blue primary and lavender accent foreground pairs pass WCAG
-AA normal-text contrast.
+The revised evergreen primary and pale foreground pass WCAG AA normal-text
+contrast; the lavender accent remains a softer decorative note.
 
 ## Why these counts
 

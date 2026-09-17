@@ -104,15 +104,15 @@ describe("planner colorways", () => {
 
     const variables = getColorThemeCssVariables(BASE_COLOR_THEME);
     expect(variables["--background"]).toMatch(/^\d+ \d+% \d+%$/);
-    expect(variables["--sunnie-canvas"]).toBe("#FFF9E8");
-    expect(variables["--sunnie-primary"]).toBe("#64734A");
+    expect(variables["--sunnie-canvas"]).toBe("#F7F1E4");
+    expect(variables["--sunnie-primary"]).toBe("#61734F");
     expect(variables["--sunnie-task-1"]).toBe("#F7BEB5");
     expect(variables["--sunnie-task-1-foreground"]).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
   it("registers the owner-supplied Autumn palette", () => {
     expect(COLOR_THEMES["autumn-golden-hour"]).toBe(AUTUMN_GOLDEN_HOUR_THEME);
-    expect(AUTUMN_GOLDEN_HOUR_THEME.core.primary).toBe("#874F3F");
+    expect(AUTUMN_GOLDEN_HOUR_THEME.core.primary).toBe("#755A47");
     expect(AUTUMN_GOLDEN_HOUR_THEME.motif.intentionIcon).toBe("autumn-leaf");
     expect(AUTUMN_GOLDEN_HOUR_THEME.palettes.events[3]).toMatchObject({
       name: "Blue Jean",
@@ -126,7 +126,7 @@ describe("planner colorways", () => {
 
   it("registers the owner-supplied Spring palette", () => {
     expect(COLOR_THEMES["spring-fresh-air"]).toBe(SPRING_FRESH_AIR_THEME);
-    expect(SPRING_FRESH_AIR_THEME.core.primary).toBe("#9B7190");
+    expect(SPRING_FRESH_AIR_THEME.core.primary).toBe("#805E72");
     expect(SPRING_FRESH_AIR_THEME.motif.intentionIcon).toBe("flower");
     expect(SPRING_FRESH_AIR_THEME.palettes.events[0]).toMatchObject({
       name: "Raincoat",
@@ -140,7 +140,7 @@ describe("planner colorways", () => {
 
   it("registers the owner-supplied Summer palette", () => {
     expect(COLOR_THEMES["summer-sun-kissed"]).toBe(SUMMER_SUN_KISSED_THEME);
-    expect(SUMMER_SUN_KISSED_THEME.core.primary).toBe("#438B91");
+    expect(SUMMER_SUN_KISSED_THEME.core.primary).toBe("#4F786F");
     expect(SUMMER_SUN_KISSED_THEME.motif.intentionIcon).toBe("sun");
     expect(SUMMER_SUN_KISSED_THEME.palettes.events[0]).toMatchObject({
       name: "Strawberry",
@@ -156,7 +156,7 @@ describe("planner colorways", () => {
     expect(COLOR_THEMES["winter-candlelight-snow"]).toBe(
       WINTER_CANDLELIGHT_SNOW_THEME
     );
-    expect(WINTER_CANDLELIGHT_SNOW_THEME.core.primary).toBe("#526582");
+    expect(WINTER_CANDLELIGHT_SNOW_THEME.core.primary).toBe("#4B676B");
     expect(WINTER_CANDLELIGHT_SNOW_THEME.motif.intentionIcon).toBe("snowflake");
     expect(WINTER_CANDLELIGHT_SNOW_THEME.palettes.events[7]).toMatchObject({
       name: "Golden Window",
@@ -220,18 +220,17 @@ describe("planner colorways", () => {
     expect(variables["--sunnie-status-info"]).toBe("#5F91A8");
   });
 
-  it("uses an AA control foreground when a supplied seasonal pair is too soft", () => {
-    expect(
-      getAccessibleControlForeground(
-        SPRING_FRESH_AIR_THEME.core.onPrimary,
-        SPRING_FRESH_AIR_THEME.core.primary
-      )
-    ).toBe("#111111");
-    expect(
-      getAccessibleControlForeground(
-        AUTUMN_GOLDEN_HOUR_THEME.core.onPrimary,
-        AUTUMN_GOLDEN_HOUR_THEME.core.primary
-      )
-    ).toBe(AUTUMN_GOLDEN_HOUR_THEME.core.onPrimary);
+  it("keeps every refreshed primary control readable", () => {
+    for (const theme of Object.values(COLOR_THEMES)) {
+      expect(
+        hasReadableContrast(
+          getAccessibleControlForeground(
+            theme.core.onPrimary,
+            theme.core.primary
+          ),
+          theme.core.primary
+        )
+      ).toBe(true);
+    }
   });
 });

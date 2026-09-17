@@ -30,6 +30,16 @@ export const CALENDAR_ITEM_APPEARANCES = [
   "outline",
   "washi",
   "sticky-note",
+  "paper-label",
+] as const;
+export const WASHI_PATTERNS = [
+  "plain",
+  "botanical",
+  "wildflower",
+  "painted-stripe",
+  "kraft",
+  "starlight",
+  "tiny-check",
 ] as const;
 export const BORDER_STYLES = ["solid", "dashed", "hand-drawn"] as const;
 export const TYPOGRAPHY_STYLES = [
@@ -105,21 +115,21 @@ export const STICKER_PACKS = {
 export const WASHI_PACKS = {
   "sunnie-sunny-garden": [
     "yellow daisy tape",
-    "sage tiny-check tape",
-    "cream gingham tape",
+    "botanical sprig tape",
+    "translucent cream tape",
     "scalloped garden border",
     "tiny strawberry vine",
     "pastel rainbow dots",
   ],
   "spring-fresh-air": [
-    "tiny pink flowers",
-    "pale green gingham",
+    "tiny wildflowers",
+    "painted green stems",
     "blue raindrops",
     "strawberry vine",
   ],
   "summer-sun-kissed": [
-    "strawberry gingham",
-    "lemon-yellow checks",
+    "painted coral stripes",
+    "lemon-yellow florals",
     "aqua waves",
     "market flowers",
   ],
@@ -127,7 +137,7 @@ export const WASHI_PACKS = {
     "rust and olive plaid",
     "tiny apples",
     "falling leaves",
-    "kraft paper",
+    "translucent kraft paper",
   ],
   "winter-candlelight-snow": [
     "blue graph paper",
@@ -147,6 +157,7 @@ export type RadiusStyle = "soft" | "round" | "irregular";
 export type TypographyStyle = (typeof TYPOGRAPHY_STYLES)[number];
 export type CalendarGridStyle = "soft" | Exclude<PatternStyle, "none">;
 export type CalendarItemAppearance = (typeof CALENDAR_ITEM_APPEARANCES)[number];
+export type WashiPattern = (typeof WASHI_PATTERNS)[number];
 export type AmbientMotion = (typeof AMBIENT_MOTIONS)[number];
 export type DecorativeAccent = (typeof DECORATIVE_ACCENTS)[number];
 export type StickerPackId = keyof typeof STICKER_PACKS;
@@ -171,6 +182,7 @@ export type CalendarPresentation = {
   allDayAppearance: CalendarItemAppearance;
   borderStyle: BorderStyle;
   typography: TypographyStyle;
+  washiPattern: WashiPattern;
 };
 
 export type ThemeVisualDefinition = {
@@ -220,6 +232,7 @@ const classicPresentation: CalendarPresentation = {
   allDayAppearance: "soft",
   borderStyle: "solid",
   typography: "normal",
+  washiPattern: "plain",
 };
 
 function plannerTheme(
@@ -267,21 +280,22 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
         }),
       },
       borderStyle: "solid",
-      radiusStyle: "round",
+      radiusStyle: "irregular",
       decorativeAccent: "none",
-      signatureDetails: ["daisies", "soft paper", "tiny checks"],
+      signatureDetails: ["daisy doodles", "warm paper", "botanical tape"],
       patternIntensity: "subtle",
-      decorativeDensity: "minimal",
+      decorativeDensity: "balanced",
       typography: "soft",
       calendar: {
         classic: classicPresentation,
         bujo: {
           gridStyle: "dot-grid",
-          eventAppearance: "highlight",
+          eventAppearance: "paper-label",
           taskAppearance: "sticky-note",
           allDayAppearance: "washi",
           borderStyle: "hand-drawn",
           typography: "handwritten-accent",
+          washiPattern: "botanical",
         },
       },
       assets: {
@@ -322,6 +336,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
         allDayAppearance: "washi",
         borderStyle: "hand-drawn",
         typography: "handwritten-accent",
+        washiPattern: "kraft",
       },
     },
     assets: {
@@ -363,11 +378,12 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
       },
       bujo: {
         gridStyle: "lined-paper",
-        eventAppearance: "highlight",
+        eventAppearance: "paper-label",
         taskAppearance: "washi",
         allDayAppearance: "washi",
         borderStyle: "hand-drawn",
         typography: "handwritten-accent",
+        washiPattern: "wildflower",
       },
     },
     assets: {
@@ -386,7 +402,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     surfaceStyle: "soft",
     patterns: {
       app: pattern("none"),
-      surface: pattern("gingham", {
+      surface: pattern("lined-paper", {
         scale: 1.15,
         opacity: 0.12,
         primaryRole: "accent",
@@ -397,8 +413,8 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     borderStyle: "solid",
     radiusStyle: "round",
     decorativeAccent: "none",
-    signatureDetails: ["gingham", "fruit", "sunny checks"],
-    patternIntensity: "prominent",
+    signatureDetails: ["market fruit", "painted stripes", "sunny labels"],
+    patternIntensity: "subtle",
     decorativeDensity: "balanced",
     typography: "soft",
     calendar: {
@@ -408,12 +424,13 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
         typography: "soft",
       },
       bujo: {
-        gridStyle: "gingham",
+        gridStyle: "lined-paper",
         eventAppearance: "highlight",
         taskAppearance: "sticky-note",
         allDayAppearance: "washi",
         borderStyle: "hand-drawn",
         typography: "handwritten-accent",
+        washiPattern: "painted-stripe",
       },
     },
     assets: {
@@ -459,6 +476,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
           allDayAppearance: "washi",
           borderStyle: "hand-drawn",
           typography: "handwritten-accent",
+          washiPattern: "starlight",
         },
       },
       assets: {
@@ -521,6 +539,7 @@ export const VISUAL_TEST_THEME: SunnieTheme<"visual-test-theme"> = {
         allDayAppearance: "highlight",
         borderStyle: "dashed",
         typography: "normal",
+        washiPattern: "plain",
       },
       bujo: {
         gridStyle: "gingham",
@@ -529,6 +548,7 @@ export const VISUAL_TEST_THEME: SunnieTheme<"visual-test-theme"> = {
         allDayAppearance: "washi",
         borderStyle: "dashed",
         typography: "handwritten-accent",
+        washiPattern: "tiny-check",
       },
     },
     assets: { stickerPack: "visual-test-leaves" },
@@ -552,6 +572,7 @@ export type ThemeDomAttributes = Record<
   | "calendarAllDayAppearance"
   | "calendarBorder"
   | "calendarTypography"
+  | "calendarWashiPattern"
   | "themeBackground"
   | "themeSurface"
   | "themeBorder"
@@ -584,6 +605,7 @@ export function getThemeDomAttributes(
     calendarAllDayAppearance: calendar.allDayAppearance,
     calendarBorder: calendar.borderStyle,
     calendarTypography: calendar.typography,
+    calendarWashiPattern: calendar.washiPattern,
     themeBackground: theme.visual.backgroundStyle,
     themeSurface: theme.visual.surfaceStyle,
     themeBorder: theme.visual.borderStyle,

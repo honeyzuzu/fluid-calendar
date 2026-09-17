@@ -161,6 +161,11 @@
     );
   }
 
+  html[data-theme-radius="irregular"] .sunnie-plan-hero,
+  html[data-theme-radius="irregular"] .sunnie-focus-hero {
+    border-radius: 1.8rem 2.15rem 1.7rem 2.05rem;
+  }
+
   .sunnie-app .bg-white,
   .sunnie-app .dark\:bg-gray-800,
   .sunnie-app .dark\:bg-gray-900 {
@@ -591,7 +596,12 @@ html[data-calendar-border="hand-drawn"]
 html[data-calendar-border="hand-drawn"]
   .sunnie-calendar-frame
   .theme-lab-grid-cell {
-  border-style: dashed;
+  border-style: solid;
+  border-color: color-mix(
+    in srgb,
+    var(--sunnie-border, #dfe2c8) 78%,
+    var(--sunnie-ink-soft, #5f6848)
+  );
 }
 
 html[data-calendar-border="dashed"]
@@ -971,10 +981,134 @@ html[data-calendar-task-appearance="washi"]
 html[data-calendar-all-day-appearance="washi"]
   .sunnie-calendar-frame
   .fc-event.calendar-event.calendar-event-all-day {
-  background-image:
+  background-image: var(
+    --sunnie-washi-image,
+    linear-gradient(110deg, rgba(255, 255, 255, 0.22), transparent 65%)
+  ) !important;
+  background-size: var(--sunnie-washi-size, auto) !important;
+}
+
+/* Washi is a material treatment. Its printed pattern is a separate choice,
+   so a theme can use tape without inheriting the old gingham/check texture. */
+html[data-calendar-washi-pattern="botanical"] {
+  --sunnie-washi-image:
+    radial-gradient(
+      ellipse 7px 3px at 8px 7px,
+      rgba(255, 255, 255, 0.54) 0 70%,
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 7px 3px at 23px 16px,
+      rgba(255, 255, 255, 0.47) 0 70%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      transparent 44%,
+      rgba(255, 255, 255, 0.38) 45% 47%,
+      transparent 48%
+    );
+  --sunnie-washi-size: 32px 23px;
+}
+
+html[data-calendar-washi-pattern="wildflower"] {
+  --sunnie-washi-image:
+    radial-gradient(
+      circle at 10px 10px,
+      rgba(255, 255, 255, 0.8) 0 2px,
+      transparent 2.5px
+    ),
+    radial-gradient(
+      ellipse 4px 2px at 10px 5px,
+      rgba(255, 255, 255, 0.6) 0 80%,
+      transparent 85%
+    ),
+    radial-gradient(
+      ellipse 4px 2px at 10px 15px,
+      rgba(255, 255, 255, 0.6) 0 80%,
+      transparent 85%
+    ),
+    radial-gradient(
+      ellipse 2px 4px at 5px 10px,
+      rgba(255, 255, 255, 0.6) 0 80%,
+      transparent 85%
+    ),
+    radial-gradient(
+      ellipse 2px 4px at 15px 10px,
+      rgba(255, 255, 255, 0.6) 0 80%,
+      transparent 85%
+    );
+  --sunnie-washi-size: 27px 23px;
+}
+
+html[data-calendar-washi-pattern="painted-stripe"] {
+  --sunnie-washi-image: repeating-linear-gradient(
+    112deg,
+    transparent 0 10px,
+    rgba(255, 255, 255, 0.48) 11px 13px,
+    transparent 14px 23px
+  );
+  --sunnie-washi-size: 100% 100%;
+}
+
+html[data-calendar-washi-pattern="kraft"] {
+  --sunnie-washi-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2) 0 1px,
+      transparent 1px 8px
+    ),
+    linear-gradient(105deg, rgba(255, 255, 255, 0.18), transparent 70%);
+  --sunnie-washi-size: 16px 16px, 100% 100%;
+}
+
+html[data-calendar-washi-pattern="starlight"] {
+  --sunnie-washi-image:
+    radial-gradient(
+      circle at 9px 8px,
+      rgba(255, 255, 255, 0.7) 0 1.5px,
+      transparent 2px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 47%,
+      rgba(255, 255, 255, 0.5) 48% 52%,
+      transparent 53%
+    ),
+    linear-gradient(
+      transparent 47%,
+      rgba(255, 255, 255, 0.5) 48% 52%,
+      transparent 53%
+    );
+  --sunnie-washi-size: 26px 21px, 26px 21px, 26px 21px;
+}
+
+html[data-calendar-washi-pattern="tiny-check"] {
+  --sunnie-washi-image:
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 50%, transparent 50%),
-    linear-gradient(rgba(255, 255, 255, 0.16) 50%, transparent 50%) !important;
-  background-size: 12px 12px !important;
+    linear-gradient(rgba(255, 255, 255, 0.16) 50%, transparent 50%);
+  --sunnie-washi-size: 12px 12px;
+}
+
+html[data-calendar-event-appearance="paper-label"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event:not(.calendar-task):not(.calendar-event-all-day),
+html[data-calendar-task-appearance="paper-label"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-task,
+html[data-calendar-all-day-appearance="paper-label"]
+  .sunnie-calendar-frame
+  .fc-event.calendar-event.calendar-event-all-day {
+  border: 1.5px solid color-mix(in srgb, currentColor 28%, transparent) !important;
+  border-radius: 0.28rem 0.62rem 0.38rem 0.54rem !important;
+  background-image: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.37),
+    transparent 54%
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    2px 2px 0 color-mix(in srgb, currentColor 12%, transparent) !important;
 }
 
 html[data-calendar-all-day-appearance="sticky-note"]

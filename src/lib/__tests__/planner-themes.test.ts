@@ -12,6 +12,7 @@ import {
   TYPOGRAPHY_STYLES,
   VISUAL_TEST_THEME,
   WASHI_PACKS,
+  WASHI_PATTERNS,
   getCalendarPresentation,
   getCalendarStyle,
   getSunnieTheme,
@@ -73,6 +74,18 @@ describe("planner visual themes", () => {
         "outline",
         "washi",
         "sticky-note",
+        "paper-label",
+      ])
+    );
+    expect(WASHI_PATTERNS).toEqual(
+      expect.arrayContaining([
+        "plain",
+        "botanical",
+        "wildflower",
+        "painted-stripe",
+        "kraft",
+        "starlight",
+        "tiny-check",
       ])
     );
     expect(BORDER_STYLES).toEqual(
@@ -94,8 +107,9 @@ describe("planner visual themes", () => {
       calendarAllDayAppearance: "washi",
       calendarBorder: "dashed",
       calendarTypography: "handwritten-accent",
+      calendarWashiPattern: "tiny-check",
       themeBorder: "dashed",
-      themeRadius: "round",
+      themeRadius: "irregular",
       themeDecorativeAccent: "scalloped",
       themeTypography: "handwritten-accent",
       themeSidebarPattern: "dot-grid",
@@ -130,7 +144,7 @@ describe("planner visual themes", () => {
     });
     expect(
       SUNNIE_THEMES["summer-sun-kissed"].visual.calendar.bujo.gridStyle
-    ).toBe("gingham");
+    ).toBe("lined-paper");
     expect(
       SUNNIE_THEMES["autumn-golden-hour"].visual.calendar.bujo.taskAppearance
     ).toBe("highlight");
@@ -138,6 +152,17 @@ describe("planner visual themes", () => {
       SUNNIE_THEMES["winter-candlelight-snow"].visual.calendar.classic
         .eventAppearance
     ).toBe("outline");
+    expect(
+      Object.values(SUNNIE_THEMES).map(
+        (theme) => theme.visual.calendar.bujo.washiPattern
+      )
+    ).toEqual([
+      "botanical",
+      "kraft",
+      "wildflower",
+      "painted-stripe",
+      "starlight",
+    ]);
   });
 
   it("validates style ids and safely falls back to Classic", () => {
