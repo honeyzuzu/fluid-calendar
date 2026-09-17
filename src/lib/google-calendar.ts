@@ -3,6 +3,7 @@ import { calendar_v3, google } from "googleapis";
 import { useSettingsStore } from "@/store/settings";
 
 import { getAppUrl } from "./app-url";
+import { rebaseRecurringSeriesDates } from "./calendar-event-update";
 import { newDate, newDateFromYMD } from "./date-utils";
 import { createGoogleOAuthClient } from "./google";
 import { TokenManager } from "./token-manager";
@@ -62,8 +63,7 @@ export async function createGoogleEvent(
   }
 ) {
   const calendar = await getGoogleCalendarClient(accountId, userId);
-  const timeZone =
-    event.timeZone || useSettingsStore.getState().user.timeZone;
+  const timeZone = event.timeZone || useSettingsStore.getState().user.timeZone;
 
   // Format recurrence rule for Google Calendar
   const recurrence =
@@ -116,11 +116,11 @@ export async function updateGoogleEvent(
     recurrenceRule?: string;
     mode?: "single" | "series";
     timeZone?: string;
-  }
+  },
+  getClient: typeof getGoogleCalendarClient = getGoogleCalendarClient
 ) {
-  const calendar = await getGoogleCalendarClient(accountId, userId);
-  const timeZone =
-    event.timeZone || useSettingsStore.getState().user.timeZone;
+  const calendar = await getClient(accountId, userId);
+  const timeZone = event.timeZone || useSettingsStore.getState().user.timeZone;
 
   try {
     // Get the event to check if it's part of a series
@@ -131,6 +131,23 @@ export async function updateGoogleEvent(
 
     // For series updates, use the master event ID
     if (event.mode === "series" && existingEvent.data.recurringEventId) {
+      const master = await calendar.events.get({
+        calendarId,
+        eventId: existingEvent.data.recurringEventId,
+      });
+      const occurrenceStart =
+        existingEvent.data.start?.dateTime || existingEvent.data.start?.date;
+      const masterStart =
+        master.data.start?.dateTime || master.data.start?.date;
+      if (!occurrenceStart || !masterStart || !event.start || !event.end) {
+        throw new Error("Could not determine the recurring series dates");
+      }
+      const seriesDates = rebaseRecurringSeriesDates(
+        newDate(occurrenceStart),
+        newDate(masterStart),
+        event.start,
+        event.end
+      );
       // Format recurrence rule for Google Calendar
       const recurrence = event.recurrenceRule
         ? [
@@ -147,20 +164,24 @@ export async function updateGoogleEvent(
           summary: event.title,
           description: event.description,
           location: event.location,
-          start: event.start
+          start: seriesDates.start
             ? {
-                dateTime: event.allDay ? undefined : event.start.toISOString(),
+                dateTime: event.allDay
+                  ? undefined
+                  : seriesDates.start.toISOString(),
                 date: event.allDay
-                  ? event.start.toISOString().split("T")[0]
+                  ? seriesDates.start.toISOString().split("T")[0]
                   : undefined,
                 timeZone,
               }
             : undefined,
-          end: event.end
+          end: seriesDates.end
             ? {
-                dateTime: event.allDay ? undefined : event.end.toISOString(),
+                dateTime: event.allDay
+                  ? undefined
+                  : seriesDates.end.toISOString(),
                 date: event.allDay
-                  ? event.end.toISOString().split("T")[0]
+                  ? seriesDates.end.toISOString().split("T")[0]
                   : undefined,
                 timeZone,
               }

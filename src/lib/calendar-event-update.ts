@@ -44,6 +44,35 @@ function editableRecurrenceSignature(rule?: string | null) {
     .join(";");
 }
 
+/** Keep provider-only rule parts (such as UNTIL and COUNT) when the user did
+ * not change the recurrence controls in the event editor. */
+export function preserveUnchangedRecurrenceRule(
+  original?: string | null,
+  edited?: string | null
+) {
+  return editableRecurrenceSignature(original) ===
+    editableRecurrenceSignature(edited)
+    ? original || undefined
+    : edited || undefined;
+}
+
+/** An occurrence's date is not the start date of its series. Apply edits to
+ * its time and duration while anchoring the series to the original master. */
+export function rebaseRecurringSeriesDates(
+  occurrenceStart: Date,
+  masterStart: Date,
+  editedStart: Date,
+  editedEnd: Date
+) {
+  const start = new Date(
+    masterStart.getTime() + editedStart.getTime() - occurrenceStart.getTime()
+  );
+  const end = new Date(
+    start.getTime() + editedEnd.getTime() - editedStart.getTime()
+  );
+  return { start, end };
+}
+
 export function getCalendarEventChangeKind(
   original: Partial<CalendarEvent>,
   update: Omit<CalendarEvent, "id">

@@ -1,6 +1,6 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-16
+Last updated: 2026-09-17
 
 ## Product Goal
 
@@ -329,6 +329,7 @@ server validation may still wait for confirmation.
 - The event modal keeps its header and actions visible, hides horizontal overflow, and collapses optional color/location/notes/recurrence fields to stay compact.
 - Scheduled task blocks use rounded, softly filled colors from the active theme's six-color task palette. A task can choose a theme-linked slot or fixed custom hex directly in its editor, independently of tags and priority; tasks without a choice keep a deterministic palette slot.
 - Saving only a Sunnie event-color override updates local `CalendarEvent` records optimistically without calling Google, Outlook, or CalDAV or reloading the full calendar. The modal closes as soon as the calendar is updated; the database write finishes in the background and rolls back the affected colors with a toast if it fails. Equivalent recurrence serializations such as `RRULE:FREQ=WEEKLY` and `FREQ=WEEKLY` do not turn a cosmetic edit into a provider update. A recurring-series color choice updates its master and instances together, while a single-occurrence choice remains scoped to that row. Genuine provider series rebuilds remove rows linked by either the local master relation or provider recurring ID before inserting refreshed instances, preventing duplicates.
+- Editing the duration or time of a later recurring occurrence as a series keeps the master event anchored to its original first date. Google, CalDAV, and inherited Outlook updates apply the occurrence's time change and new duration to the master instead of using the clicked occurrence's date. Unchanged recurrence controls preserve provider rule limits such as `COUNT` and `UNTIL`.
 - Tasks of 30 minutes or less use a compact time-grid layout that keeps the normal title font size, uses a smaller check icon and reduced padding, and exposes the full title on hover so 15-minute blocks remain readable without zooming the calendar. Every calendar task retains a check icon.
 - Event and task deletion confirmations use a Sunnie-styled in-app dialog instead of the browser's native confirmation box. Errors remain readable inside that dialog.
 - Synced event deletion waits only for the connected provider to confirm removal. Sunnie then removes the event locally and performs database reconciliation plus auto-scheduling in the background, so the modal no longer stays blocked on those follow-up passes.

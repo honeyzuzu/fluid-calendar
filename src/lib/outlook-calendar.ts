@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger";
 
 import { useSettingsStore } from "@/store/settings";
 
+import { rebaseRecurringSeriesDates } from "./calendar-event-update";
 import { createOutlookAllDayDate, newDate, newDateFromYMD } from "./date-utils";
 import { MSGraphCalendar, MSGraphUser } from "./outlook";
 import { TokenManager } from "./token-manager";
@@ -605,23 +606,46 @@ export async function updateOutlookEvent(
     // Special handling for all-day events - ensure they are at midnight UTC
     let startDate = event.start;
     let endDate = event.end;
+    if (event.mode === "series" && existingEvent.seriesMasterId) {
+      const master = await client
+        .api(
+          `/me/calendars/${calendarId}/events/${existingEvent.seriesMasterId}`
+        )
+        .get();
+      if (
+        !existingEvent.start?.dateTime ||
+        !master.start?.dateTime ||
+        !startDate ||
+        !endDate
+      ) {
+        throw new Error("Could not determine the recurring series dates");
+      }
+      const seriesDates = rebaseRecurringSeriesDates(
+        newDate(existingEvent.start.dateTime),
+        newDate(master.start.dateTime),
+        startDate,
+        endDate
+      );
+      startDate = seriesDates.start;
+      endDate = seriesDates.end;
+    }
 
-    if (event.allDay && event.start && event.end) {
+    if (event.allDay && startDate && endDate) {
       // Use ISO date strings to handle all-day events, ensuring they start/end at midnight UTC
-      const startStr = event.start.toISOString().split("T")[0];
+      const startStr = startDate.toISOString().split("T")[0];
 
       // For all-day events, Outlook requires the end date to be the NEXT day at midnight UTC
       // (to represent the end of the day, as the event duration must be at least 24 hours)
 
       // First, check if start and end are the same day
       const sameDay =
-        event.start.toISOString().split("T")[0] ===
-        event.end.toISOString().split("T")[0];
+        startDate.toISOString().split("T")[0] ===
+        endDate.toISOString().split("T")[0];
 
       // If they are the same day, add one day to the end date
       if (sameDay) {
         // Create a new date object for the next day
-        const nextDay = new Date(event.end);
+        const nextDay = new Date(endDate);
         nextDay.setDate(nextDay.getDate() + 1);
         const endStr = nextDay.toISOString().split("T")[0];
 
@@ -629,7 +653,7 @@ export async function updateOutlookEvent(
         endDate = createOutlookAllDayDate(endStr);
       } else {
         // If multi-day event, use the existing end date but ensure it's at midnight UTC
-        const endStr = event.end.toISOString().split("T")[0];
+        const endStr = endDate.toISOString().split("T")[0];
         startDate = createOutlookAllDayDate(startStr);
         endDate = createOutlookAllDayDate(endStr);
       }

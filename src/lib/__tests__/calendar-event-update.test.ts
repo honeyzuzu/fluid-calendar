@@ -1,6 +1,8 @@
 import {
   applyCalendarEventColor,
   getCalendarEventChangeKind,
+  preserveUnchangedRecurrenceRule,
+  rebaseRecurringSeriesDates,
 } from "@/lib/calendar-event-update";
 
 import { CalendarEvent } from "@/types/calendar";
@@ -20,6 +22,39 @@ const event = {
 } satisfies CalendarEvent;
 
 describe("calendar event update classification", () => {
+  it("keeps the original series date when changing a later occurrence's duration", () => {
+    const result = rebaseRecurringSeriesDates(
+      new Date("2026-09-17T14:00:00.000Z"),
+      new Date("2026-09-14T14:00:00.000Z"),
+      new Date("2026-09-17T14:00:00.000Z"),
+      new Date("2026-09-17T16:00:00.000Z")
+    );
+    expect(result).toEqual({
+      start: new Date("2026-09-14T14:00:00.000Z"),
+      end: new Date("2026-09-14T16:00:00.000Z"),
+    });
+  });
+
+  it("moves the series time without moving its first date", () => {
+    const result = rebaseRecurringSeriesDates(
+      new Date("2026-09-17T14:00:00.000Z"),
+      new Date("2026-09-14T14:00:00.000Z"),
+      new Date("2026-09-17T15:00:00.000Z"),
+      new Date("2026-09-17T17:00:00.000Z")
+    );
+    expect(result.start).toEqual(new Date("2026-09-14T15:00:00.000Z"));
+    expect(result.end).toEqual(new Date("2026-09-14T17:00:00.000Z"));
+  });
+
+  it("preserves provider recurrence limits when the recurrence controls are unchanged", () => {
+    expect(
+      preserveUnchangedRecurrenceRule(
+        "RRULE:FREQ=DAILY;COUNT=10",
+        "FREQ=DAILY;INTERVAL=1"
+      )
+    ).toBe("RRULE:FREQ=DAILY;COUNT=10");
+  });
+
   it("recognizes a Sunnie-only color change", () => {
     expect(
       getCalendarEventChangeKind(event, {

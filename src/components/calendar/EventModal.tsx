@@ -35,6 +35,7 @@ import { validateCalendarEventDraft } from "@/lib/calendar-event-form";
 import {
   applyCalendarEventColor,
   getCalendarEventChangeKind,
+  preserveUnchangedRecurrenceRule,
 } from "@/lib/calendar-event-update";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
@@ -321,10 +322,13 @@ export function EventModal({
         allDay: isAllDay,
         isRecurring,
         recurrenceRule: isRecurring
-          ? buildRecurrenceRule(
-              recurrenceFreq,
-              recurrenceInterval,
-              recurrenceByDay
+          ? preserveUnchangedRecurrenceRule(
+              event?.recurrenceRule,
+              buildRecurrenceRule(
+                recurrenceFreq,
+                recurrenceInterval,
+                recurrenceByDay
+              )
             )
           : undefined,
         isMaster: false,

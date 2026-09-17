@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { CalDAVCalendarService } from "@/lib/caldav-calendar";
 import { getEvent, validateEvent } from "@/lib/calendar-db";
+import { rebaseRecurringSeriesDates } from "@/lib/calendar-event-update";
 import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -206,20 +207,66 @@ export async function PUT(request: NextRequest) {
     // Create CalDAV service
     const caldavService = new CalDAVCalendarService(account);
 
+    // Expanded occurrences carry their own date. A series rewrite must use
+    // the master's original date or all earlier occurrences disappear.
+    const hasMasterReference = Boolean(
+      validatedEvent.masterEventId || validatedEvent.recurringEventId
+    );
+    const master =
+      validatedEvent.isRecurring &&
+      !validatedEvent.isMaster &&
+      hasMasterReference
+        ? await prisma.calendarEvent.findFirst({
+            where: {
+              feedId: validatedEvent.feedId,
+              isMaster: true,
+              OR: [
+                ...(validatedEvent.masterEventId
+                  ? [{ id: validatedEvent.masterEventId }]
+                  : []),
+                ...(validatedEvent.recurringEventId
+                  ? [{ externalEventId: validatedEvent.recurringEventId }]
+                  : []),
+              ],
+            },
+          })
+        : null;
+    if (validatedEvent.isRecurring && !validatedEvent.isMaster && !master) {
+      return NextResponse.json(
+        { error: "Could not find the original recurring event" },
+        { status: 409 }
+      );
+    }
+    const editedStart = updates.start
+      ? newDate(updates.start)
+      : validatedEvent.start;
+    const editedEnd = updates.end ? newDate(updates.end) : validatedEvent.end;
+    const seriesDates = master
+      ? rebaseRecurringSeriesDates(
+          validatedEvent.start,
+          master.start,
+          editedStart,
+          editedEnd
+        )
+      : { start: editedStart, end: editedEnd };
+
     // Update the event in CalDAV
     const updatedEvent = await caldavService.updateEvent(
       event,
       calendarPath,
-      validatedEvent.externalEventId,
+      master?.externalEventId || validatedEvent.externalEventId,
       {
         title: updates.title || validatedEvent.title,
         description: updates.description ?? validatedEvent.description,
         location: updates.location ?? validatedEvent.location,
-        start: updates.start ? newDate(updates.start) : validatedEvent.start,
-        end: updates.end ? newDate(updates.end) : validatedEvent.end,
+        start: seriesDates.start,
+        end: seriesDates.end,
         allDay: updates.allDay ?? validatedEvent.allDay,
         isRecurring: updates.isRecurring ?? validatedEvent.isRecurring,
-        recurrenceRule: updates.recurrenceRule ?? validatedEvent.recurrenceRule,
+        recurrenceRule:
+          updates.recurrenceRule ??
+          master?.recurrenceRule ??
+          validatedEvent.recurrenceRule,
       },
       "series", //todo: implement editing a single instance correctly.
       userId
