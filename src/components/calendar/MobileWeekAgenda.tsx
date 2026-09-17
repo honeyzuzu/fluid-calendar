@@ -3,8 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { formatInTimeZone } from "date-fns-tz";
+import { ChevronDown } from "lucide-react";
 
-import { type MobileWeekDay, itemsForMobileWeekDay } from "@/lib/mobile-week";
+import {
+  type MobileWeekDay,
+  groupFriendBusyTime,
+  itemsForMobileWeekDay,
+} from "@/lib/mobile-week";
 import { cn } from "@/lib/utils";
 
 export interface MobileWeekItem {
@@ -17,6 +22,8 @@ export interface MobileWeekItem {
   extendedProps?: {
     isTask?: boolean;
     isFriendEvent?: boolean;
+    friendId?: string;
+    friendOwner?: string;
   };
 }
 
@@ -48,6 +55,9 @@ export function MobileWeekAgenda({
     "yyyy-MM-dd"
   );
   const [focusedDay, setFocusedDay] = useState(selectedDateKey);
+  const [expandedFriendDays, setExpandedFriendDays] = useState<
+    Record<string, boolean>
+  >({});
   useEffect(() => setFocusedDay(selectedDateKey), [selectedDateKey]);
   const todayKey = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
   const timeFormatter = useMemo(
@@ -164,6 +174,14 @@ export function MobileWeekAgenda({
         {days.map((day, index) => {
           const date = new Date(`${day.key}T12:00:00.000Z`);
           const entries = dayItems[index];
+          const personalEntries = entries.filter(
+            (item) => !item.extendedProps?.isFriendEvent
+          );
+          const friendEntries = entries.filter(
+            (item) => item.extendedProps?.isFriendEvent
+          );
+          const friendGroups = groupFriendBusyTime(friendEntries, day);
+          const friendsExpanded = !!expandedFriendDays[day.key];
           return (
             <section
               key={day.key}
@@ -188,19 +206,20 @@ export function MobileWeekAgenda({
                   </span>
                 )}
                 <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                  {entries.length ? `${entries.length} planned` : "Open day"}
+                  {personalEntries.length
+                    ? `${personalEntries.length} planned`
+                    : "Open day"}
                 </span>
               </div>
 
-              {entries.length ? (
+              {personalEntries.length ? (
                 <div className="space-y-2">
-                  {entries.map((item) => {
+                  {personalEntries.map((item) => {
                     const label = item.allDay
                       ? "All day"
                       : item.start < day.start
                         ? `Continues until ${timeFormatter.format(item.end)}`
                         : `${timeFormatter.format(item.start)}–${timeFormatter.format(item.end)}`;
-                    const isFriend = item.extendedProps?.isFriendEvent;
                     const content = (
                       <>
                         <span className="min-w-0 flex-1">
@@ -212,25 +231,13 @@ export function MobileWeekAgenda({
                           </span>
                         </span>
                         <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
-                          {isFriend
-                            ? "Friend"
-                            : item.extendedProps?.isTask
-                              ? "Task"
-                              : "Event"}
+                          {item.extendedProps?.isTask ? "Task" : "Event"}
                         </span>
                       </>
                     );
                     const classes =
                       "flex w-full items-start gap-2 rounded-xl border border-border/80 border-l-4 bg-card px-3 py-2.5 text-left shadow-sm";
-                    return isFriend ? (
-                      <div
-                        key={`${day.key}-${item.id}`}
-                        className={classes}
-                        style={{ borderLeftColor: item.backgroundColor }}
-                      >
-                        {content}
-                      </div>
-                    ) : (
+                    return (
                       <button
                         key={`${day.key}-${item.id}`}
                         type="button"
@@ -248,10 +255,88 @@ export function MobileWeekAgenda({
                     );
                   })}
                 </div>
-              ) : (
+              ) : friendGroups.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border px-3 py-2.5 text-sm text-muted-foreground">
                   Nothing planned yet
                 </p>
+              ) : null}
+              {friendGroups.length > 0 && (
+                <div className="mt-2 rounded-xl border border-border/80 bg-muted/35">
+                  <button
+                    type="button"
+                    aria-expanded={friendsExpanded}
+                    aria-controls={`friends-busy-${day.key}`}
+                    onClick={() =>
+                      setExpandedFriendDays((current) => ({
+                        ...current,
+                        [day.key]: !current[day.key],
+                      }))
+                    }
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left hover:bg-muted/65"
+                  >
+                    <span
+                      className="flex shrink-0 -space-x-1"
+                      aria-hidden="true"
+                    >
+                      {friendGroups.slice(0, 4).map((friend) => (
+                        <span
+                          key={friend.id}
+                          className="h-4 w-4 rounded-full border-2 border-card"
+                          style={{ backgroundColor: friend.color }}
+                        />
+                      ))}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                      {friendGroups.length === 1
+                        ? `${friendGroups[0].name} is busy`
+                        : `${friendGroups.length} friends are busy`}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {friendEntries.length}{" "}
+                      {friendEntries.length === 1 ? "block" : "blocks"}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                        friendsExpanded && "rotate-180"
+                      )}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {friendsExpanded && (
+                    <div
+                      id={`friends-busy-${day.key}`}
+                      className="space-y-2 border-t border-border/70 px-3 py-3"
+                    >
+                      {friendGroups.map((friend) => (
+                        <div key={friend.id} className="space-y-1.5 text-sm">
+                          <div className="flex items-center gap-2 font-medium text-foreground">
+                            <span
+                              className="h-2.5 w-2.5 shrink-0 rounded-full"
+                              style={{ backgroundColor: friend.color }}
+                              aria-hidden="true"
+                            />
+                            <span className="min-w-0 break-words">
+                              {friend.name}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 pl-[18px] text-xs text-muted-foreground">
+                            {friend.windows.map((window) => (
+                              <span
+                                key={`${window.start.toISOString()}-${window.end.toISOString()}`}
+                                className="whitespace-nowrap rounded-md bg-background px-1.5 py-1"
+                              >
+                                {window.allDay
+                                  ? "All day"
+                                  : `${timeFormatter.format(window.start)}–${timeFormatter.format(window.end)}`}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </section>
           );

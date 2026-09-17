@@ -1,4 +1,8 @@
-import { getMobileWeekDays, itemsForMobileWeekDay } from "@/lib/mobile-week";
+import {
+  getMobileWeekDays,
+  groupFriendBusyTime,
+  itemsForMobileWeekDay,
+} from "@/lib/mobile-week";
 
 describe("mobile week dates", () => {
   it("starts on the saved first weekday in the account time zone", () => {
@@ -51,5 +55,44 @@ describe("mobile week dates", () => {
       )
     ).toEqual(["All day", "Overnight"]);
     expect(itemsForMobileWeekDay([overnight], days[6])).toEqual([]);
+  });
+
+  it("combines overlapping busy blocks per friend within the local day", () => {
+    const day = getMobileWeekDays(
+      new Date("2026-09-17T16:00:00.000Z"),
+      "America/New_York",
+      "sunday"
+    )[4];
+    const block = (id: string, owner: string, start: string, end: string) => ({
+      start: new Date(start),
+      end: new Date(end),
+      allDay: false,
+      backgroundColor: "#aabbcc",
+      extendedProps: { friendId: id, friendOwner: owner },
+    });
+    const groups = groupFriendBusyTime(
+      [
+        block("maya", "Maya", "2026-09-17T02:00:00Z", "2026-09-17T15:00:00Z"),
+        block("maya", "Maya", "2026-09-17T14:30:00Z", "2026-09-17T17:00:00Z"),
+        block("maya", "Maya", "2026-09-17T20:00:00Z", "2026-09-18T05:00:00Z"),
+        block("lee", "Lee", "2026-09-17T16:00:00Z", "2026-09-17T17:00:00Z"),
+      ],
+      day
+    );
+
+    expect(groups.map((group) => group.name)).toEqual(["Lee", "Maya"]);
+    expect(groups[1].windows).toEqual([
+      {
+        start: day.start,
+        end: new Date("2026-09-17T17:00:00Z"),
+        allDay: false,
+      },
+      {
+        start: new Date("2026-09-17T20:00:00Z"),
+        end: day.end,
+        allDay: false,
+      },
+    ]);
+    expect(groups[0].windows).toHaveLength(1);
   });
 });

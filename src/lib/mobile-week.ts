@@ -61,3 +61,67 @@ export function itemsForMobileWeekDay<
         first.end.getTime() - second.end.getTime()
     );
 }
+
+export interface MobileFriendBusyItem {
+  start: Date;
+  end: Date;
+  allDay: boolean;
+  backgroundColor: string;
+  extendedProps?: {
+    friendId?: string;
+    friendOwner?: string;
+  };
+}
+
+export function groupFriendBusyTime<T extends MobileFriendBusyItem>(
+  items: T[],
+  day: MobileWeekDay
+) {
+  const groups = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      color: string;
+      windows: { start: Date; end: Date; allDay: boolean }[];
+    }
+  >();
+
+  for (const item of items) {
+    const id =
+      item.extendedProps?.friendId ||
+      item.extendedProps?.friendOwner ||
+      "friend";
+    const group = groups.get(id) || {
+      id,
+      name: item.extendedProps?.friendOwner || "Friend",
+      color: item.backgroundColor,
+      windows: [],
+    };
+    group.windows.push({
+      start: item.allDay || item.start < day.start ? day.start : item.start,
+      end: item.allDay || item.end > day.end ? day.end : item.end,
+      allDay: item.allDay,
+    });
+    groups.set(id, group);
+  }
+
+  return [...groups.values()]
+    .sort((first, second) => first.name.localeCompare(second.name))
+    .map((group) => {
+      group.windows.sort(
+        (first, second) => first.start.getTime() - second.start.getTime()
+      );
+      const merged: typeof group.windows = [];
+      for (const window of group.windows) {
+        const previous = merged.at(-1);
+        if (previous && window.start <= previous.end) {
+          if (window.end > previous.end) previous.end = window.end;
+          previous.allDay ||= window.allDay;
+        } else {
+          merged.push({ ...window });
+        }
+      }
+      return { ...group, windows: merged };
+    });
+}

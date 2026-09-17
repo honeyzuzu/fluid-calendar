@@ -9,6 +9,21 @@ import { getMobileWeekDays } from "@/lib/mobile-week";
 
 const selectedDate = new Date("2026-09-17T16:00:00.000Z");
 const days = getMobileWeekDays(selectedDate, "America/New_York", "sunday");
+const friendBlock = (
+  id: string,
+  owner: string,
+  start: string,
+  end: string,
+  color: string
+): MobileWeekItem => ({
+  id: `friend-${id}-${start}`,
+  title: "",
+  start: new Date(start),
+  end: new Date(end),
+  allDay: false,
+  backgroundColor: color,
+  extendedProps: { isFriendEvent: true, friendId: id, friendOwner: owner },
+});
 const items: MobileWeekItem[] = [
   {
     id: "1",
@@ -44,6 +59,55 @@ const items: MobileWeekItem[] = [
     allDay: true,
     backgroundColor: "#e5ba69",
   },
+  friendBlock(
+    "maya",
+    "Maya",
+    "2026-09-17T12:00:00Z",
+    "2026-09-17T14:00:00Z",
+    "#c4a6d4"
+  ),
+  friendBlock(
+    "maya",
+    "Maya",
+    "2026-09-17T13:30:00Z",
+    "2026-09-17T15:00:00Z",
+    "#c4a6d4"
+  ),
+  friendBlock(
+    "maya",
+    "Maya",
+    "2026-09-17T16:00:00Z",
+    "2026-09-17T18:00:00Z",
+    "#c4a6d4"
+  ),
+  friendBlock(
+    "maya",
+    "Maya",
+    "2026-09-17T19:00:00Z",
+    "2026-09-17T20:00:00Z",
+    "#c4a6d4"
+  ),
+  friendBlock(
+    "lee",
+    "Lee",
+    "2026-09-17T14:00:00Z",
+    "2026-09-17T17:00:00Z",
+    "#8abbb0"
+  ),
+  friendBlock(
+    "lee",
+    "Lee",
+    "2026-09-17T18:00:00Z",
+    "2026-09-17T21:00:00Z",
+    "#8abbb0"
+  ),
+  friendBlock(
+    "maya",
+    "Maya",
+    "2026-09-18T13:00:00Z",
+    "2026-09-18T19:00:00Z",
+    "#c4a6d4"
+  ),
 ];
 
 export default function MobileWeekPreview() {
