@@ -386,7 +386,9 @@ function FakeCalendar({
     appearance: CalendarPresentation["eventAppearance"]
   ) =>
     getHarmonizedTextColor(
-      appearance === "outline" ? theme.core.surfaceRaised : itemColor,
+      ["outline", "ticket", "scalloped", "marker"].includes(appearance)
+        ? theme.core.surfaceRaised
+        : itemColor,
       {
         tintColor: itemColor,
         darkColor: theme.core.ink,

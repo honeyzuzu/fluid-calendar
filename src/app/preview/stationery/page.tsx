@@ -15,6 +15,15 @@ import {
   getPlannerThemeCssVariables,
 } from "@/lib/planner-themes";
 
+const MATERIALS = [
+  { id: "paint-swipe", label: "Paint swipe", detail: "soft brushed edges" },
+  { id: "scalloped", label: "Scalloped", detail: "tiny cut-paper edge" },
+  { id: "ticket", label: "Ticket", detail: "little side notches" },
+  { id: "ribbon", label: "Ribbon", detail: "folded V end" },
+  { id: "stitched", label: "Stitched", detail: "threaded outline" },
+  { id: "marker", label: "Marker note", detail: "a color swipe below" },
+] as const;
+
 /** A public, data-free proof of the same stationery primitives used in Plan. */
 export default function StationeryPreview() {
   const [selected, setSelected] = useState<ColorThemeId>("base");
@@ -186,6 +195,65 @@ export default function StationeryPreview() {
             </p>
           </section>
         </div>
+        <section className="sunnie-paper-panel mt-6 rounded-3xl border p-6">
+          <p
+            className="text-xs font-bold uppercase tracking-[0.13em]"
+            style={{ color: theme.core.primary }}
+          >
+            Calendar pieces
+          </p>
+          <h2 className="mt-2 text-2xl">More than one kind of label.</h2>
+          <p className="mt-2 text-sm" style={{ color: theme.core.inkSoft }}>
+            Each shape keeps its own edge and material. {theme.name} uses{" "}
+            {theme.visual.calendar.bujo.eventAppearance.replaceAll("-", " ")}{" "}
+            for Bujo events.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {MATERIALS.map((material, index) => {
+              const color = theme.palettes.events[index].value;
+              const active =
+                theme.visual.calendar.bujo.eventAppearance === material.id;
+              return (
+                <div
+                  key={material.id}
+                  className="rounded-2xl border p-3"
+                  style={{
+                    backgroundColor: theme.core.surfaceRaised,
+                    borderColor: active
+                      ? theme.core.primary
+                      : theme.core.border,
+                  }}
+                >
+                  <div
+                    className={`fc-event sunnie-material--${material.id} relative flex min-h-12 items-center`}
+                    style={{
+                      backgroundColor: color,
+                      color: getReadableTextColor(
+                        ["scalloped", "ticket", "marker"].includes(material.id)
+                          ? theme.core.surfaceRaised
+                          : color
+                      ),
+                    }}
+                  >
+                    <span className="fc-event-main px-3 py-2 text-xs font-semibold">
+                      Coffee with Maya
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs font-semibold">
+                    {material.label}
+                    {active ? " · in this theme" : ""}
+                  </p>
+                  <p
+                    className="mt-0.5 text-[11px]"
+                    style={{ color: theme.core.inkSoft }}
+                  >
+                    {material.detail}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </div>
     </main>
   );

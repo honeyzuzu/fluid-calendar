@@ -45,7 +45,7 @@ describe("planner visual themes", () => {
     });
     expect(getCalendarPresentation(autumn, "bujo")).toMatchObject({
       gridStyle: "dot-grid",
-      eventAppearance: "washi",
+      eventAppearance: "ticket",
       typography: "handwritten-accent",
     });
   });
@@ -75,6 +75,12 @@ describe("planner visual themes", () => {
         "washi",
         "sticky-note",
         "paper-label",
+        "paint-swipe",
+        "scalloped",
+        "ticket",
+        "ribbon",
+        "stitched",
+        "marker",
       ])
     );
     expect(WASHI_PATTERNS).toEqual(
@@ -143,11 +149,18 @@ describe("planner visual themes", () => {
       },
     });
     expect(
-      SUNNIE_THEMES["summer-sun-kissed"].visual.calendar.bujo.gridStyle
-    ).toBe("lined-paper");
+      Object.values(SUNNIE_THEMES).map(
+        (theme) => theme.visual.calendar.bujo.gridStyle
+      )
+    ).toEqual(["dot-grid", "dot-grid", "dot-grid", "dot-grid", "dot-grid"]);
+    expect(
+      Object.values(SUNNIE_THEMES).map(
+        (theme) => theme.visual.calendar.bujo.eventAppearance
+      )
+    ).toEqual(["paint-swipe", "ticket", "scalloped", "ribbon", "stitched"]);
     expect(
       SUNNIE_THEMES["autumn-golden-hour"].visual.calendar.bujo.taskAppearance
-    ).toBe("highlight");
+    ).toBe("paint-swipe");
     expect(
       SUNNIE_THEMES["winter-candlelight-snow"].visual.calendar.classic
         .eventAppearance

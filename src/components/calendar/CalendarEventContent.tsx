@@ -79,7 +79,9 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       ? presentation.allDayAppearance
       : presentation.eventAppearance;
   const textColor = getHarmonizedTextColor(
-    effectiveEventAppearance === "outline"
+    ["outline", "ticket", "scalloped", "marker"].includes(
+      effectiveEventAppearance
+    )
       ? theme.core.surfaceRaised
       : eventColor,
     {
