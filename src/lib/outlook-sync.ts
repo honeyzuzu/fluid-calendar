@@ -397,15 +397,6 @@ export async function syncOutlookCalendar(
     },
     LOG_SOURCE
   );
-  if (forceFullSync) {
-    // delete all events from the database
-    await prisma.calendarEvent.deleteMany({
-      where: {
-        feedId: feed.id,
-      },
-    });
-  }
-
   // Handle deleted events first if this is a delta sync
   if (lastSyncToken && deletedEventIds?.length > 0) {
     for (const eventId of deletedEventIds) {
@@ -492,6 +483,20 @@ export async function syncOutlookCalendar(
   for (const [, masterEvent] of masterEvents) {
     const processedIds = await processMasterEvent(client, masterEvent, feed);
     processedIds.forEach((id) => processedEventIds.add(id));
+  }
+
+  if (forceFullSync) {
+    // Existing rows remain visible while provider events are saved. Once the
+    // replacement set is ready, remove only rows absent from that set.
+    await prisma.calendarEvent.deleteMany({
+      where: {
+        feedId: feed.id,
+        OR: [
+          { externalEventId: { notIn: [...processedEventIds] } },
+          { externalEventId: null },
+        ],
+      },
+    });
   }
 
   if (preservedColorOverrides.length > 0) {

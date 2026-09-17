@@ -98,6 +98,7 @@ export function MultiMonthView({
     [events, feeds, activeColorTheme.id, currentCalendarEvents]
   );
   const calendarRef = useRef<FullCalendar>(null);
+  const latestLoad = useRef(0);
   const tasks = useTaskStore((state) => state.tasks);
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
   const [isTask, setIsTask] = useState(false);
@@ -109,7 +110,9 @@ export function MultiMonthView({
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      const loadId = ++latestLoad.current;
       await loadEventsForRange(arg.start, arg.end);
+      if (loadId !== latestLoad.current) return;
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
         arg.start,
@@ -161,6 +164,7 @@ export function MultiMonthView({
           },
         }));
 
+      if (loadId !== latestLoad.current) return;
       setEvents([
         ...formattedItems,
         ...friendItems.filter(

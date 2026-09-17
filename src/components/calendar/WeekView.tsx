@@ -99,6 +99,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     [events, feeds, activeColorTheme.id, currentCalendarEvents]
   );
   const calendarRef = useRef<FullCalendar>(null);
+  const latestLoad = useRef(0);
   const tasks = useTaskStore((state) => state.tasks);
   const [quickViewItem, setQuickViewItem] = useState<CalendarEvent | Task>();
   const [isTask, setIsTask] = useState(false);
@@ -111,7 +112,9 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      const loadId = ++latestLoad.current;
       await loadEventsForRange(arg.start, arg.end);
+      if (loadId !== latestLoad.current) return;
       // Get all calendar items with current task data
       const items = getAllCalendarItems(arg.start, arg.end);
       const friendItems = await getFriendCalendarItems(
@@ -171,6 +174,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       //   events: formattedItems.filter((item) => !item.extendedProps?.isTask)
       //     .length,
       // });
+      if (loadId !== latestLoad.current) return;
       setEvents([
         ...formattedItems,
         ...friendItems.filter(

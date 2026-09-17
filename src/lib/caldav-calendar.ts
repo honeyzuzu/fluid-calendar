@@ -553,13 +553,6 @@ export class CalDAVCalendarService {
             event.colorSlot as string,
           ])
       );
-      //delete all events from the database
-      await prisma.calendarEvent.deleteMany({
-        where: {
-          feedId: feed.id,
-        },
-      });
-
       // Get existing events for this feed
       // const existingEvents = await this.getExistingEvents(feed.id);
 
@@ -576,20 +569,28 @@ export class CalDAVCalendarService {
       // Process events and update database
       // const result = await this.processEvents(events, existingEvents, feed.id);
 
-      const result = await this.createAllEvents(
-        events,
-        feed.id,
-        colorOverrides,
-        colorSlotOverrides
-      );
-      // Update the feed's last sync time and sync token
-      await prisma.calendarFeed.update({
-        where: { id: feed.id, userId },
-        data: {
-          lastSync: newDate(),
-          syncToken: feed.syncToken ? String(feed.syncToken) : null,
+      // Keep the previous feed visible until its replacement is committed.
+      const result = await prisma.$transaction(
+        async (tx) => {
+          await tx.calendarEvent.deleteMany({ where: { feedId: feed.id } });
+          const replacement = await this.createAllEvents(
+            events,
+            feed.id,
+            colorOverrides,
+            colorSlotOverrides,
+            tx
+          );
+          await tx.calendarFeed.update({
+            where: { id: feed.id, userId },
+            data: {
+              lastSync: newDate(),
+              syncToken: feed.syncToken ? String(feed.syncToken) : null,
+            },
+          });
+          return replacement;
         },
-      });
+        { timeout: 60000 }
+      );
 
       return result;
     } catch (error) {
@@ -1338,7 +1339,8 @@ export class CalDAVCalendarService {
     events: CalendarEvent[],
     feedId: string,
     colorOverrides: Map<string, string> = new Map(),
-    colorSlotOverrides: Map<string, string> = new Map()
+    colorSlotOverrides: Map<string, string> = new Map(),
+    db: Prisma.TransactionClient
   ): Promise<SyncResult> {
     try {
       // Separate master events and instances
@@ -1350,7 +1352,8 @@ export class CalDAVCalendarService {
         masterEvents,
         feedId,
         colorOverrides,
-        colorSlotOverrides
+        colorSlotOverrides,
+        db
       );
 
       // Create a map of external IDs to database IDs for linking instances
@@ -1367,7 +1370,8 @@ export class CalDAVCalendarService {
         masterEventMap,
         feedId,
         colorOverrides,
-        colorSlotOverrides
+        colorSlotOverrides,
+        db
       );
 
       return {
@@ -1384,7 +1388,7 @@ export class CalDAVCalendarService {
         },
         LOG_SOURCE
       );
-      return { added: [], updated: [], deleted: [] };
+      throw error;
     }
   }
 
@@ -1392,7 +1396,8 @@ export class CalDAVCalendarService {
     masterEvents: CalendarEvent[],
     feedId: string,
     colorOverrides: Map<string, string>,
-    colorSlotOverrides: Map<string, string>
+    colorSlotOverrides: Map<string, string>,
+    db: Prisma.TransactionClient
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1427,7 +1432,7 @@ export class CalDAVCalendarService {
         };
 
         // Create the event
-        const createdEvent = await prisma.calendarEvent.create({
+        const createdEvent = await db.calendarEvent.create({
           data: eventData,
         });
 
@@ -1442,6 +1447,7 @@ export class CalDAVCalendarService {
           },
           LOG_SOURCE
         );
+        throw error;
       }
     }
 
@@ -1453,7 +1459,8 @@ export class CalDAVCalendarService {
     masterEventMap: Map<string, string>,
     feedId: string,
     colorOverrides: Map<string, string>,
-    colorSlotOverrides: Map<string, string>
+    colorSlotOverrides: Map<string, string>,
+    db: Prisma.TransactionClient
   ): Promise<CalendarEvent[]> {
     const createdEvents: CalendarEvent[] = [];
 
@@ -1497,7 +1504,7 @@ export class CalDAVCalendarService {
         };
 
         // Create the event
-        const createdEvent = await prisma.calendarEvent.create({
+        const createdEvent = await db.calendarEvent.create({
           data: eventData,
         });
 
@@ -1513,6 +1520,7 @@ export class CalDAVCalendarService {
           },
           LOG_SOURCE
         );
+        throw error;
       }
     }
 

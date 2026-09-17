@@ -571,18 +571,12 @@ export async function PUT(request: NextRequest) {
         ])
     );
 
-    // Now perform database operations in transaction
-    await prisma.$transaction(async (tx) => {
-      console.log("Deleting existing events");
-      await tx.calendarEvent.deleteMany({
-        where: { feedId },
-      });
-    });
-
-    // Create new events
+    // Replace the feed in one transaction so readers never see the gap
+    // between deleting the old events and creating their replacements.
     await prisma.$transaction(
       async (tx) => {
-        console.log("Creating ${events.length} events");
+        await tx.calendarEvent.deleteMany({ where: { feedId } });
+        console.log(`Creating ${events.length} events`);
         for (const event of events) {
           console.log("Processing event:", event.id);
 
