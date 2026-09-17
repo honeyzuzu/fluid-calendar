@@ -56,7 +56,8 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
     private settings: AutoScheduleSettings,
     private calendarService: CalendarService,
     timeZone?: string,
-    private sleepWindow?: SleepWindow
+    private sleepWindow?: SleepWindow,
+    private preserveExisting = false
   ) {
     // On the server the settings store holds no user state, so callers
     // should pass the user's timezone explicitly (e.g. from UserSettings).
@@ -71,10 +72,9 @@ export class TimeSlotManagerImpl implements TimeSlotManager {
         isAutoScheduled: true,
         scheduledStart: { not: null },
         scheduledEnd: { not: null },
-        // Locked tasks keep their slots across runs, so they must count as
-        // busy no matter what project they belong to (or none at all);
-        // unlocked tasks are about to be rescheduled and must not block
-        scheduleLocked: true,
+        // A deliberate rebuild clears unlocked slots. During automatic
+        // refreshes, preserved unlocked slots must count as busy too.
+        scheduleLocked: this.preserveExisting ? undefined : true,
         userId,
       },
     });

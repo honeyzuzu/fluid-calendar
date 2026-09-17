@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       taskIds,
       rangeStart,
       rangeEnd,
+      preserveExisting: body.preserveExisting === true,
     });
 
     // Repush dirty blocks and newly scheduled tasks to calendar

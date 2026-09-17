@@ -42,7 +42,7 @@ interface TaskState {
   ) => Promise<void>;
 
   // Auto-scheduling actions
-  scheduleAllTasks: () => Promise<Task[]>;
+  scheduleAllTasks: (preserveExisting?: boolean) => Promise<Task[]>;
   triggerScheduleAllTasks: () => Promise<void>;
 }
 
@@ -375,7 +375,7 @@ export const useTaskStore = create<TaskState>()(
         try {
           // For open source version, call scheduleAllTasks directly
           if (!isSaasEnabled) {
-            await get().scheduleAllTasks();
+            await get().scheduleAllTasks(true);
             return;
           }
 
@@ -442,12 +442,13 @@ export const useTaskStore = create<TaskState>()(
       },
 
       // Auto-scheduling actions
-      scheduleAllTasks: async () => {
+      scheduleAllTasks: async (preserveExisting = false) => {
         set({ loading: true, schedulingError: null });
         try {
           const response = await fetch("/api/tasks/schedule-all", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ preserveExisting }),
           });
           if (!response.ok) {
             const data = (await response.json().catch(() => null)) as {

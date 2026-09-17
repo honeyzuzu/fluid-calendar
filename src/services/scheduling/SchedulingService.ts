@@ -33,7 +33,10 @@ export class SchedulingService {
   private settings: AutoScheduleSettings | null;
   private metrics: PerformanceMetrics[] = [];
 
-  constructor(settings?: AutoScheduleSettings) {
+  constructor(
+    settings?: AutoScheduleSettings,
+    private preserveExisting = false
+  ) {
     this.calendarService = new CalendarServiceImpl();
     this.settings = settings || null;
   }
@@ -133,7 +136,8 @@ export class SchedulingService {
       settings,
       this.calendarService,
       this.userTimeZone,
-      this.sleepWindow
+      this.sleepWindow,
+      this.preserveExisting
     );
 
     this.endMetric("getTimeSlotManager", startTime);

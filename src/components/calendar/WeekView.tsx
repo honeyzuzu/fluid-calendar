@@ -27,9 +27,14 @@ import { getColorTheme } from "@/lib/color-themes";
 import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarItems } from "@/lib/friend-calendar";
+import { getMobileWeekDays } from "@/lib/mobile-week";
 import { getTaskDisplayColor } from "@/lib/task-colors";
 
-import { useCalendarStore, useCalendarUIStore } from "@/store/calendar";
+import {
+  useCalendarStore,
+  useCalendarUIStore,
+  useViewStore,
+} from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
 import { useTaskStore } from "@/store/task";
 
@@ -39,6 +44,7 @@ import { Task, TaskStatus } from "@/types/task";
 import { CalendarEventContent } from "./CalendarEventContent";
 import { EventModal } from "./EventModal";
 import { EventQuickView } from "./EventQuickView";
+import { MobileWeekAgenda, type MobileWeekItem } from "./MobileWeekAgenda";
 import { useCalendarDragHandlers } from "./useCalendarDragHandlers";
 
 interface WeekViewProps {
@@ -108,10 +114,25 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     null
   );
   const { handleEventDrop, handleEventResize } = useCalendarDragHandlers();
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const timeZone =
+    userSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const mobileDays = useMemo(
+    () => getMobileWeekDays(currentDate, timeZone, userSettings.weekStartDay),
+    [currentDate, timeZone, userSettings.weekStartDay]
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
-    async (arg: DatesSetArg) => {
+    async (arg: Pick<DatesSetArg, "start" | "end">) => {
       const loadId = ++latestLoad.current;
       await loadEventsForRange(arg.start, arg.end);
       if (loadId !== latestLoad.current) return;
@@ -201,10 +222,6 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       handleDatesSet({
         start: calendar.view.activeStart,
         end: calendar.view.activeEnd,
-        startStr: calendar.view.activeStart.toISOString(),
-        endStr: calendar.view.activeEnd.toISOString(),
-        timeZone: userSettings.timeZone,
-        view: calendar.view,
       });
     }
   }, [
@@ -215,6 +232,11 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     handleDatesSet,
     tasks,
   ]);
+
+  useEffect(() => {
+    if (!isMobile || isLoading) return;
+    void handleDatesSet({ start: mobileDays[0].start, end: mobileDays[6].end });
+  }, [isMobile, isLoading, mobileDays, handleDatesSet, tasks]);
 
   // Update calendar date when currentDate changes
   useEffect(() => {
@@ -228,14 +250,12 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     }
   }, [currentDate]);
 
-  const handleEventClick = (info: EventClickArg) => {
-    const item = info.event.extendedProps;
-    if (item.isFriendEvent) return;
-    const itemId = info.event.id;
-    const isTask = item.isTask;
-
-    // Store the clicked element for positioning
-    setClickedElement(info.el);
+  const openQuickView = (
+    itemId: string,
+    isTask: boolean,
+    element: HTMLElement
+  ) => {
+    setClickedElement(element);
 
     if (isTask) {
       const task = useTaskStore.getState().tasks.find((t) => t.id === itemId);
@@ -250,6 +270,11 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
       setQuickViewItem(event as CalendarEvent);
       setIsTask(false);
     }
+  };
+
+  const handleEventClick = (info: EventClickArg) => {
+    if (info.event.extendedProps.isFriendEvent) return;
+    openQuickView(info.event.id, !!info.event.extendedProps.isTask, info.el);
   };
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -347,64 +372,81 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
 
   return (
     <div className="h-full [&_.fc-daygrid-day-events]:!min-h-0 [&_.fc-daygrid-day-frame]:!min-h-0 [&_.fc-timegrid-axis-cushion]:!py-1 [&_.fc-timegrid-slot-label]:!py-1 [&_.fc-timegrid-slot]:!h-[35px]">
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[timeGridPlugin, interactionPlugin, luxon3Plugin]}
-        initialView="timeGridWeek"
-        headerToolbar={false}
-        initialDate={currentDate}
-        events={displayedEvents}
-        nowIndicator={true}
-        allDaySlot={true}
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
-        scrollTime={calendarSettings.workingHours.start}
-        expandRows={true}
-        slotEventOverlap={true}
-        stickyHeaderDates={true}
-        slotDuration="00:30:00"
-        timeZone={userSettings.timeZone || "local"}
-        displayEventEnd={true}
-        eventTimeFormat={{
-          hour: userSettings.timeFormat === "12h" ? "numeric" : "2-digit",
-          minute: "2-digit",
-          meridiem: userSettings.timeFormat === "12h" ? "short" : false,
-          hour12: userSettings.timeFormat === "12h",
-        }}
-        slotLabelFormat={{
-          hour: userSettings.timeFormat === "12h" ? "numeric" : "2-digit",
-          minute: "2-digit",
-          meridiem: userSettings.timeFormat === "12h" ? "short" : false,
-          hour12: userSettings.timeFormat === "12h",
-        }}
-        firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
-        businessHours={{
-          daysOfWeek: calendarSettings.workingHours.enabled
-            ? calendarSettings.workingHours.days
-            : [0, 1, 2, 3, 4, 5, 6],
-          startTime: calendarSettings.workingHours.start,
-          endTime: calendarSettings.workingHours.end,
-        }}
-        dayHeaderFormat={{
-          weekday: "short",
-          month: "numeric",
-          day: "numeric",
-          omitCommas: true,
-        }}
-        height="100%"
-        dateClick={(arg) => handleDateClick(arg.date, arg.allDay)}
-        eventClick={handleEventClick}
-        select={handleDateSelect}
-        selectable={true}
-        selectMirror={true}
-        datesSet={handleDatesSet}
-        eventContent={renderEventContent}
-        eventDrop={handleEventDrop}
-        eventResize={handleEventResize}
-        eventResizableFromStart={true}
-        snapDuration="00:15:00"
-        dragRevertDuration={250}
-      />
+      {isMobile ? (
+        <MobileWeekAgenda
+          days={mobileDays}
+          items={displayedEvents}
+          selectedDate={currentDate}
+          timeZone={timeZone}
+          timeFormat={userSettings.timeFormat}
+          onOpenDay={(date) => {
+            onDateClick?.(date);
+            useViewStore.getState().setView("day");
+          }}
+          onOpenItem={(item: MobileWeekItem, element) =>
+            openQuickView(item.id, !!item.extendedProps?.isTask, element)
+          }
+        />
+      ) : isMobile === false ? (
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[timeGridPlugin, interactionPlugin, luxon3Plugin]}
+          initialView="timeGridWeek"
+          headerToolbar={false}
+          initialDate={currentDate}
+          events={displayedEvents}
+          nowIndicator={true}
+          allDaySlot={true}
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          scrollTime={calendarSettings.workingHours.start}
+          expandRows={true}
+          slotEventOverlap={true}
+          stickyHeaderDates={true}
+          slotDuration="00:30:00"
+          timeZone={userSettings.timeZone || "local"}
+          displayEventEnd={true}
+          eventTimeFormat={{
+            hour: userSettings.timeFormat === "12h" ? "numeric" : "2-digit",
+            minute: "2-digit",
+            meridiem: userSettings.timeFormat === "12h" ? "short" : false,
+            hour12: userSettings.timeFormat === "12h",
+          }}
+          slotLabelFormat={{
+            hour: userSettings.timeFormat === "12h" ? "numeric" : "2-digit",
+            minute: "2-digit",
+            meridiem: userSettings.timeFormat === "12h" ? "short" : false,
+            hour12: userSettings.timeFormat === "12h",
+          }}
+          firstDay={userSettings.weekStartDay === "monday" ? 1 : 0}
+          businessHours={{
+            daysOfWeek: calendarSettings.workingHours.enabled
+              ? calendarSettings.workingHours.days
+              : [0, 1, 2, 3, 4, 5, 6],
+            startTime: calendarSettings.workingHours.start,
+            endTime: calendarSettings.workingHours.end,
+          }}
+          dayHeaderFormat={{
+            weekday: "short",
+            month: "numeric",
+            day: "numeric",
+            omitCommas: true,
+          }}
+          height="100%"
+          dateClick={(arg) => handleDateClick(arg.date, arg.allDay)}
+          eventClick={handleEventClick}
+          select={handleDateSelect}
+          selectable={true}
+          selectMirror={true}
+          datesSet={handleDatesSet}
+          eventContent={renderEventContent}
+          eventDrop={handleEventDrop}
+          eventResize={handleEventResize}
+          eventResizableFromStart={true}
+          snapDuration="00:15:00"
+          dragRevertDuration={250}
+        />
+      ) : null}
       {quickViewItem && (
         <EventQuickView
           isOpen={!!quickViewItem}

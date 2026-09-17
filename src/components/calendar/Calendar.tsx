@@ -162,7 +162,7 @@ export function Calendar({
       setSidebarOpen(false);
     }
     if (window.matchMedia("(max-width: 767px)").matches) {
-      if (view === "week" || view === "multiMonth") {
+      if (view === "multiMonth") {
         setView("day");
       }
     }

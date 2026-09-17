@@ -4,7 +4,7 @@ import type { AutoScheduleSettings, Task } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
-import type { Conflict } from "@/types/scheduling";
+import type { Conflict, TimeSlot } from "@/types/scheduling";
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -69,22 +69,23 @@ describe("TimeSlotManager availability", () => {
     const calendarService = {
       findConflicts: jest.fn().mockResolvedValue([]),
       getEvents: jest.fn().mockResolvedValue([]),
-      findBatchConflicts: jest.fn(async (candidates) =>
-        candidates.map(({ slot, taskId }) => {
-          const overlaps = slot.start < eventEnd && slot.end > eventStart;
-          const conflicts: Conflict[] = overlaps
-            ? [
-                {
-                  type: "calendar_event",
-                  start: eventStart,
-                  end: eventEnd,
-                  title: "Meeting",
-                  source: { type: "calendar", id: "event" },
-                },
-              ]
-            : [];
-          return { slot, taskId, conflicts };
-        })
+      findBatchConflicts: jest.fn(
+        async (candidates: { slot: TimeSlot; taskId: string }[]) =>
+          candidates.map(({ slot, taskId }) => {
+            const overlaps = slot.start < eventEnd && slot.end > eventStart;
+            const conflicts: Conflict[] = overlaps
+              ? [
+                  {
+                    type: "calendar_event",
+                    start: eventStart,
+                    end: eventEnd,
+                    title: "Meeting",
+                    source: { type: "calendar", id: "event" },
+                  },
+                ]
+              : [];
+            return { slot, taskId, conflicts };
+          })
       ),
     } as CalendarService;
     const manager = new TimeSlotManagerImpl(settings, calendarService, "UTC");
@@ -122,5 +123,59 @@ describe("TimeSlotManager availability", () => {
           slot.end <= new Date("2026-09-07T17:00:00Z")
       )
     ).toBe(true);
+  });
+
+  it("treats preserved unlocked tasks as busy during automatic refresh", async () => {
+    jest.mocked(prisma.task.findMany).mockResolvedValue([
+      {
+        id: "preserved",
+        projectId: null,
+        scheduledStart: new Date("2026-09-07T09:00:00Z"),
+        scheduledEnd: new Date("2026-09-07T09:30:00Z"),
+      } as Task,
+    ]);
+    const calendarService = {
+      findBatchConflicts: jest.fn(
+        async (candidates: { slot: TimeSlot; taskId: string }[]) =>
+          candidates.map(({ slot, taskId }) => ({
+            slot,
+            taskId,
+            conflicts: [],
+          }))
+      ),
+    } as unknown as CalendarService;
+    const manager = new TimeSlotManagerImpl(
+      settings,
+      calendarService,
+      "UTC",
+      undefined,
+      true
+    );
+    const slots = await manager.findAvailableSlots(
+      {
+        id: "new-task",
+        userId: "user",
+        title: "New work",
+        duration: 30,
+        startDate: null,
+        plannedWeekStart: null,
+        projectId: null,
+      } as Task,
+      new Date("2026-09-07T00:00:00Z"),
+      new Date("2026-09-08T00:00:00Z"),
+      "user"
+    );
+
+    expect(prisma.task.findMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        scheduleLocked: undefined,
+        userId: "user",
+      }),
+    });
+    expect(
+      slots.some(
+        (slot) => slot.start.toISOString() === "2026-09-07T09:00:00.000Z"
+      )
+    ).toBe(false);
   });
 });

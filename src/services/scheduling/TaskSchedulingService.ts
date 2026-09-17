@@ -1,3 +1,5 @@
+import { parseSelectedCalendars } from "@/lib/autoSchedule";
+import { needsBackgroundReschedule } from "@/lib/background-scheduling";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { planningTimeZone, rollUnfinishedTasks } from "@/lib/weekly-planning";
@@ -19,6 +21,7 @@ export interface ScheduleTasksOptions {
   taskIds?: string[];
   rangeStart?: Date;
   rangeEnd?: Date;
+  preserveExisting?: boolean;
 }
 
 // Define a type for the database result
@@ -125,7 +128,7 @@ export async function scheduleAllTasksForUser(
 
     // Get all tasks marked for auto-scheduling that are not locked
     await rollUnfinishedTasks(userId, await planningTimeZone(userId));
-    const tasksToSchedule = await prisma.task.findMany({
+    const eligibleTasks = await prisma.task.findMany({
       where: {
         isAutoScheduled: true,
         scheduleLocked: false,
@@ -142,6 +145,54 @@ export async function scheduleAllTasksForUser(
         tags: true,
       },
     });
+
+    let tasksToSchedule = eligibleTasks;
+    if (options.preserveExisting) {
+      const now = new Date();
+      const horizon =
+        options.rangeEnd ?? new Date(now.getTime() + 7 * 86_400_000);
+      const selectedCalendars = parseSelectedCalendars(
+        userSettings.selectedCalendars
+      );
+      const events = selectedCalendars.length
+        ? await prisma.calendarEvent.findMany({
+            where: {
+              feed: { userId },
+              feedId: { in: selectedCalendars },
+              start: { lt: horizon },
+              end: { gt: now },
+            },
+            select: {
+              start: true,
+              end: true,
+              allDay: true,
+              status: true,
+              externalEventId: true,
+            },
+          })
+        : [];
+      const pushedBlockIds = new Set(
+        (
+          await prisma.task.findMany({
+            where: { userId, blockEventId: { not: null } },
+            select: { blockEventId: true },
+          })
+        )
+          .map((task) => task.blockEventId)
+          .filter((id): id is string => Boolean(id))
+      );
+      tasksToSchedule = eligibleTasks.filter(
+        (task) =>
+          (!task.scheduledStart || task.scheduledStart < horizon) &&
+          needsBackgroundReschedule(
+            task,
+            now,
+            events,
+            pushedBlockIds,
+            userSettings.bufferMinutes
+          )
+      );
+    }
 
     // Get locked tasks (we'll keep their schedules)
     const lockedTasks = await prisma.task.findMany({
@@ -172,7 +223,10 @@ export async function scheduleAllTasksForUser(
     );
 
     // Initialize scheduling service with settings
-    const schedulingService = new SchedulingService(userSettings);
+    const schedulingService = new SchedulingService(
+      userSettings,
+      options.preserveExisting
+    );
 
     // Clear existing schedules for non-locked tasks
     await prisma.task.updateMany({
