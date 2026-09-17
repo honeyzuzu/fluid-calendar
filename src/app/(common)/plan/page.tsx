@@ -874,8 +874,8 @@ export default function PlanPage() {
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
         <header className="sunnie-plan-hero relative mb-5 overflow-hidden rounded-[2rem] border border-border p-4 shadow-[var(--shadow-raised)] sm:p-5">
-          <div className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full border-[22px] border-white/20" />
-          <div className="pointer-events-none absolute bottom-[-5rem] right-1/3 h-40 w-40 rounded-full bg-[color:var(--sunnie-warm-glow)] opacity-15 blur-2xl" />
+          <span aria-hidden="true" className="sunnie-plan-sticker-one" />
+          <span aria-hidden="true" className="sunnie-plan-sticker-two" />
           <div className="relative flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div className="min-w-0 max-w-2xl">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
@@ -883,7 +883,7 @@ export default function PlanPage() {
                   <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
                 </span>
               </div>
-              <h1 className="break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-4xl">
+              <h1 className="sunnie-display-heading break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-4xl">
                 {view === "today"
                   ? "Shape a day that feels like yours."
                   : view === "week"
@@ -1004,7 +1004,7 @@ export default function PlanPage() {
           <div className="flex flex-col gap-5">
             <section
               className={cn(
-                "order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[var(--shadow-paper)] backdrop-blur-sm",
+                "sunnie-paper-panel order-1 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[var(--shadow-paper)] backdrop-blur-sm",
                 view !== "today" && "hidden"
               )}
             >
@@ -1133,7 +1133,7 @@ export default function PlanPage() {
 
             <section
               className={cn(
-                "order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card/85 to-accent/45 p-4 shadow-[var(--shadow-paper)] sm:p-6",
+                "sunnie-paper-panel order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card/85 to-accent/45 p-4 shadow-[var(--shadow-paper)] sm:p-6",
                 view !== "week" && "hidden"
               )}
             >
@@ -1270,7 +1270,7 @@ export default function PlanPage() {
             >
               <section
                 data-plan-section="today-list"
-                className="order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[var(--shadow-paper)]"
+                className="sunnie-paper-panel order-2 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-card/80 shadow-[var(--shadow-paper)]"
               >
                 <div className="border-b border-border/60 p-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
@@ -1460,7 +1460,7 @@ export default function PlanPage() {
 
               <section
                 data-plan-section="today-timeline"
-                className="order-3 min-w-0 max-w-full rounded-3xl border border-border bg-gradient-to-b from-muted to-card/85 p-4 shadow-[var(--shadow-paper)] sm:p-5"
+                className="sunnie-paper-panel order-3 min-w-0 max-w-full rounded-3xl border border-border bg-gradient-to-b from-muted to-card/85 p-4 shadow-[var(--shadow-paper)] sm:p-5"
               >
                 <div className="mb-4">
                   <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">

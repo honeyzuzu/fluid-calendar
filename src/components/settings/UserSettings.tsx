@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -28,6 +28,7 @@ import {
 import {
   CalendarStyleId,
   getCalendarStyle,
+  getPlannerThemeCssVariables,
   getSunnieTheme,
 } from "@/lib/planner-themes";
 
@@ -281,6 +282,7 @@ export function UserSettings() {
           >
             {Object.values(COLOR_THEMES).map((theme) => {
               const selected = selectedColorTheme === theme.id;
+              const stationery = getSunnieTheme(theme.id);
               return (
                 <button
                   key={theme.id}
@@ -290,35 +292,60 @@ export function UserSettings() {
                   aria-label={theme.name}
                   aria-disabled={isApplyingColorTheme}
                   onClick={() => void applyColorTheme(theme.id)}
-                  className={`relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`sunnie-theme-choice relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     selected
                       ? "border-primary ring-2 ring-primary/35"
                       : "border-border hover:-translate-y-0.5 hover:shadow-[var(--shadow-paper)]"
                   }`}
-                  style={{ backgroundColor: theme.core.surface }}
+                  style={
+                    {
+                      backgroundColor: theme.core.surface,
+                      color: theme.core.ink,
+                      borderColor: theme.core.border,
+                      ...getPlannerThemeCssVariables(stationery),
+                    } as CSSProperties
+                  }
                 >
                   <span
                     aria-hidden="true"
-                    className="mb-3 block h-14 overflow-hidden rounded-xl border"
+                    className="sunnie-theme-choice-preview mb-3 block h-28 overflow-hidden rounded-xl border"
                     style={{
                       borderColor: theme.core.border,
                       backgroundColor: theme.core.canvas,
                     }}
                   >
-                    <span className="flex h-full items-end gap-1.5 p-2">
-                      {[
-                        theme.core.primary,
-                        theme.core.accent,
-                        theme.core.warmGlow,
-                        theme.core.coolGlow,
-                      ].map((color) => (
-                        <span
-                          key={color}
-                          className="h-7 flex-1 rounded-md"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
+                    <span
+                      className="sunnie-theme-choice-tape"
+                      style={{ backgroundColor: theme.core.accent }}
+                    />
+                    <span
+                      className="sunnie-theme-choice-note"
+                      style={{
+                        backgroundColor: theme.core.surfaceRaised,
+                        borderColor: theme.core.border,
+                      }}
+                    >
+                      <span
+                        className="sunnie-theme-choice-note-title"
+                        style={{ color: theme.core.primary }}
+                      >
+                        {stationery.visual.stationery.paperName}
+                      </span>
+                      <span
+                        className="sunnie-theme-choice-note-line"
+                        style={{ backgroundColor: theme.core.border }}
+                      />
+                      <span
+                        className="sunnie-theme-choice-note-line short"
+                        style={{ backgroundColor: theme.core.border }}
+                      />
+                      <span
+                        className="sunnie-theme-choice-note-dot"
+                        style={{ backgroundColor: theme.core.warmGlow }}
+                      />
                     </span>
+                    <span className="sunnie-theme-choice-sticker-one" />
+                    <span className="sunnie-theme-choice-sticker-two" />
                   </span>
                   <span
                     className="flex min-h-10 items-start justify-between gap-2 text-sm font-bold"
@@ -335,6 +362,26 @@ export function UserSettings() {
                       </span>
                     </span>
                     {selected && <Check className="h-4 w-4 shrink-0" />}
+                  </span>
+                  <span
+                    className="mt-1 block text-xs"
+                    style={{ color: theme.core.inkSoft }}
+                  >
+                    {stationery.visual.stationery.caption}
+                  </span>
+                  <span className="mt-3 flex gap-1" aria-hidden="true">
+                    {[
+                      theme.core.primary,
+                      theme.core.accent,
+                      theme.core.warmGlow,
+                      theme.core.coolGlow,
+                    ].map((color, index) => (
+                      <span
+                        key={index}
+                        className="h-2.5 w-9 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
                   </span>
                 </button>
               );

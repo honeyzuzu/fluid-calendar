@@ -87,7 +87,8 @@ export type ColorTheme = {
 export const BASE_COLOR_THEME: ColorTheme = {
   id: "base",
   name: "Sunnie Base",
-  description: "Warm sketchbook paper, garden greens, soft clay, and sunshine.",
+  description:
+    "A playful sketchbook of sunshine, little flowers, strawberries, and happy colors.",
   motif: { intentionIcon: "sprout", intentionLabel: "Growing intention" },
   paletteNames: {
     events: "Open Skies",
@@ -97,7 +98,7 @@ export const BASE_COLOR_THEME: ColorTheme = {
     statuses: "Sunnie Signals",
   },
   core: {
-    canvas: "#F7F1E4",
+    canvas: "#F9F1E5",
     surface: "#FFFCF3",
     surfaceRaised: "#FFF9EE",
     surfaceMuted: "#EBE9D9",
@@ -107,10 +108,10 @@ export const BASE_COLOR_THEME: ColorTheme = {
     border: "#D8D5BF",
     primary: "#61734F",
     onPrimary: "#FFFDF5",
-    accent: "#EBD998",
+    accent: "#F3D578",
     onAccent: "#5B4A24",
-    warmGlow: "#E8B869",
-    coolGlow: "#B4CBA3",
+    warmGlow: "#EDA985",
+    coolGlow: "#A9D5B8",
   },
   palettes: {
     events: [

@@ -104,7 +104,7 @@ describe("planner colorways", () => {
 
     const variables = getColorThemeCssVariables(BASE_COLOR_THEME);
     expect(variables["--background"]).toMatch(/^\d+ \d+% \d+%$/);
-    expect(variables["--sunnie-canvas"]).toBe("#F7F1E4");
+    expect(variables["--sunnie-canvas"]).toBe("#F9F1E5");
     expect(variables["--sunnie-primary"]).toBe("#61734F");
     expect(variables["--sunnie-task-1"]).toBe("#F7BEB5");
     expect(variables["--sunnie-task-1-foreground"]).toMatch(/^#[0-9A-F]{6}$/i);

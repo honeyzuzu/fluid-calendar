@@ -85,6 +85,15 @@ export const THEME_STICKER_PACKS: Record<ColorThemeId, StickerAssetPack> = {
       aspectRatio: 1,
       tags: ["sprout", "garden"],
     },
+    {
+      id: "garden-strawberry",
+      label: "Garden strawberry",
+      src: "/themes/base/stickers/garden-strawberry.svg",
+      category: "decorative",
+      defaultScale: 0.95,
+      aspectRatio: 1,
+      tags: ["fruit", "garden", "strawberry"],
+    },
   ]),
   "spring-fresh-air": themePack("spring-fresh-air", "Fresh Air", [
     {
@@ -104,6 +113,15 @@ export const THEME_STICKER_PACKS: Record<ColorThemeId, StickerAssetPack> = {
       defaultScale: 0.8,
       aspectRatio: 1,
       tags: ["spring", "bee"],
+    },
+    {
+      id: "spring-wildflower",
+      label: "Wildflower",
+      src: "/themes/spring-fresh-air/stickers/spring-wildflower.svg",
+      category: "seasonal",
+      defaultScale: 0.95,
+      aspectRatio: 1,
+      tags: ["spring", "flower"],
     },
   ]),
   "summer-sun-kissed": themePack("summer-sun-kissed", "Sun-Kissed", [
@@ -125,6 +143,15 @@ export const THEME_STICKER_PACKS: Record<ColorThemeId, StickerAssetPack> = {
       aspectRatio: 1,
       tags: ["summer", "fruit"],
     },
+    {
+      id: "summer-strawberry",
+      label: "Summer strawberry",
+      src: "/themes/summer-sun-kissed/stickers/summer-strawberry.svg",
+      category: "seasonal",
+      defaultScale: 0.95,
+      aspectRatio: 1,
+      tags: ["summer", "fruit", "strawberry"],
+    },
   ]),
   "autumn-golden-hour": themePack("autumn-golden-hour", "Golden Hour", [
     {
@@ -144,6 +171,15 @@ export const THEME_STICKER_PACKS: Record<ColorThemeId, StickerAssetPack> = {
       defaultScale: 0.95,
       aspectRatio: 1,
       tags: ["autumn", "apple"],
+    },
+    {
+      id: "autumn-pumpkin",
+      label: "Patch pumpkin",
+      src: "/themes/autumn-golden-hour/stickers/autumn-pumpkin.svg",
+      category: "seasonal",
+      defaultScale: 1,
+      aspectRatio: 1,
+      tags: ["autumn", "pumpkin"],
     },
   ]),
   "winter-candlelight-snow": themePack(
@@ -167,6 +203,15 @@ export const THEME_STICKER_PACKS: Record<ColorThemeId, StickerAssetPack> = {
         defaultScale: 1,
         aspectRatio: 1,
         tags: ["winter", "cocoa"],
+      },
+      {
+        id: "winter-evergreen",
+        label: "Evergreen sprig",
+        src: "/themes/winter-candlelight-snow/stickers/winter-evergreen.svg",
+        category: "seasonal",
+        defaultScale: 0.95,
+        aspectRatio: 1,
+        tags: ["winter", "evergreen"],
       },
     ]
   ),

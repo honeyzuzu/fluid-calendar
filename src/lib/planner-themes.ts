@@ -72,6 +72,7 @@ export const STICKER_PACKS = {
     stickers: [
       { id: "garden-daisy", preview: "🌼" },
       { id: "happy-sprout", preview: "🌱" },
+      { id: "garden-strawberry", preview: "🍓" },
     ],
   },
   "spring-fresh-air": {
@@ -79,6 +80,7 @@ export const STICKER_PACKS = {
     stickers: [
       { id: "spring-tulip", preview: "🌷" },
       { id: "spring-bee", preview: "🐝" },
+      { id: "spring-wildflower", preview: "🌸" },
     ],
   },
   "summer-sun-kissed": {
@@ -86,12 +88,14 @@ export const STICKER_PACKS = {
     stickers: [
       { id: "summer-lemon", preview: "🍋" },
       { id: "summer-cherries", preview: "🍒" },
+      { id: "summer-strawberry", preview: "🍓" },
     ],
   },
   "autumn-golden-hour": {
     label: "Golden Hour",
     stickers: [
       { id: "autumn-leaf", preview: "🍂" },
+      { id: "autumn-pumpkin", preview: "🎃" },
       { id: "autumn-apple", preview: "🍎" },
     ],
   },
@@ -100,6 +104,7 @@ export const STICKER_PACKS = {
     stickers: [
       { id: "winter-snowflake", preview: "❄️" },
       { id: "winter-cocoa", preview: "☕" },
+      { id: "winter-evergreen", preview: "🌲" },
     ],
   },
   "visual-test-leaves": {
@@ -186,6 +191,10 @@ export type CalendarPresentation = {
 };
 
 export type ThemeVisualDefinition = {
+  stationery: {
+    caption: string;
+    paperName: string;
+  };
   backgroundStyle: AppBackgroundStyle;
   surfaceStyle: SurfaceStyle;
   patterns: {
@@ -267,6 +276,10 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   base: plannerTheme(
     COLOR_THEMES.base,
     {
+      stationery: {
+        caption: "Little joys, every day",
+        paperName: "Sunny sketchbook",
+      },
       backgroundStyle: "paper",
       surfaceStyle: "soft",
       patterns: {
@@ -282,7 +295,11 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
       borderStyle: "solid",
       radiusStyle: "irregular",
       decorativeAccent: "none",
-      signatureDetails: ["daisy doodles", "warm paper", "botanical tape"],
+      signatureDetails: [
+        "daisy doodles",
+        "strawberry stickers",
+        "botanical tape",
+      ],
       patternIntensity: "subtle",
       decorativeDensity: "balanced",
       typography: "soft",
@@ -309,13 +326,14 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     "special"
   ),
   "autumn-golden-hour": plannerTheme(COLOR_THEMES["autumn-golden-hour"], {
+    stationery: { caption: "Golden afternoons", paperName: "Harvest notes" },
     backgroundStyle: "paper",
     surfaceStyle: "paper",
     patterns: {
       app: pattern("none"),
-      surface: pattern("dot-grid", {
+      surface: pattern("gingham", {
         scale: 1.1,
-        opacity: 0.16,
+        opacity: 0.1,
         primaryRole: "primary",
       }),
       sidebar: pattern("none"),
@@ -323,7 +341,11 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     borderStyle: "hand-drawn",
     radiusStyle: "soft",
     decorativeAccent: "none",
-    signatureDetails: ["kraft paper", "plaid accents", "washi tape"],
+    signatureDetails: [
+      "falling leaves",
+      "harvest stickers",
+      "gingham and kraft tape",
+    ],
     patternIntensity: "moderate",
     decorativeDensity: "balanced",
     typography: "handwritten-accent",
@@ -351,6 +373,7 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     },
   }),
   "spring-fresh-air": plannerTheme(COLOR_THEMES["spring-fresh-air"], {
+    stationery: { caption: "A garden waking up", paperName: "Bloom notes" },
     backgroundStyle: "paper",
     surfaceStyle: "paper",
     patterns: {
@@ -398,6 +421,10 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
     },
   }),
   "summer-sun-kissed": plannerTheme(COLOR_THEMES["summer-sun-kissed"], {
+    stationery: {
+      caption: "Fruit market mornings",
+      paperName: "Sunlit market",
+    },
     backgroundStyle: "ambient",
     surfaceStyle: "soft",
     patterns: {
@@ -444,6 +471,10 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
   "winter-candlelight-snow": plannerTheme(
     COLOR_THEMES["winter-candlelight-snow"],
     {
+      stationery: {
+        caption: "Warm inside, snow outside",
+        paperName: "Cocoa & evergreen",
+      },
       backgroundStyle: "ambient",
       surfaceStyle: "paper",
       patterns: {
@@ -459,7 +490,11 @@ export const SUNNIE_THEMES: Record<ColorThemeId, SunnieTheme<ColorThemeId>> = {
       borderStyle: "solid",
       radiusStyle: "soft",
       decorativeAccent: "none",
-      signatureDetails: ["graph paper", "outlined notes", "frosted edges"],
+      signatureDetails: [
+        "evergreen sprigs",
+        "cocoa stickers",
+        "frosted graph paper",
+      ],
       patternIntensity: "subtle",
       decorativeDensity: "balanced",
       typography: "handwritten-accent",
@@ -649,6 +684,15 @@ export function getPlannerThemeCssVariables(
   theme: SunnieTheme
 ): Record<string, string> {
   const resolve = (role: ThemeCoreRole) => theme.core[role];
+  const stickerPack =
+    theme.visual.assets.stickerPack === "visual-test-leaves"
+      ? undefined
+      : theme.visual.assets.stickerPack;
+  const stickers = stickerPack ? STICKER_PACKS[stickerPack].stickers : [];
+  const stickerUrl = (index: number) =>
+    stickers[index]
+      ? `url("/themes/${stickerPack}/stickers/${stickers[index].id}.svg")`
+      : "none";
   const patternVariables = (
     target: "app" | "surface" | "sidebar",
     spec: PatternSpec
@@ -670,6 +714,8 @@ export function getPlannerThemeCssVariables(
     };
   };
   return {
+    "--sunnie-sticker-one": stickerUrl(0),
+    "--sunnie-sticker-two": stickerUrl(1),
     "--sunnie-rise-from": resolve(theme.visual.planning.rise[0]),
     "--sunnie-rise-via": resolve(theme.visual.planning.rise[1]),
     "--sunnie-rise-to": resolve(theme.visual.planning.rise[2]),

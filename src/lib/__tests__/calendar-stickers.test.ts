@@ -18,6 +18,14 @@ describe("calendar sticker validation", () => {
     expect(findStickerAsset("unknown", "../../secret")).toBeUndefined();
     expect(SUNNIE_BASICS_STICKER_PACK.assets).toHaveLength(4);
     expect(Object.values(THEME_STICKER_PACKS)).toHaveLength(5);
+    expect(
+      Object.values(THEME_STICKER_PACKS).every(
+        (pack) => pack.assets.length >= 3
+      )
+    ).toBe(true);
+    expect(findStickerAsset("autumn-golden-hour", "autumn-pumpkin")?.src).toBe(
+      "/themes/autumn-golden-hour/stickers/autumn-pumpkin.svg"
+    );
   });
 
   it("requires real calendar keys and a bounded exclusive range", () => {

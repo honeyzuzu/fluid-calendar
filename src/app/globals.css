@@ -145,12 +145,225 @@
   }
 
   .sunnie-plan-hero {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--sunnie-accent) 45%, var(--sunnie-surface)),
-      color-mix(in srgb, var(--sunnie-warm-glow) 38%, var(--sunnie-surface)),
-      color-mix(in srgb, var(--sunnie-warm-glow) 72%, var(--sunnie-surface))
+    isolation: isolate;
+    min-height: 13rem;
+    border-color: var(--sunnie-border);
+    background:
+      radial-gradient(
+        circle at 90% 82%,
+        color-mix(in srgb, var(--sunnie-cool-glow) 28%, transparent),
+        transparent 16rem
+      ),
+      linear-gradient(
+        115deg,
+        var(--sunnie-surface-raised),
+        var(--sunnie-surface)
+      );
+    box-shadow:
+      0 6px 0 color-mix(in srgb, var(--sunnie-border) 70%, transparent),
+      0 18px 35px color-mix(in srgb, var(--sunnie-ink) 8%, transparent);
+  }
+
+  .sunnie-plan-hero::before {
+    content: "";
+    position: absolute;
+    top: -0.5rem;
+    left: 2.2rem;
+    width: 6.5rem;
+    height: 1.7rem;
+    transform: rotate(-5deg);
+    opacity: 0.82;
+    background-color: color-mix(
+      in srgb,
+      var(--sunnie-accent) 66%,
+      var(--sunnie-surface)
     );
+    background-image: repeating-linear-gradient(
+      95deg,
+      transparent 0 13px,
+      color-mix(in srgb, var(--sunnie-primary) 14%, transparent) 14px 17px
+    );
+    box-shadow: 0 2px 5px #0000000c;
+    z-index: 2;
+  }
+
+  .sunnie-plan-sticker-one,
+  .sunnie-plan-sticker-two {
+    position: absolute;
+    right: 2rem;
+    width: 6.7rem;
+    height: 6.7rem;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter: drop-shadow(0 4px 1px #00000012);
+  }
+
+  .sunnie-plan-sticker-one {
+    top: 0.35rem;
+    right: 2.25rem;
+    transform: rotate(12deg);
+    background-image: var(--sunnie-sticker-one);
+  }
+
+  .sunnie-plan-sticker-two {
+    bottom: -0.8rem;
+    right: 8rem;
+    transform: rotate(-14deg);
+    background-image: var(--sunnie-sticker-two);
+  }
+
+  .sunnie-display-heading,
+  .sunnie-paper-panel h2 {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-weight: 600;
+    letter-spacing: -0.045em;
+  }
+
+  .sunnie-plan-hero .sunnie-display-heading {
+    max-width: 18ch;
+    line-height: 1.05;
+  }
+
+  .sunnie-paper-panel {
+    position: relative;
+    border-color: var(--sunnie-border);
+    background-color: var(--sunnie-surface) !important;
+    background-image: linear-gradient(
+      180deg,
+      #ffffff42,
+      transparent 40%
+    ) !important;
+    box-shadow:
+      0 5px 0 color-mix(in srgb, var(--sunnie-border) 48%, transparent),
+      0 16px 30px color-mix(in srgb, var(--sunnie-ink) 5%, transparent);
+  }
+
+  .sunnie-paper-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 2.2rem;
+    width: 4.5rem;
+    height: 0.65rem;
+    background: color-mix(
+      in srgb,
+      var(--sunnie-accent) 70%,
+      var(--sunnie-surface)
+    );
+    opacity: 0.8;
+    transform: rotate(3deg);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .sunnie-theme-choice-preview {
+    position: relative;
+    background-image: radial-gradient(
+      circle at 85% 20%,
+      #ffffff90,
+      transparent 45%
+    );
+  }
+
+  .sunnie-theme-choice-tape {
+    position: absolute;
+    top: 0.6rem;
+    left: 1.5rem;
+    z-index: 2;
+    width: 4.3rem;
+    height: 1.15rem;
+    opacity: 0.82;
+    transform: rotate(-8deg);
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0 10px,
+      #ffffff50 10px 12px
+    );
+  }
+
+  .sunnie-theme-choice-note {
+    position: absolute;
+    left: 0.8rem;
+    top: 1.1rem;
+    width: 57%;
+    height: 5.4rem;
+    border: 1px solid;
+    border-radius: 0.45rem 0.7rem 0.4rem 0.6rem;
+    padding: 1.1rem 0.75rem 0.5rem;
+    transform: rotate(-3deg);
+    box-shadow: 2px 4px 0 #00000012;
+  }
+
+  .sunnie-theme-choice-note-title {
+    display: block;
+    font:
+      600 1rem/1 Georgia,
+      "Iowan Old Style",
+      serif;
+  }
+
+  .sunnie-theme-choice-note-line {
+    display: block;
+    height: 1px;
+    width: 85%;
+    margin-top: 0.7rem;
+  }
+
+  .sunnie-theme-choice-note-line.short {
+    width: 63%;
+    margin-top: 0.5rem;
+  }
+  .sunnie-theme-choice-note-dot {
+    display: block;
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 50%;
+    margin-top: 0.45rem;
+  }
+
+  .sunnie-theme-choice-sticker-one,
+  .sunnie-theme-choice-sticker-two {
+    position: absolute;
+    right: 1rem;
+    width: 4.5rem;
+    height: 4.5rem;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: drop-shadow(1px 3px 1px #00000018);
+  }
+  .sunnie-theme-choice-sticker-one {
+    top: 0.35rem;
+    transform: rotate(12deg);
+    background-image: var(--sunnie-sticker-one);
+  }
+  .sunnie-theme-choice-sticker-two {
+    bottom: -0.5rem;
+    right: 3.2rem;
+    transform: rotate(-15deg);
+    background-image: var(--sunnie-sticker-two);
+  }
+
+  @media (max-width: 740px) {
+    .sunnie-plan-hero {
+      padding-top: 2.2rem;
+    }
+    .sunnie-plan-sticker-one {
+      width: 4.2rem;
+      height: 4.2rem;
+      right: 0.25rem;
+      top: 0.3rem;
+      opacity: 0.5;
+    }
+    .sunnie-plan-sticker-two {
+      width: 3.5rem;
+      height: 3.5rem;
+      right: 1rem;
+      bottom: -0.75rem;
+      opacity: 0.55;
+    }
   }
 
   .sunnie-focus-hero {
@@ -486,16 +699,23 @@
   border: 0;
 }
 
+.sunnie-calendar-frame {
+  border: 1px solid var(--sunnie-border, #dfe2c8);
+  border-radius: 1.25rem;
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--sunnie-border) 44%, transparent);
+  overflow: hidden;
+}
+
 .sunnie-calendar-frame .fc-theme-standard td,
 .sunnie-calendar-frame .fc-theme-standard th {
   border-color: var(--fc-border-color);
 }
 
 .sunnie-calendar-frame .fc-col-header-cell {
-  background: color-mix(
-    in srgb,
-    var(--sunnie-surface-muted, #eef3df) 44%,
-    var(--sunnie-surface, #fffdf5)
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sunnie-accent) 22%, var(--sunnie-surface)),
+    var(--sunnie-surface)
   );
 }
 
@@ -504,6 +724,7 @@
   color: var(--sunnie-ink-soft, #5f6848);
   font-size: 0.72rem;
   font-weight: 700;
+  font-family: Georgia, "Iowan Old Style", serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
