@@ -59,6 +59,10 @@ We can fill these in together. A rough bullet is enough to begin.
 
 <!-- Keep the original idea and add its outcome: a commit/task link if implemented, or a short reason if parked. -->
 
+- **Original thought (2026-09-20):** "It seems like tasks can't be planned for weekend. Also, should we have a student mode vs a full time mode, since students don't typically have working hours?"
+
+  - **Implemented in `183bfd9`:** Auto-scheduling now presents its limits as editable scheduling availability instead of a fixed worker identity. Workweek, School & study, and Flexible week provide quick starting points, while individual days and hours remain adjustable. Trying to schedule a disabled day now names the unavailable day and links directly to the setting that enables it.
+
 - **Original thought:** Combine all the task items into one tab because Task Tune-up and Brain Dump are both part of working with tasks, and simplify the unnecessary List/Board choice.
 
   - **Implemented in `0a51966`:** Tasks now contains My tasks, Brain dump, and Tune-up as one responsive workspace. The separate status board switch is removed, old Brain Dump links redirect into Tasks, and Brain Dump no longer appears in primary navigation. The tutorial content points to the unified Tasks experience, while the tutorial itself is temporarily turned off for a broader redesign.
