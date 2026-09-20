@@ -257,6 +257,7 @@ server validation may still wait for confirmation.
 - Brain Dump is deterministic and does not require an AI provider. Users should put one thought on each line; optional AI paragraph interpretation is a possible later enhancement.
 - Unsaved brain-dump text is retained only in that browser's local storage. Submitted items become normal database-backed tasks.
 - Task Tune-up cycles flashcard-style through every active task that is missing a duration, due date, priority, or energy level, including tasks created elsewhere in Sunnie. Due date uses the native date picker and is required before saving a tune-up card. Each card names its remaining requirements, and changing its weekly pool never clears an entered due date.
+- Task Tune-up offers account-time-zone-aware quick due dates for today, tomorrow, this weekend, next week, and the next Monday through Friday; each shortcut shows its resolved calendar date and fills the editable native date field.
 - Each tune-up card also exposes task status. Completed tasks are excluded from the tune-up queue.
 
 ### Daily and weekly planning

@@ -22,8 +22,11 @@ import { WeekPicker } from "@/components/planning/WeekPicker";
 import { SunnieSkeleton } from "@/components/ui/sunnie";
 
 import { needsTaskTuneUp, parseBrainDump } from "@/lib/brain-dump";
+import { getDueDateShortcuts } from "@/lib/due-date-shortcuts";
 import { getMissingTuneUpFields } from "@/lib/tune-up-form";
 import { cn } from "@/lib/utils";
+
+import { useSettingsStore } from "@/store/settings";
 
 import { EnergyLevel, Priority, TaskStatus } from "@/types/task";
 
@@ -500,6 +503,9 @@ function TaskTuneUp({
   onNext,
   onReload,
 }: TuneUpProps) {
+  const timeZone = useSettingsStore((state) => state.user.timeZone);
+  const dueDateShortcuts = getDueDateShortcuts(new Date(), timeZone);
+
   if (loading) {
     return (
       <div
@@ -655,15 +661,43 @@ function TaskTuneUp({
                 <option value={EnergyLevel.LOW}>Low energy</option>
               </select>
             </TuneField>
-            <TuneField label="Due date" icon={CalendarDays}>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(event) => onDueDateChange(event.target.value)}
-                className={selectClassName}
-                required
-              />
-            </TuneField>
+            <div className="sm:col-span-2">
+              <TuneField label="Due date" icon={CalendarDays}>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => onDueDateChange(event.target.value)}
+                  className={selectClassName}
+                  required
+                />
+              </TuneField>
+              <p className="mt-2 text-xs font-medium text-muted-foreground">
+                Quick due dates
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {dueDateShortcuts.map((shortcut) => {
+                  const selected = dueDate === shortcut.date;
+                  return (
+                    <button
+                      key={shortcut.id}
+                      type="button"
+                      disabled={saving}
+                      aria-pressed={selected}
+                      aria-label={`Set due date to ${shortcut.accessibleLabel}`}
+                      onClick={() => onDueDateChange(shortcut.date)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
+                        selected
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-border bg-card text-secondary-foreground hover:border-primary/50 hover:bg-accent/60"
+                      )}
+                    >
+                      {shortcut.label} {" · "} {shortcut.dateLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <p
