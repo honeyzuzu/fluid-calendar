@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import Link from "next/link";
+
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -60,6 +62,10 @@ import {
   formatScheduleSummary,
   restoreScheduleChanges,
 } from "@/lib/schedule-feedback";
+import {
+  isSchedulingDayEnabled,
+  schedulingDayName,
+} from "@/lib/scheduling-presets";
 import { cn } from "@/lib/utils";
 
 import { useSettingsStore } from "@/store/settings";
@@ -112,6 +118,10 @@ type CalendarSettingsRecord = {
 
 type UserSettingsRecord = {
   timeZone: string;
+};
+
+type AutoScheduleAvailabilityRecord = {
+  workDays: string;
 };
 
 type DailyPlanRecord = {
@@ -207,6 +217,12 @@ export default function PlanPage() {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [workingHours, setWorkingHours] =
     useState<DailyCapacitySettings | null>(null);
+  const [autoScheduleWorkDays, setAutoScheduleWorkDays] = useState<
+    string | null
+  >(null);
+  const [availabilityBlockedDay, setAvailabilityBlockedDay] = useState<
+    string | null
+  >(null);
   const [userTimeZone, setUserTimeZone] = useState<string | null>(null);
   const [plan, setPlan] = useState<DailyPlanRecord | null>(null);
   const [moodEntries, setMoodEntries] = useState<DailyMoodEntry[]>([]);
@@ -253,6 +269,7 @@ export default function PlanPage() {
         planData,
         previousPlanData,
         settingsData,
+        autoScheduleData,
         userSettingsData,
         moodData,
       ] = await Promise.all([
@@ -271,6 +288,11 @@ export default function PlanPage() {
         fetch("/api/calendar-settings")
           .then((response) => expectJson<CalendarSettingsRecord>(response))
           .catch(() => null),
+        fetch("/api/auto-schedule-settings")
+          .then((response) =>
+            expectJson<AutoScheduleAvailabilityRecord>(response)
+          )
+          .catch(() => null),
         fetch("/api/user-settings").then((response) =>
           expectJson<UserSettingsRecord>(response)
         ),
@@ -284,6 +306,7 @@ export default function PlanPage() {
       setPreviousPlan(previousPlanData);
       setMoodEntries(moodData);
       setUserTimeZone(userSettingsData.timeZone);
+      setAutoScheduleWorkDays(autoScheduleData?.workDays ?? null);
       if (settingsData) {
         setWorkingHours({
           enabled: settingsData.workingHoursEnabled,
@@ -306,6 +329,10 @@ export default function PlanPage() {
   useEffect(() => {
     if (urlReady) void load();
   }, [load, urlReady]);
+
+  useEffect(() => {
+    setAvailabilityBlockedDay(null);
+  }, [selectedKey]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -769,6 +796,28 @@ export default function PlanPage() {
   };
 
   const autoSchedule = async (scope: "day" | "week") => {
+    setAvailabilityBlockedDay(null);
+    if (
+      scope === "day" &&
+      autoScheduleWorkDays &&
+      !isSchedulingDayEnabled(selectedKey, autoScheduleWorkDays)
+    ) {
+      const day = schedulingDayName(selectedKey);
+      setError(null);
+      setAvailabilityBlockedDay(day);
+      toast.info(`${day} isn't enabled for auto-scheduling`, {
+        description:
+          "Enable it in Scheduling availability, or place this task manually.",
+        action: {
+          label: "Change availability",
+          onClick: () => {
+            window.location.href = "/settings#auto-schedule";
+          },
+        },
+      });
+      return;
+    }
+
     const candidates = (scope === "day" ? todayTasks : weekTasks).filter(
       (task) => task.status !== "completed" && task.isAutoScheduled !== false
     );
@@ -995,6 +1044,20 @@ export default function PlanPage() {
         {error && (
           <div className="mb-5 rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
+          </div>
+        )}
+
+        {availabilityBlockedDay && (
+          <div className="mb-5 flex flex-col gap-2 rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {availabilityBlockedDay} isn&apos;t enabled for auto-scheduling.
+            </span>
+            <Link
+              href="/settings#auto-schedule"
+              className="shrink-0 font-semibold text-primary underline underline-offset-4"
+            >
+              Change scheduling availability
+            </Link>
           </div>
         )}
 

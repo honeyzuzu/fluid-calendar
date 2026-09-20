@@ -20,6 +20,10 @@ import {
   stringifyWorkDays,
 } from "@/lib/autoSchedule";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
+import {
+  SCHEDULING_PRESETS,
+  matchesSchedulingPreset,
+} from "@/lib/scheduling-presets";
 
 import { useCalendarStore } from "@/store/calendar";
 import { useSettingsStore } from "@/store/settings";
@@ -64,9 +68,49 @@ export function AutoScheduleSettings() {
 
   return (
     <SettingsSection
-      title="Auto-Schedule Settings"
-      description="Configure how tasks are automatically scheduled in your calendar."
+      title="Scheduling availability"
+      description="Choose when Sunnie may place tasks. Calendar events and sleep hours still protect time inside this availability."
     >
+      <SettingRow
+        label="Availability starting point"
+        description="Pick the rhythm closest to yours, then adjust any day or time below. This changes scheduling availability only—not the rest of Sunnie."
+      >
+        <div className="grid gap-2 sm:grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
+          {SCHEDULING_PRESETS.map((preset) => {
+            const selected = matchesSchedulingPreset(autoSchedule, preset);
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() =>
+                  updateAutoScheduleSettings({
+                    workDays: stringifyWorkDays(preset.days),
+                    workHourStart: preset.startHour,
+                    workHourEnd: preset.endHour,
+                  })
+                }
+                className={`rounded-xl border px-3 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  selected
+                    ? "border-primary bg-primary/10 text-foreground shadow-sm"
+                    : "border-border bg-card text-secondary-foreground hover:border-primary/45 hover:bg-accent/50"
+                }`}
+              >
+                <span className="block text-sm font-semibold">
+                  {preset.label}
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {preset.days.length === 7 ? "Every day" : "Monday–Friday"}
+                  {" · "}
+                  {formatTime(preset.startHour, user.timeFormat)}–
+                  {formatTime(preset.endHour, user.timeFormat)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </SettingRow>
+
       <SettingRow
         label="Calendars to Consider"
         description="Select which calendars to check for conflicts when auto-scheduling"
@@ -110,8 +154,8 @@ export function AutoScheduleSettings() {
       </SettingRow>
 
       <SettingRow
-        label="Working Hours"
-        description="Auto-scheduled tasks will stay completely inside these hours on your selected working days"
+        label="Scheduling hours"
+        description="Auto-scheduled tasks stay completely inside these hours on enabled days"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -162,7 +206,7 @@ export function AutoScheduleSettings() {
           </div>
 
           <div>
-            <Label>Working Days</Label>
+            <Label>Days Sunnie can schedule tasks</Label>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {workingDays.map((day) => (
                 <div key={day.value} className="flex items-center space-x-2">

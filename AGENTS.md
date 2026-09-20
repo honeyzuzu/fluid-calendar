@@ -285,6 +285,7 @@ server validation may still wait for confirmation.
 - `Schedule week` schedules the weekly pool inside the selected Sunday-Saturday window.
 - The older shared Tasks/Calendar auto-schedule control still schedules all eligible tasks across a rolling seven-day window.
 - Auto-scheduling respects selected working days and keeps the full task interval inside the user's local working hours. It also respects sleep hours, selected-calendar conflicts, task duration, priority, energy, preferred time, real buffer gaps, and locked schedules. Candidate starts use a stable 30-minute grid, and day/week requests cannot spill beyond their requested window.
+- Auto-Schedule settings describe these limits as scheduling availability and offer editable Workweek, School & study, and Flexible week starting points. Scheduling a disabled day explains why and links directly to availability settings instead of failing with generic no-slot guidance.
 - Successful scheduling actions identify the requested window, account time zone, first changed block, and protected conflicts/locked times. Their Undo restores only blocks that still match the scheduling result, so a later manual edit is never silently overwritten.
 - Placement scores remain internal scheduling data. Confidence/score percentages are intentionally not shown on mobile cards, task rows, task modals, or calendar task details.
 - Empty auto-schedule actions show clear guidance and the controls have explanatory hover content.
