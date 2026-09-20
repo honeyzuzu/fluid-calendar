@@ -89,4 +89,21 @@ describe("scheduling windows", () => {
       })
     ).toEqual([]);
   });
+
+  it("never offers a past time when scheduling the current day", () => {
+    const intervals = generateCandidateIntervals({
+      durationMinutes: 30,
+      startDate: new Date("2026-09-17T04:00:00.000Z"),
+      endDate: new Date("2026-09-18T04:00:00.000Z"),
+      timeZone: "America/New_York",
+      now: new Date("2026-09-17T14:50:00.000Z"), // 10:50 AM in New York
+    });
+
+    expect(intervals[0].start.toISOString()).toBe("2026-09-17T15:30:00.000Z");
+    expect(
+      intervals.every(
+        (interval) => interval.start > new Date("2026-09-17T14:50:00.000Z")
+      )
+    ).toBe(true);
+  });
 });

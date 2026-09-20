@@ -2,8 +2,9 @@ import type { CalendarEvent, Task } from "@prisma/client";
 
 const DEFAULT_TASK_DURATION = 30;
 
-/** Automatic refreshes should keep a task's current slot unless the slot is
- * over, its duration changed, or a selected calendar now occupies that time. */
+/** Automatic refreshes keep only future task slots that still fit. An
+ * unfinished task whose start time has passed must be placed again rather than
+ * left at a time the user can no longer begin. */
 export function needsBackgroundReschedule(
   task: Pick<Task, "scheduledStart" | "scheduledEnd" | "duration">,
   now: Date,
@@ -15,8 +16,7 @@ export function needsBackgroundReschedule(
   bufferMinutes: number
 ) {
   const { scheduledStart: start, scheduledEnd: end } = task;
-  if (!start || !end || end <= now) return true;
-  if (start < now) return false; // Leave an ongoing task in place.
+  if (!start || !end || start < now || end <= now) return true;
   if (
     end.getTime() - start.getTime() !==
     (task.duration || DEFAULT_TASK_DURATION) * 60_000

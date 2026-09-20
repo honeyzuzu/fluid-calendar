@@ -56,6 +56,23 @@ describe("automatic scheduling", () => {
     ).toBe(true);
   });
 
+  it("moves an unfinished task whose start time has already passed", () => {
+    expect(
+      needsBackgroundReschedule(
+        {
+          ...task,
+          scheduledStart: new Date("2026-09-17T11:00:00.000Z"),
+          scheduledEnd: new Date("2026-09-17T13:00:00.000Z"),
+          duration: 120,
+        },
+        now,
+        [],
+        new Set(),
+        0
+      )
+    ).toBe(true);
+  });
+
   it("moves a task only when its duration or a real calendar conflict changes", () => {
     expect(
       needsBackgroundReschedule(
