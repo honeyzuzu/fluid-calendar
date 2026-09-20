@@ -35,8 +35,14 @@ import { cn } from "@/lib/utils";
 
 import { useSettingsStore } from "@/store/settings";
 
-import { Task, TimePreference } from "@/types/task";
-import { TaskStatus } from "@/types/task";
+import { Priority, Task, TaskStatus } from "@/types/task";
+
+import {
+  energyLevelColors,
+  formatEnumValue,
+  priorityColors,
+  timePreferenceColors,
+} from "../utils/task-list-utils";
 
 interface BoardTaskProps {
   task: Task;
@@ -44,27 +50,6 @@ interface BoardTaskProps {
   onDelete: (taskId: string) => void;
   onStatusChange?: (taskId: string, status: TaskStatus) => void;
 }
-
-const energyLevelColors = {
-  high: "bg-destructive/15 text-destructive",
-  medium: "bg-warning/15 text-warning",
-  low: "bg-success/15 text-success",
-};
-
-const timePreferenceColors = {
-  [TimePreference.MORNING]: "bg-secondary text-secondary-foreground",
-  [TimePreference.AFTERNOON]: "bg-accent/30 text-accent-foreground",
-  [TimePreference.EVENING]: "bg-primary/15 text-primary",
-};
-
-// Helper function to format enum values for display
-const formatEnumValue = (value: string) => {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
 
 const formatContextualDate = (date: Date) => {
   const localDate = newDateFromYMD(
@@ -263,6 +248,17 @@ export function BoardTask({
               </span>
             )}
 
+            {task.priority && task.priority !== Priority.NONE && (
+              <span
+                className={cn(
+                  "rounded-full px-2 py-1",
+                  priorityColors[task.priority]
+                )}
+              >
+                Priority: {formatEnumValue(task.priority)}
+              </span>
+            )}
+
             {task.energyLevel && (
               <span
                 className={cn(
@@ -270,7 +266,7 @@ export function BoardTask({
                   energyLevelColors[task.energyLevel]
                 )}
               >
-                {formatEnumValue(task.energyLevel)}
+                Energy: {formatEnumValue(task.energyLevel)}
               </span>
             )}
 
