@@ -129,10 +129,10 @@ export async function middleware(request: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET,
       });
 
-      // Redirect authenticated users to /calendar, unauthenticated to /auth/signin
+      // Open the action-first daily view for authenticated users.
       if (token) {
         return NextResponse.redirect(
-          publicRequestUrl(request, "/calendar", "")
+          publicRequestUrl(request, "/today", "")
         );
       } else {
         return NextResponse.redirect(

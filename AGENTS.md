@@ -1,6 +1,14 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-17
+Last updated: 2026-09-21
+
+## Action-first Today experience (implemented locally September 21, 2026)
+
+Authenticated entry points and the Sunnie brand link now lead to `/today`. The first screen shows the next committed task, a direct Focus link, the finite commitment count, one-tap low-energy mode, and a one-line backlog capture. Detailed Plan remains under More, while Calendar, Tasks, and Focus remain primary destinations. The global intention banner and scheduled ritual prompt stay quiet on Today so they do not block an immediate action.
+
+`DailyPlan` stores `committedTaskIds`, `commitmentSetAt`, `energyMode`, `recoveryMinutes`, and the IDs and release time of tasks deferred by low-energy mode. The daily-plan PUT validates every committed task against the authenticated owner. The first visit to a day creates a stable commitment from unfinished tasks, due dates, priority, energy fit, meetings, scheduling availability, and a conservative buffer. Today and its server energy action prefer the configured Auto-Schedule days/hours, falling back to Calendar working hours only when those settings are absent. After the working window ends, the recommender does not add tasks for the evening. A manual energy change recalculates the commitment while keeping completed work and preserving one essential unfinished task when it fits. Captured thoughts remain outside the commitment and have automatic scheduling disabled.
+
+Low-energy changes go through `/api/daily-plan/energy` in one database transaction. The action books a 30-minute recovery event in a dedicated local Sunnie calendar when a conflict-free slot fits before work ends. It removes eligible unfinished, unlocked, auto-scheduled task blocks with no provider push and no due-today/high-priority deadline from today, postponing their scheduling eligibility until the next configured workday. Eligible low-energy committed tasks are placed after recovery when a slot fits. Turning normal mode back on makes previously deferred tasks available again if their placement has not since changed; it does not silently restore stale calendar slots. Locked or externally pushed blocks are never changed by this action and are flagged on Today for review. Recovery never spills into the evening. Apply both checked-in daily commitment/energy migrations before serving this version against an existing database.
 
 ## Product Goal
 

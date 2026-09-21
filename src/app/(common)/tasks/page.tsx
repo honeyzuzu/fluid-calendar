@@ -20,9 +20,12 @@ import { Button } from "@/components/ui/button";
 import { SunnieSkeleton } from "@/components/ui/sunnie";
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
+import { dateKeyInTimeZone } from "@/lib/daily-intention";
+
 import { useAutoSchedule } from "@/hooks/use-auto-schedule";
 
 import { useProjectStore } from "@/store/project";
+import { useSettingsStore } from "@/store/settings";
 import { useTaskStore } from "@/store/task";
 import { useTaskModalStore } from "@/store/taskModal";
 
@@ -58,6 +61,18 @@ export default function TasksPage() {
     string | null | undefined
   >(undefined);
   const handleAutoSchedule = useAutoSchedule();
+  const timeZone = useSettingsStore((state) => state.user.timeZone);
+  const todayKey = dateKeyInTimeZone(new Date(), timeZone);
+  const completedTodayTasks = tasks.filter(
+    (task) =>
+      task.status === TaskStatus.COMPLETED &&
+      task.completedAt &&
+      dateKeyInTimeZone(new Date(task.completedAt), timeZone) === todayKey &&
+      (!activeProject ||
+        (activeProject.id === "no-project"
+          ? !task.projectId
+          : task.projectId === activeProject.id))
+  );
 
   // Fetch tasks and tags on mount
   useEffect(() => {
@@ -182,34 +197,16 @@ export default function TasksPage() {
           <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 flex-col items-start gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                  Little things, lovingly planned
-                </p>
                 <h1 className="text-2xl font-bold tracking-[-0.04em] text-foreground">
                   Tasks
                 </h1>
                 {workspace === "tasks" && (
-                  <>
-                    <Link
-                      href="/plan#weekly-review"
-                      className="text-xs font-medium text-primary underline"
-                    >
-                      Weekly review & completed history
-                    </Link>
-                    <p
-                      id="auto-schedule-description"
-                      className="mt-1 max-w-xl text-xs text-muted-foreground"
-                    >
+                  <div className="sr-only">
+                    <p id="auto-schedule-description">
                       Auto-schedule fits unfinished tasks into free time during
                       the next 7 days. New tasks are included by default.
-                      <Link
-                        href="/settings#auto-schedule"
-                        className="ml-1 font-medium text-primary hover:underline"
-                      >
-                        Adjust its rules.
-                      </Link>
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
               <div
@@ -285,45 +282,25 @@ export default function TasksPage() {
           {workspace === "tasks" && (
             <details className="mx-auto mt-3 w-full max-w-[1480px] rounded-xl border border-border bg-muted px-3 py-2 text-sm">
               <summary className="cursor-pointer font-medium">
-                Completed today (
-                {
-                  tasks.filter(
-                    (task) =>
-                      task.status === TaskStatus.COMPLETED &&
-                      (!activeProject ||
-                        (activeProject.id === "no-project"
-                          ? !task.projectId
-                          : task.projectId === activeProject.id))
-                  ).length
-                }
-                )
+                Completed today ({completedTodayTasks.length})
               </summary>
               <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
-                {tasks
-                  .filter(
-                    (task) =>
-                      task.status === TaskStatus.COMPLETED &&
-                      (!activeProject ||
-                        (activeProject.id === "no-project"
-                          ? !task.projectId
-                          : task.projectId === activeProject.id))
-                  )
-                  .map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-start justify-between gap-3"
+                {completedTodayTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <span className="min-w-0 break-words">{task.title}</span>
+                    <button
+                      className="shrink-0 text-xs underline"
+                      onClick={() =>
+                        void handleStatusChange(task.id, TaskStatus.TODO)
+                      }
                     >
-                      <span className="min-w-0 break-words">{task.title}</span>
-                      <button
-                        className="shrink-0 text-xs underline"
-                        onClick={() =>
-                          void handleStatusChange(task.id, TaskStatus.TODO)
-                        }
-                      >
-                        Undo
-                      </button>
-                    </div>
-                  ))}
+                      Undo
+                    </button>
+                  </div>
+                ))}
               </div>
               <Link
                 href="/plan#weekly-review"

@@ -78,7 +78,7 @@ export function DailyIntentionBanner() {
     };
   }, [load, today]);
 
-  if (status !== "authenticated" || !loaded || pathname === "/plan")
+  if (status !== "authenticated" || !loaded || pathname === "/plan" || pathname === "/today")
     return null;
 
   return (

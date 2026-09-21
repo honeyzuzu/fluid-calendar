@@ -153,14 +153,14 @@ export function FocusSession({
 }: FocusSessionProps) {
   const [hydrated, setHydrated] = useState(false);
   const [phase, setPhase] = useState<FocusPhase>("setup-ready");
-  const [setupMinutes, setSetupMinutes] = useState(5);
+  const [setupMinutes, setSetupMinutes] = useState(0);
   const [focusMinutes, setFocusMinutes] = useState(() =>
     FOCUS_DURATIONS.some((minutes) => minutes === estimatedMinutes)
       ? estimatedMinutes!
       : 25
   );
   const [breakMinutes, setBreakMinutes] = useState(5);
-  const [remainingSeconds, setRemainingSeconds] = useState(5 * 60);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
@@ -236,7 +236,7 @@ export function FocusSession({
         const saved = JSON.parse(storedSession) as Partial<PersistedFocusState>;
         if (saved.taskId === taskId && saved.phase) {
           setPhase(saved.phase);
-          setSetupMinutes(saved.setupMinutes ?? 5);
+          setSetupMinutes(saved.setupMinutes ?? 0);
           setFocusMinutes(saved.focusMinutes || 25);
           setBreakMinutes(saved.breakMinutes || 5);
           setChecklist(saved.checklist || {});
@@ -578,9 +578,9 @@ export function FocusSession({
 
   return (
     <section className="mb-5 overflow-hidden rounded-3xl border border-border bg-card shadow-[0_7px_0_var(--sunnie-border)]">
-      <div className="sunnie-focus-hero grid gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
+      <div className="sunnie-focus-hero flex items-center gap-3 p-3 sm:grid sm:grid-cols-[auto_1fr_auto] sm:gap-4 sm:p-5">
         <div
-          className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border-4 border-white text-5xl shadow-md transition-transform duration-500 hover:rotate-2 hover:scale-105 motion-reduce:transform-none"
+          className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-white text-3xl shadow-md transition-transform duration-500 hover:rotate-2 hover:scale-105 motion-reduce:transform-none sm:h-20 sm:w-20 sm:rounded-[1.7rem] sm:border-4 sm:text-5xl"
           style={{ backgroundColor: selectedPet.color }}
         >
           {usesCustomPet ? (
@@ -595,30 +595,30 @@ export function FocusSession({
             <span aria-hidden="true">{selectedPet.emoji}</span>
           )}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
+            <p className="hidden text-[10px] font-bold uppercase tracking-[0.15em] text-primary sm:block">
               Focus companion
             </p>
             <span
               key={sunDrops}
-              className="inline-flex animate-[sunnie-sun-pop_900ms_cubic-bezier(0.2,0.75,0.25,1)] items-center gap-1 rounded-full bg-card/70 px-2 py-1 text-[10px] font-bold text-primary motion-reduce:animate-none"
+              className="hidden animate-[sunnie-sun-pop_900ms_cubic-bezier(0.2,0.75,0.25,1)] items-center gap-1 rounded-full bg-card/70 px-2 py-1 text-[10px] font-bold text-primary motion-reduce:animate-none sm:inline-flex"
             >
               <Sun className="h-3 w-3 fill-[var(--sunnie-warm-glow)] text-primary" />
               {sunDrops} sun {sunDrops === 1 ? "drop" : "drops"}
             </span>
           </div>
-          <h3 className="mt-1 text-lg font-bold text-foreground">
+          <h3 className="text-base font-bold text-foreground sm:mt-1 sm:text-lg">
             {displayPetName}
           </h3>
-          <p className="mt-0.5 text-sm leading-relaxed text-secondary-foreground">
+          <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-secondary-foreground sm:text-sm sm:leading-relaxed">
             {displayMessage}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setSoundEnabled((current) => !current)}
-          className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-card/65 px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-card"
+          className="hidden w-fit items-center gap-1.5 rounded-xl bg-card/65 px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-card sm:inline-flex"
           title={soundEnabled ? "Timer chimes are on" : "Timer chimes are off"}
         >
           {soundEnabled ? (
@@ -656,15 +656,15 @@ export function FocusSession({
         )}
       </div>
 
-      <div className="p-4 sm:p-5">
+      <div className="p-3 sm:p-5">
         {(phase === "setup-ready" || phase === "focus-ready") && (
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-                  Plan your whole round
+                  Ready when you are
                 </p>
-                <h3 className="mt-1 text-lg font-bold text-foreground">
+                <h3 className="mt-1 text-base font-bold text-foreground sm:text-lg">
                   {setupMinutes === 0
                     ? "Start focusing whenever you're ready"
                     : "Setup first, then Sunnie starts focus automatically"}
@@ -672,83 +672,15 @@ export function FocusSession({
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground">
+            <div className="mt-3 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground sm:mt-4">
               {setupMinutes === 0 ? "No setup" : `${setupMinutes} min setup`} →{" "}
               {focusMinutes} min focus → {breakMinutes} min break
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <DurationPicker
-                label="Setup"
-                values={SETUP_DURATIONS}
-                value={setupMinutes}
-                onChange={setSetupMinutes}
-              />
-              <DurationPicker
-                label="Focus"
-                values={FOCUS_DURATIONS}
-                value={focusMinutes}
-                onChange={setFocusMinutes}
-              />
-              <DurationPicker
-                label="Break after"
-                values={BREAK_DURATIONS}
-                value={breakMinutes}
-                onChange={setBreakMinutes}
-              />
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {SETUP_CHECKLIST.map((item) => {
-                const checked = Boolean(checklist[item.id]);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() =>
-                      setChecklist((current) => ({
-                        ...current,
-                        [item.id]: !current[item.id],
-                      }))
-                    }
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left text-xs font-semibold transition",
-                      checked
-                        ? "border-primary/45 bg-muted text-secondary-foreground"
-                        : "border-border bg-card/70 text-muted-foreground"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "grid h-5 w-5 shrink-0 place-items-center rounded-full border",
-                        checked
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border"
-                      )}
-                    >
-                      {checked && <Check className="h-3 w-3" />}
-                    </span>
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <label className="mt-3 block text-xs font-bold text-secondary-foreground">
-              Tiny subtask outline
-              <textarea
-                value={subtaskPlan}
-                onChange={(event) => setSubtaskPlan(event.target.value)}
-                placeholder="What are the next 2–3 concrete steps?"
-                rows={2}
-                className="mt-1.5 w-full resize-none rounded-2xl border border-border bg-card/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/35"
-              />
-            </label>
-
             <button
               type="button"
               onClick={startPlannedRound}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] hover:brightness-95 sm:w-auto"
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] hover:brightness-95 sm:mt-4 sm:w-auto"
             >
               {setupMinutes === 0 ? (
                 <Play className="h-4 w-4 fill-current" />
@@ -757,6 +689,80 @@ export function FocusSession({
               )}
               {setupMinutes === 0 ? "Start focus" : "Start setup, then focus"}
             </button>
+
+            <details className="mt-4 rounded-2xl border border-border bg-card/65 p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-secondary-foreground">
+                Adjust timer and setup
+              </summary>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <DurationPicker
+                  label="Setup"
+                  values={SETUP_DURATIONS}
+                  value={setupMinutes}
+                  onChange={setSetupMinutes}
+                />
+                <DurationPicker
+                  label="Focus"
+                  values={FOCUS_DURATIONS}
+                  value={focusMinutes}
+                  onChange={setFocusMinutes}
+                />
+                <DurationPicker
+                  label="Break after"
+                  values={BREAK_DURATIONS}
+                  value={breakMinutes}
+                  onChange={setBreakMinutes}
+                />
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {SETUP_CHECKLIST.map((item) => {
+                  const checked = Boolean(checklist[item.id]);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        setChecklist((current) => ({
+                          ...current,
+                          [item.id]: !current[item.id],
+                        }))
+                      }
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left text-xs font-semibold transition",
+                        checked
+                          ? "border-primary/45 bg-muted text-secondary-foreground"
+                          : "border-border bg-card/70 text-muted-foreground"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid h-5 w-5 shrink-0 place-items-center rounded-full border",
+                          checked
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border"
+                        )}
+                      >
+                        {checked && <Check className="h-3 w-3" />}
+                      </span>
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <label className="mt-3 block text-xs font-bold text-secondary-foreground">
+                Tiny subtask outline
+                <textarea
+                  value={subtaskPlan}
+                  onChange={(event) => setSubtaskPlan(event.target.value)}
+                  placeholder="What are the next 2–3 concrete steps?"
+                  rows={2}
+                  className="mt-1.5 w-full resize-none rounded-2xl border border-border bg-card/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/35"
+                />
+              </label>
+            </details>
           </div>
         )}
 

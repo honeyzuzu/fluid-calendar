@@ -129,6 +129,12 @@ model DailyPlan {
   id                String    @id @default(cuid())
   date              DateTime  @db.Date
   intention         String?
+  committedTaskIds  String[]  @default([])
+  commitmentSetAt   DateTime?
+  energyMode        String    @default("normal")
+  recoveryMinutes   Int       @default(0)
+  deferredTaskIds   String[]  @default([])
+  deferredUntilAt   DateTime?
   completedAt       DateTime?
   dayVibe           String?
   unwindReflection  String    @default("")

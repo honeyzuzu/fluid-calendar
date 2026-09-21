@@ -22,11 +22,11 @@ describe("Sunnie display first paint", () => {
       expect.objectContaining({
         colorTheme: "winter-candlelight-snow",
         calendarStyle: "bujo",
-        calendarGrid: "graph-paper",
+        calendarGrid: "dot-grid",
         sunnieMotion: "reduced",
       })
     );
-    expect(snapshot.variables["--sunnie-canvas"]).toBe("#E9EDF3");
+    expect(snapshot.variables["--sunnie-canvas"]).toBe("#F0EFEB");
   });
 
   it("emits root-safe data attribute names", () => {

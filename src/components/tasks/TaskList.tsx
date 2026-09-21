@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { X as HiX } from "lucide-react";
 
@@ -59,6 +59,7 @@ export function TaskList({
     resetFilters,
   } = useTaskListViewSettings();
   const { activeProject } = useProjectStore();
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const handleSort = (column: typeof sortBy) => {
     if (sortBy === column) {
@@ -170,16 +171,36 @@ export function TaskList({
     });
   }, [filteredTasks, sortBy, sortDirection]);
 
-  const hasActiveFilters =
-    status?.length ||
-    energyLevel?.length ||
-    timePreference?.length ||
-    tagIds?.length ||
-    search;
+  const hasDefaultStatus =
+    status?.length === 2 &&
+    status.includes(TaskStatus.TODO) &&
+    status.includes(TaskStatus.IN_PROGRESS);
+  const hasActiveFilters = Boolean(
+    !hasDefaultStatus ||
+      energyLevel?.length ||
+      timePreference?.length ||
+      tagIds?.length ||
+      search ||
+      hideUpcomingTasks
+  );
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card/80 p-3 shadow-[var(--shadow-paper)] xl:flex xl:items-center xl:gap-3">
+      <button
+        type="button"
+        onClick={() => setShowMobileFilters((current) => !current)}
+        aria-expanded={showMobileFilters}
+        className="mb-3 min-h-10 self-start rounded-xl border border-border bg-card px-4 text-sm font-semibold text-secondary-foreground lg:hidden"
+      >
+        {showMobileFilters
+          ? "Hide filters"
+          : hasActiveFilters
+            ? "Filters active"
+            : "Filters"}
+      </button>
+      <div
+        className={`${showMobileFilters ? "grid" : "hidden"} mb-4 grid-cols-2 gap-2 rounded-2xl border border-border bg-card/80 p-3 shadow-[var(--shadow-paper)] lg:grid xl:flex xl:items-center xl:gap-3`}
+      >
         <StatusFilter
           value={status || []}
           onChange={(value) => setFilters({ status: value })}

@@ -43,6 +43,9 @@ export async function PUT(request: NextRequest) {
     dayVibe?: unknown;
     unwindReflection?: unknown;
     unwindCompleted?: unknown;
+    committedTaskIds?: unknown;
+    energyMode?: unknown;
+    recoveryMinutes?: unknown;
   };
   const date = parsePlanDate(body.date);
   if (!date) {
@@ -92,6 +95,54 @@ export async function PUT(request: NextRequest) {
       { status: 400 }
     );
   }
+  if (
+    body.committedTaskIds !== undefined &&
+    (!Array.isArray(body.committedTaskIds) ||
+      body.committedTaskIds.length > 12 ||
+      body.committedTaskIds.some(
+        (id: unknown) => typeof id !== "string" || !id.trim()
+      ) ||
+      new Set(body.committedTaskIds).size !== body.committedTaskIds.length)
+  ) {
+    return NextResponse.json(
+      { error: "Choose up to 12 distinct tasks for today" },
+      { status: 400 }
+    );
+  }
+  if (
+    body.energyMode !== undefined &&
+    body.energyMode !== "normal" &&
+    body.energyMode !== "low"
+  ) {
+    return NextResponse.json(
+      { error: "Choose a valid energy setting" },
+      { status: 400 }
+    );
+  }
+  if (
+    body.recoveryMinutes !== undefined &&
+    (!Number.isInteger(body.recoveryMinutes) ||
+      (body.recoveryMinutes as number) < 0 ||
+      (body.recoveryMinutes as number) > 120)
+  ) {
+    return NextResponse.json(
+      { error: "Recovery time must be between 0 and 120 minutes" },
+      { status: 400 }
+    );
+  }
+
+  const committedTaskIds = body.committedTaskIds as string[] | undefined;
+  if (committedTaskIds?.length) {
+    const ownedCount = await prisma.task.count({
+      where: { userId: auth.userId, id: { in: committedTaskIds } },
+    });
+    if (ownedCount !== committedTaskIds.length) {
+      return NextResponse.json(
+        { error: "One or more tasks are unavailable" },
+        { status: 400 }
+      );
+    }
+  }
 
   const intention =
     typeof body.intention === "string"
@@ -126,6 +177,12 @@ export async function PUT(request: NextRequest) {
       userId: auth.userId,
       date,
       intention: intention ?? null,
+      committedTaskIds: committedTaskIds ?? [],
+      commitmentSetAt: committedTaskIds !== undefined ? new Date() : null,
+      energyMode:
+        typeof body.energyMode === "string" ? body.energyMode : "normal",
+      recoveryMinutes:
+        typeof body.recoveryMinutes === "number" ? body.recoveryMinutes : 0,
       completedAt: completedAt ?? null,
       dayVibe: dayVibe ?? null,
       unwindReflection: unwindReflection ?? "",
@@ -133,6 +190,16 @@ export async function PUT(request: NextRequest) {
     },
     update: {
       ...(intention !== undefined && { intention }),
+      ...(committedTaskIds !== undefined && {
+        committedTaskIds,
+        commitmentSetAt: new Date(),
+      }),
+      ...(body.energyMode !== undefined && {
+        energyMode: body.energyMode as string,
+      }),
+      ...(body.recoveryMinutes !== undefined && {
+        recoveryMinutes: body.recoveryMinutes as number,
+      }),
       ...(completedAt !== undefined && { completedAt }),
       ...(dayVibe !== undefined && { dayVibe }),
       ...(unwindReflection !== undefined && { unwindReflection }),

@@ -9,6 +9,7 @@ jest.mock("@/lib/auth/api-auth", () => ({ authenticateRequest: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     dailyPlan: { findUnique: jest.fn(), upsert: jest.fn() },
+    task: { count: jest.fn() },
   },
 }));
 
@@ -86,6 +87,52 @@ it("rejects invalid ritual values", async () => {
   ).toBe(400);
   expect(
     (await PUT(request({ date: "2026-09-12", unwindCompleted: "yes" })))!.status
+  ).toBe(400);
+  expect(prisma.dailyPlan.upsert).not.toHaveBeenCalled();
+});
+
+it("saves only owned tasks in a daily commitment", async () => {
+  (prisma.task.count as jest.Mock).mockResolvedValue(2);
+  expect(
+    (await PUT(
+      request({
+        date: "2026-09-21",
+        committedTaskIds: ["first", "second"],
+        energyMode: "low",
+        recoveryMinutes: 30,
+      })
+    ))!.status
+  ).toBe(200);
+  expect(prisma.task.count).toHaveBeenCalledWith({
+    where: { userId: "owner", id: { in: ["first", "second"] } },
+  });
+  expect(prisma.dailyPlan.upsert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      update: expect.objectContaining({
+        committedTaskIds: ["first", "second"],
+        commitmentSetAt: expect.any(Date),
+        energyMode: "low",
+        recoveryMinutes: 30,
+      }),
+    })
+  );
+});
+
+it("rejects foreign, duplicate, and invalid commitment tasks", async () => {
+  (prisma.task.count as jest.Mock).mockResolvedValue(1);
+  expect(
+    (await PUT(
+      request({ date: "2026-09-21", committedTaskIds: ["first", "foreign"] })
+    ))!.status
+  ).toBe(400);
+  expect(
+    (await PUT(
+      request({ date: "2026-09-21", committedTaskIds: ["same", "same"] })
+    ))!.status
+  ).toBe(400);
+  expect(
+    (await PUT(request({ date: "2026-09-21", energyMode: "exhausted" })))!
+      .status
   ).toBe(400);
   expect(prisma.dailyPlan.upsert).not.toHaveBeenCalled();
 });

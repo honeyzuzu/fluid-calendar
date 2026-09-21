@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -10,6 +10,7 @@ import { SunnieSkeleton } from "@/components/ui/sunnie";
 import { cn } from "@/lib/utils";
 
 import { useFocusModeStore } from "@/store/focusMode";
+import { useTaskStore } from "@/store/task";
 
 import { FocusedTask } from "./FocusedTask";
 import { TaskQueue } from "./TaskQueue";
@@ -17,6 +18,9 @@ import { TaskQueue } from "./TaskQueue";
 export function FocusMode() {
   const [mounted, setMounted] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(true);
+  const selectedFromUrl = useRef(false);
+  const tasks = useTaskStore((state) => state.tasks);
+  const switchToTask = useFocusModeStore((state) => state.switchToTask);
 
   // Add hydration safety
   const {
@@ -34,6 +38,21 @@ export function FocusMode() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (selectedFromUrl.current) return;
+    const taskId = new URLSearchParams(window.location.search).get("taskId");
+    if (!taskId) {
+      selectedFromUrl.current = true;
+      return;
+    }
+    if (
+      tasks.some((task) => task.id === taskId && task.status !== "completed")
+    ) {
+      switchToTask(taskId);
+      selectedFromUrl.current = true;
+    }
+  }, [switchToTask, tasks]);
 
   // If not mounted yet, render a simple loading state
   if (!mounted) {

@@ -12,6 +12,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Sun,
   UsersRound,
 } from "lucide-react";
 
@@ -57,10 +58,10 @@ export function AppNav({ className }: AppNavProps) {
 
   const links = [
     {
-      href: "/plan",
-      label: "Plan",
-      mobileLabel: "Plan",
-      icon: Sparkles,
+      href: "/today",
+      label: "Today",
+      mobileLabel: "Today",
+      icon: Sun,
     },
     {
       href: "/calendar",
@@ -77,6 +78,7 @@ export function AppNav({ className }: AppNavProps) {
     },
   ];
   const moreLinks = [
+    { href: "/plan", label: "Detailed Plan", icon: Sparkles },
     { href: "/friends", label: "Friends", icon: UsersRound },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
@@ -95,10 +97,10 @@ export function AppNav({ className }: AppNavProps) {
           <div className="flex min-h-16 items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-1 xl:gap-3">
               <Link
-                href="/calendar"
+                href="/today"
                 className={cn(
                   "mr-2 flex shrink-0 items-center gap-2 xl:mr-4",
-                  pathname === "/calendar"
+                  pathname === "/today"
                     ? "text-primary"
                     : "text-foreground hover:text-primary"
                 )}

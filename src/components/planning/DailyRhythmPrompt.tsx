@@ -48,6 +48,7 @@ export function DailyRhythmPrompt() {
       pathname.startsWith("/auth") ||
       pathname === "/setup" ||
       pathname === "/plan" ||
+      pathname === "/today" ||
       pathname.startsWith("/preview")
     ) {
       setKind(null);

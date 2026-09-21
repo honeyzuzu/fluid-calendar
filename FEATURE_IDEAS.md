@@ -92,3 +92,10 @@ We can fill these in together. A rough bullet is enough to begin.
   - **Implemented:** Plan now compares task estimates and non-overlapping timed commitments from enabled calendars with the selected day’s configured working hours. The meter moves from green to amber to coral and gives gentle guidance when the plan is nearly full or over capacity. All-day events, cancelled events, and mirrored task blocks are not double-counted; non-working days remain intentionally open-ended.
 
 See [the current work queue](@TODO.md) for selected tasks and [AGENTS.md](AGENTS.md) for existing features.
+
+## Enough for Today
+
+- **Original thought:** “Today's commitment: 3/3 ✓” should replace the feeling of “4 / 19 tasks completed.” The other tasks still exist; they are simply “not today's problem.” When the realistic commitment is complete, Sunnie can say, “You've done enough. Go live your life.”
+- **Low-energy day:** A poor night of sleep should reduce deep-work capacity, preserve essential focus, make room for recovery, and avoid pushing unfinished work into the evening. A nap should belong in Sunnie as recovery, without becoming a habit or a failed task.
+- **Implemented locally:** `/today` is the action-first entrance. It stores a finite set of committed task IDs in `DailyPlan`, chooses a conservative first set from due dates, priority, scheduled time, working hours, meetings, and an explicit buffer, and keeps the backlog out of the progress count. One tap switches to a lower-energy commitment, books a local recovery block when time fits, defers eligible flexible task blocks to the next workday, and places eligible low-energy work after recovery. Quick capture saves a thought for later without a deadline or automatic time block. Connected and locked calendar blocks stay visible for review.
+- **Further refinement:** Calibrate estimates from real completion history and add a preview before changing provider-synced calendar blocks if that workflow is ever enabled.

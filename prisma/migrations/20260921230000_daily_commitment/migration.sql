@@ -1,0 +1,5 @@
+ALTER TABLE "DailyPlan"
+  ADD COLUMN "committedTaskIds" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN "commitmentSetAt" TIMESTAMP(3),
+  ADD COLUMN "energyMode" TEXT NOT NULL DEFAULT 'normal',
+  ADD COLUMN "recoveryMinutes" INTEGER NOT NULL DEFAULT 0;

@@ -19,7 +19,7 @@ export function LegacyOpenSourceHomePage() {
 
   const handleLogin = () => {
     if (session) {
-      router.push("/calendar");
+      router.push("/today");
     } else {
       router.push("/auth/signin");
     }
