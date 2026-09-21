@@ -1,11 +1,12 @@
 # Sunnie work queue
 
-Last reviewed: 2026-09-20.
+Last reviewed: 2026-09-21.
 
 Use this file for concrete work we have chosen to do. Put rough feature thoughts in [FEATURE_IDEAS.md](FEATURE_IDEAS.md), and consult [AGENTS.md](AGENTS.md) for what already exists.
 
 ## Current work
 
+- [x] **Enough for Today shipped in `2a0ddf3`.** Sunnie opens on `/today` with a saved, finite daily commitment; a next task and direct Focus path; one-line backlog capture; and a compact mobile Focus start. Low-energy mode reduces the commitment, books local recovery inside working hours when a slot fits, removes eligible flexible blocks from today until the next workday, and puts eligible low-energy work after recovery. Due-today, locked, and externally pushed blocks remain visible for a decision. The detailed Plan, Calendar, and task tools remain available on demand. Both database migrations, the full unit suite, lint, type checking, the production build, and signed-in mobile browser flow passed before deployment.
 - [x] Scheduling availability presets shipped in `183bfd9`. Auto-scheduling offers editable Workweek, School & study, and Flexible week starting points rather than permanent student/full-time modes. Disabled-day scheduling now explains the selected day is unavailable and links directly to the relevant Settings section. This completes the selected weekend/student-scheduling idea in [FEATURE_IDEAS.md](FEATURE_IDEAS.md); per-day time windows remain a possible later data-model enhancement.
 - [x] Pinterest-inspired colorway and stationery first version implemented in this worktree. The goal is a cuter, more natural, hand-drawn planner. Completion: refresh all five app surface palettes without changing saved theme or item-slot IDs; separate tape pattern from the washi material; offer botanical, floral, striped, kraft, and starry treatments plus a reusable paper-label item; expose the new primitives in Theme Lab and verify type, lint, color contrast, and visual layout. This continues the visual-world idea in [FEATURE_IDEAS.md](FEATURE_IDEAS.md). Future owner review can decide which materials should become personal settings and which additional stickers to draw.
 - [x] Focus timer phase controls clarified in the current worktree. Setup can be skipped with a saved 0-minute choice or advanced with “Ready to start”; an active focus round now separates completing the task early from ending the timer while leaving the task open; break and setup exit labels describe their actual effects.
