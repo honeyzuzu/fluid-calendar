@@ -5,13 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       title:
-        description: Feature name
+        description: User-facing headline
         required: true
-        default: Sunnie Planner update
       details:
-        description: What changed
-        required: false
-        default: A new improvement is ready to try.
+        description: What people can do differently (plain language)
+        required: true
 
 permissions:
   contents: read
@@ -24,124 +22,10 @@ jobs:
     env:
       DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
     steps:
-      - name: Check whether this is a user-facing update
-        id: gate
-        uses: actions/github-script@v7
-        with:
-          script: |
-            if (context.eventName === "workflow_dispatch") {
-              core.setOutput("announce", "true");
-              core.setOutput("preview_url", "https://sunnie-planner-prod.up.railway.app/preview/plan");
-              return;
-            }
-
-            const sha = context.payload.deployment?.sha || context.sha;
-            const commit = await github.rest.repos.getCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: sha,
-            });
-            const title = commit.data.commit.message.split("\n")[0];
-            const files = commit.data.files ?? [];
-            const automationOnly = files.length > 0
-              && files.every((file) => file.filename.startsWith(".github/"));
-            const explicitlySkipped = title.includes("[skip discord]");
-
-            if (automationOnly || explicitlySkipped) {
-              core.info("Skipping Discord: this deployment only changes automation.");
-              core.setOutput("announce", "false");
-              return;
-            }
-
-            core.setOutput("announce", "true");
-            const brainDumpUpdate = files.some((file) =>
-              file.filename.includes("brain-dump")
-            );
-            const calendarUpdate = files.some((file) =>
-              file.filename.startsWith("src/components/calendar/") ||
-              file.filename.startsWith("src/app/(common)/calendar/")
-            );
-            const onboardingUpdate = files.some((file) =>
-              file.filename.includes("onboarding")
-            );
-            const focusUpdate = files.some((file) =>
-              file.filename.startsWith("src/components/focus/") ||
-              file.filename.startsWith("src/app/(common)/focus/")
-            );
-            const planUpdate = files.some((file) =>
-              file.filename.startsWith("src/app/(common)/plan/") ||
-              file.filename.startsWith("src/components/planning/")
-            );
-            const dailyRhythmUpdate = files.some((file) =>
-              file.filename.includes("DailyRhythm") ||
-              file.filename.includes("daily-rise") ||
-              file.filename.includes("daily-unwind")
-            );
-            const tasksUpdate = files.some((file) =>
-              file.filename.startsWith("src/components/tasks/") ||
-              file.filename.startsWith("src/app/(common)/tasks/") ||
-              file.filename.startsWith("src/components/projects/") ||
-              file.filename.startsWith("src/components/dnd/") ||
-              file.filename === "src/lib/project-colors.ts" ||
-              file.filename === "src/lib/task-dnd.ts"
-            );
-            core.setOutput(
-              "preview_url",
-              onboardingUpdate
-                ? "https://sunnie-planner-prod.up.railway.app/preview/onboarding"
-                : dailyRhythmUpdate
-                  ? "https://sunnie-planner-prod.up.railway.app/preview/daily-rise"
-                : planUpdate
-                  ? "https://sunnie-planner-prod.up.railway.app/preview/plan"
-                : focusUpdate
-                  ? "https://sunnie-planner-prod.up.railway.app/preview/focus"
-                : tasksUpdate
-                  ? "https://sunnie-planner-prod.up.railway.app/preview/tasks"
-                : brainDumpUpdate
-                ? "https://sunnie-planner-prod.up.railway.app/preview/brain-dump"
-                : calendarUpdate
-                  ? "https://sunnie-planner-prod.up.railway.app/preview/calendar-event"
-                : "https://sunnie-planner-prod.up.railway.app/preview/plan"
-            );
-
-      - name: Check out Sunnie Planner
-        if: steps.gate.outputs.announce == 'true'
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        if: steps.gate.outputs.announce == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install screenshot browser
-        if: steps.gate.outputs.announce == 'true'
-        continue-on-error: true
-        run: |
-          npm ci --ignore-scripts
-          npx playwright install --with-deps chromium
-
-      - name: Capture the deployed planning preview
-        if: steps.gate.outputs.announce == 'true'
-        continue-on-error: true
-        run: >-
-          npx playwright screenshot
-          --browser chromium
-          --color-scheme light
-          --viewport-size "1440, 1000"
-          --wait-for-selector "[data-discord-preview-ready]"
-          --wait-for-timeout 1500
-          --timeout 60000
-          ${{ steps.gate.outputs.preview_url }}
-          sunnie-update.png
-
       - name: Post update to Discord
-        if: steps.gate.outputs.announce == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require("fs");
             const webhookUrl = process.env.DISCORD_RELEASE_WEBHOOK;
             if (!webhookUrl) {
               core.warning("DISCORD_RELEASE_WEBHOOK is not configured; skipping announcement.");
@@ -150,95 +34,57 @@ jobs:
 
             const deployment = context.payload.deployment;
             const sha = deployment?.sha || context.sha;
-            let message = "";
-            try {
+            let title;
+            let details;
+
+            if (context.eventName === "workflow_dispatch") {
+              title = context.payload.inputs?.title?.trim();
+              details = context.payload.inputs?.details?.trim();
+            } else {
               const commit = await github.rest.repos.getCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: sha,
               });
-              message = commit.data.commit.message;
-            } catch (error) {
-              core.warning(`Could not load commit details: ${error.message}`);
+              const message = commit.data.commit.message;
+              if (message.split("\n", 1)[0].includes("[skip discord]")) {
+                core.info("Commit requested that the Discord announcement be skipped.");
+                return;
+              }
+              // Keep release copy separate from technical commit text. Both fields are
+              // required so an empty body never becomes a vague announcement.
+              const releaseCopy = message.match(/^Discord-Title:[ \t]*([^\r\n]+)\r?\nDiscord-Details:[ \t]*([^\r\n]+(?:\r?\n(?!\r?\n)[^\r\n]+)*)/m);
+              if (!releaseCopy) {
+                core.info("No Discord release copy on this commit; skipping announcement.");
+                return;
+              }
+              title = releaseCopy[1].trim();
+              details = releaseCopy[2].trim();
             }
-            const [commitTitle, ...bodyLines] = message.split("\n");
-            if (commitTitle.includes("[skip discord]")) {
-              core.info("Commit requested that the Discord announcement be skipped.");
+
+            if (!title || !details) {
+              core.warning("Discord title and details are both required; skipping announcement.");
               return;
             }
 
-            const inputs = context.payload.inputs ?? {};
-            const title = inputs.title || commitTitle || "Sunnie Planner update";
-            const details = inputs.details || bodyLines.join("\n").trim();
-            const commitUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
-
+            const appUrl = "https://sunnie-planner-prod.up.railway.app";
+            const safe = (value) => value.replace(/@/g, "@\u200b");
             const payload = {
               username: "Sunnie Planner Updates",
               allowed_mentions: { parse: [] },
-              embeds: [
-                {
-                  title: "🌞 Sunnie Planner update",
-                  description: `**${title}**\n${details || "A new improvement was just added."}`,
-                  url: commitUrl,
-                  color: 16042075,
-                  fields: [
-                    {
-                      name: "Open Sunnie Planner",
-                      value: "https://sunnie-planner-prod.up.railway.app",
-                      inline: true,
-                    },
-                    {
-                      name: "Status",
-                      value: "Live now — ready to try!",
-                      inline: true,
-                    },
-                  ],
-                  footer: {
-                    text: `Commit ${sha.slice(0, 7)}`,
-                  },
-                  timestamp: new Date().toISOString(),
-                  ...(fs.existsSync("sunnie-update.png") && {
-                    image: {
-                      url: "attachment://sunnie-update.png",
-                    },
-                  }),
-                },
-              ],
-              ...(fs.existsSync("sunnie-update.png") && {
-                attachments: [
-                  {
-                    id: 0,
-                    filename: "sunnie-update.png",
-                    description: "Sunnie Planner feature preview",
-                  },
-                ],
-              }),
+              embeds: [{
+                title: `☀️ ${safe(title).slice(0, 250)}`,
+                description: safe(details).slice(0, 3900),
+                url: appUrl,
+                color: 16042075,
+                fields: [{ name: "Open Sunnie", value: appUrl }],
+              }],
             };
-
-            let requestBody;
-            let headers;
-            if (fs.existsSync("sunnie-update.png")) {
-              const screenshot = fs.readFileSync("sunnie-update.png");
-              const form = new FormData();
-              form.append("payload_json", JSON.stringify(payload));
-              form.append(
-                "files[0]",
-                new Blob([screenshot], { type: "image/png" }),
-                "sunnie-update.png"
-              );
-              requestBody = form;
-            } else {
-              core.warning("Screenshot capture failed; sending the text announcement only.");
-              requestBody = JSON.stringify(payload);
-              headers = { "Content-Type": "application/json" };
-            }
-
             const response = await fetch(`${webhookUrl}?wait=true`, {
               method: "POST",
-              headers,
-              body: requestBody,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
             });
-
             if (!response.ok) {
               core.setFailed(`Discord returned ${response.status}: ${await response.text()}`);
             }

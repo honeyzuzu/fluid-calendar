@@ -379,14 +379,19 @@ Workflow: `.github/workflows/discord-updates.yml`
 
 - Trigger: GitHub `deployment_status` events from Railway, plus optional manual dispatch.
 - A normal announcement runs only after Railway reports `success`.
-- The message says `Live now - ready to try!` and links to production and the commit.
-- A headless Chromium process captures a fake-data preview at 1440x1000. Brain Dump, Calendar, Focus, Tasks, and onboarding releases select their matching preview; other releases use `/preview/plan`.
-- The screenshot is attached directly to the Discord webhook message.
-- If screenshot capture fails, the text announcement still posts.
-- Commits that change only `.github/` automation are skipped.
-- A commit title containing `[skip discord]` is skipped.
-- Use clear feature commit subjects and bodies because they become the Discord title and description.
-- Batch a user request into one user-facing commit where practical. Mark follow-up infrastructure-only commits `[skip discord]` to avoid duplicate announcements.
+- Announcements contain a short, user-facing headline, an explanation of what people can do, and a link to Sunnie. They do not include screenshots or deployment status.
+- Automatic announcements require `Discord-Title:` and `Discord-Details:` lines in the deployed commit message. Without both, the workflow stays quiet. A title containing `[skip discord]` also skips it.
+- Write the details in plain language, including where to find the change and why it helps. Keep technical implementation notes in the regular commit body. For example:
+
+  ```text
+  feat: make Today easier to start
+
+  Discord-Title: A calmer start to your day
+  Discord-Details: Open Today to see your next task and start a focus session. If your energy is low, choose Low energy to make room for a break and adjust the rest of your day.
+  ```
+
+- Manual dispatch requires a headline and details and posts the same text format.
+- Batch a user request into one user-facing commit where practical. Leave release copy off follow-up infrastructure-only commits to avoid duplicate announcements.
 
 Preview routes under `src/app/preview` are public and contain fake data only. Keep them visually aligned with meaningful UI changes. Never place real user data, credentials, or private calendar information in a preview route.
 
@@ -447,5 +452,4 @@ Pre-commit hooks run lint and TypeScript checks. Preserve unrelated user changes
 - Outlook implementation remains partially exposed and needs a deliberate removal pass if it is no longer wanted.
 - Google OAuth availability depends on correct production URLs, scopes, consent mode, verification state, and approved test users.
 - Calendar/provider credentials deserve an encryption-at-rest review before use outside the trusted friend/family group.
-- Friends and Settings releases still use the planning preview; future major changes to those surfaces may benefit from matching fake-data preview routes.
 - Continue mobile visual QA as features are added; inherited FluidCalendar layouts were desktop-first.
