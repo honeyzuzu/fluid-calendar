@@ -1,12 +1,22 @@
 import { getCalendarItemClassNames } from "@/lib/calendar-task-style";
 
 describe("calendar task styling", () => {
-  it("keeps ordinary calendar events separate from task styling", () => {
+  it("marks short calendar events as compact without using task styling", () => {
     expect(
       getCalendarItemClassNames({
         isTask: false,
         taskId: "event-1",
         durationMs: 15 * 60 * 1000,
+      })
+    ).toEqual(["calendar-event", "calendar-event-compact"]);
+  });
+
+  it("keeps longer calendar events separate from compact styling", () => {
+    expect(
+      getCalendarItemClassNames({
+        isTask: false,
+        taskId: "event-1",
+        durationMs: 45 * 60 * 1000,
       })
     ).toEqual(["calendar-event"]);
   });

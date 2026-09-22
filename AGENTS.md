@@ -2,6 +2,13 @@
 
 Last updated: 2026-09-22
 
+## Compact calendar events (September 22, 2026)
+
+Timed calendar events and scheduled tasks that last 30 minutes or less use a
+single centered title line with minimal vertical padding. Decorative event,
+recurrence, and task icons are hidden in these short blocks so a 15-minute
+meeting keeps its name readable in day and week views.
+
 ## Settings preferences and data pass (September 22, 2026)
 
 The final page pass makes Personal, Calendar view, Schedule tasks, Email & reminders, and Task data easier to scan at desktop and phone widths. Personal keeps optional daily prompts folded until needed. Calendar view explains that its working hours affect display, links directly to task scheduling hours, and sends accounts without a feed to Calendar accounts; the default-calendar control stays disabled until a feed exists. Schedule tasks shows readable day choices and starting points, folds optional energy windows, and only offers Google task-block push when a Google calendar is available. Settings section links and the mobile picker keep the URL hash and visible section in sync.

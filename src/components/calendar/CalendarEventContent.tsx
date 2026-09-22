@@ -48,9 +48,9 @@ export const CalendarEventContent = memo(function CalendarEventContent({
     !eventInfo.event.allDay &&
     duration >= 45 * 60 * 1000 &&
     Boolean(eventInfo.timeText);
-  const isCompactTimedTask =
-    !!isTask &&
+  const isCompactTimedItem =
     eventInfo.view.type.startsWith("timeGrid") &&
+    !eventInfo.event.allDay &&
     duration > 0 &&
     duration <= 30 * 60 * 1000;
 
@@ -110,7 +110,7 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       className={cn(
         "flex h-full flex-col justify-start gap-0.5 overflow-hidden text-xs",
         isLongTimedEvent && "overflow-visible",
-        isCompactTimedTask && "justify-center gap-0",
+        isCompactTimedItem && "justify-center gap-0",
         isOverdue && "font-semibold",
         status === TaskStatus.COMPLETED && "line-through opacity-65"
       )}
@@ -118,18 +118,13 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       <div
         className={cn(
           "flex w-full items-center",
-          isCompactTimedTask ? "gap-1" : "gap-1.5",
+          isCompactTimedItem ? "gap-0" : "gap-1.5",
           isLongTimedEvent && "sticky top-1 z-10"
         )}
       >
-        {isTask ? (
-          <IoCheckmarkCircle
-            className={cn(
-              "flex-shrink-0 text-current opacity-70",
-              isCompactTimedTask ? "h-2.5 w-2.5" : "h-3.5 w-3.5"
-            )}
-          />
-        ) : showTimeChip ? (
+        {!isCompactTimedItem && isTask ? (
+          <IoCheckmarkCircle className="h-3.5 w-3.5 flex-shrink-0 text-current opacity-70" />
+        ) : !isCompactTimedItem && showTimeChip ? (
           isRecurring ? (
             <IoRepeat
               className="h-3.5 w-3.5 flex-shrink-0"
@@ -142,17 +137,17 @@ export const CalendarEventContent = memo(function CalendarEventContent({
               style={{ backgroundColor: textColor }}
             />
           )
-        ) : isRecurring ? (
+        ) : !isCompactTimedItem && isRecurring ? (
           <IoRepeat className="h-3.5 w-3.5 flex-shrink-0 text-current opacity-75" />
-        ) : (
+        ) : !isCompactTimedItem ? (
           <IoTimeOutline className="h-3.5 w-3.5 flex-shrink-0 text-current opacity-75" />
-        )}
+        ) : null}
         <div className="min-w-0 flex-1">
           <div
             title={title}
             className={cn(
               "calendar-event-title font-medium leading-snug",
-              isCompactTimedTask
+              isCompactTimedItem
                 ? "truncate leading-none"
                 : duration <= 1800000
                   ? "truncate"
@@ -186,7 +181,7 @@ export const CalendarEventContent = memo(function CalendarEventContent({
           {location}
         </div>
       )}
-      {isTask && priority && priority !== "none" && !isCompactTimedTask && (
+      {isTask && priority && priority !== "none" && !isCompactTimedItem && (
         <span className="ml-5 w-fit rounded-full bg-black/10 px-1.5 py-0.5 text-[9px] font-semibold capitalize leading-none">
           {priority}
         </span>

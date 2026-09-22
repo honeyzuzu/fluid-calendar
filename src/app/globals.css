@@ -635,12 +635,15 @@
   color: var(--sunnie-task-6-foreground, #313526) !important;
 }
 
-/* A 15-minute block is only half a normal row. Remove vertical padding and
-   the decorative icon so the title gets the full height and width. */
+/* A 15-minute block is only half a normal row. Short meetings and tasks use
+   minimal padding while their renderer drops decorative icons, leaving the
+   full height and width for the name. */
+.fc .fc-timegrid-event.calendar-event-compact .fc-event-main,
 .fc .fc-timegrid-event.calendar-task-compact .fc-event-main {
   padding: 1px 5px !important;
 }
 
+.fc .fc-timegrid-event.calendar-event-compact .calendar-event-title,
 .fc .fc-timegrid-event.calendar-task-compact .calendar-event-title {
   line-height: 1 !important;
 }

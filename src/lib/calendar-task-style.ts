@@ -34,6 +34,9 @@ export function getCalendarItemClassNames({
       "calendar-event",
       ...(allDay ? ["calendar-event-all-day"] : []),
       ...(isFree ? ["calendar-event-free"] : []),
+      ...(!allDay && durationMs > 0 && durationMs <= THIRTY_MINUTES_MS
+        ? ["calendar-event-compact"]
+        : []),
       ...(!allDay && durationMs >= 3 * 60 * 60 * 1000
         ? ["calendar-event-long"]
         : []),
