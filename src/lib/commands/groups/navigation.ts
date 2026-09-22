@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   NotebookTabs,
   Settings,
+  Sun,
   Timer,
 } from "lucide-react";
 
@@ -13,14 +14,25 @@ import { Command } from "../types";
 export function useNavigationCommands(): Command[] {
   return [
     {
-      id: "navigation.plan",
-      title: "Go to Plan",
+      id: "navigation.today",
+      title: "Go to Today",
+      keywords: ["navigation", "next task", "home"],
+      icon: Sun,
+      section: "navigation",
+      shortcut: "gy",
+      perform: (router?: AppRouterInstance) => {
+        if (router) router.push("/today");
+      },
+    },
+    {
+      id: "navigation.upcoming",
+      title: "Go to Upcoming",
       keywords: ["navigation", "today", "week", "review"],
       icon: NotebookTabs,
       section: "navigation",
       shortcut: "gp",
       perform: (router?: AppRouterInstance) => {
-        if (router) router.push("/plan");
+        if (router) router.push("/upcoming");
       },
     },
     {

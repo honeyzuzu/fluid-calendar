@@ -1,5 +1,4 @@
 import {
-  COLOR_THEME_IDS,
   ColorThemeId,
   getColorThemeCssVariables,
   isColorThemeId,
@@ -134,17 +133,15 @@ export function getDisplayPreferenceHtmlAttributes(
  */
 export function getDisplayPreferencePrepaintScript() {
   const snapshots = Object.fromEntries(
-    COLOR_THEME_IDS.flatMap((themeId) =>
-      CALENDAR_STYLES.map((calendarStyle) => [
-        `${themeId}:${calendarStyle}`,
-        getDisplayPreferenceSnapshot(themeId, calendarStyle),
-      ])
-    )
+    CALENDAR_STYLES.map((calendarStyle) => [
+      `base:${calendarStyle}`,
+      getDisplayPreferenceSnapshot("base", calendarStyle),
+    ])
   );
 
   return `(()=>{try{const value=JSON.parse(localStorage.getItem(${JSON.stringify(
     DISPLAY_PREFERENCES_STORAGE_KEY
-  )})||"{}");const key=String(value.colorTheme||"base")+":"+String(value.calendarStyle||"classic");const snapshot=${JSON.stringify(
+  )})||"{}");const key="base:"+String(value.calendarStyle||"classic");const snapshot=${JSON.stringify(
     snapshots
   )}[key];if(!snapshot)return;const root=document.documentElement;for(const [name,item] of Object.entries(snapshot.attributes)){root.dataset[name]=item}for(const [name,item] of Object.entries(snapshot.variables)){root.style.setProperty(name,item)}const motion=["full","reduced","off"].includes(value.motionPreference)?value.motionPreference:"full";root.dataset.sunnieMotion=motion}catch{}})();`;
 }

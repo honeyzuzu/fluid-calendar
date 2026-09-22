@@ -5,20 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
-import {
-  CalendarPlus,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  RefreshCw,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
 
 import { DayView } from "@/components/calendar/DayView";
 import { FeedManager } from "@/components/calendar/FeedManager";
 import { MonthView } from "@/components/calendar/MonthView";
 import { MultiMonthView } from "@/components/calendar/MultiMonthView";
 import { WeekView } from "@/components/calendar/WeekView";
-import { AutoScheduleTooltip } from "@/components/tasks/AutoScheduleTooltip";
 
 import {
   getCalendarHeading,
@@ -28,8 +21,6 @@ import { useEventModalStore } from "@/lib/commands/groups/calendar";
 import { isSaasEnabled } from "@/lib/config";
 import { addDays, newDate, subDays } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
-
-import { useAutoSchedule } from "@/hooks/use-auto-schedule";
 
 import {
   useCalendarStore,
@@ -70,7 +61,6 @@ export function Calendar({
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const refreshInFlight = useRef(false);
   const lastRefreshedAtRef = useRef<Date | null>(null);
-  const handleAutoSchedule = useAutoSchedule();
   const eventModalStore = useEventModalStore();
 
   // Use initial data from server for hydration
@@ -318,21 +308,6 @@ export function Calendar({
               Today
             </button>
 
-            <div className="group relative shrink-0">
-              <button
-                onClick={handleAutoSchedule}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
-                aria-describedby="calendar-auto-schedule-tooltip"
-              >
-                <span className="md:hidden">Schedule</span>
-                <span className="hidden md:inline">Auto Schedule</span>
-              </button>
-              <AutoScheduleTooltip
-                id="calendar-auto-schedule-tooltip"
-                align="left"
-              />
-            </div>
-
             <div className="hidden items-center gap-2 md:flex">
               <button
                 onClick={handlePrevWeek}
@@ -373,18 +348,27 @@ export function Calendar({
                 className={cn("h-4 w-4", isRefreshing && "animate-spin")}
               />
             </button>
-            <button
-              onClick={handleAddEvent}
-              data-testid="add-event-button"
-              className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 md:mr-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline md:hidden lg:inline">
-                Add event
-              </span>
-              <span className="hidden md:inline lg:hidden">Add</span>
-              <span className="sr-only sm:hidden">Add event</span>
-            </button>
+            {feeds.length === 0 ? (
+              <Link
+                href="/settings#accounts"
+                className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm md:mr-2"
+              >
+                Connect calendar
+              </Link>
+            ) : (
+              <button
+                onClick={handleAddEvent}
+                data-testid="add-event-button"
+                className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 md:mr-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline md:hidden lg:inline">
+                  Add event
+                </span>
+                <span className="hidden md:inline lg:hidden">Add</span>
+                <span className="sr-only sm:hidden">Add event</span>
+              </button>
+            )}
             <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-border/80 bg-muted/45 p-1">
               <button
                 onClick={() => setView("day")}
@@ -440,25 +424,6 @@ export function Calendar({
 
         {/* Calendar Grid */}
         <div className="relative z-0 flex-1 overflow-hidden bg-background p-1.5 sm:p-3">
-          {feeds.length === 0 && (
-            <div className="absolute left-1/2 top-5 z-20 flex w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-2xl border border-border bg-card/95 p-3 shadow-[var(--shadow-raised)] backdrop-blur-sm">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-primary">
-                <CalendarPlus className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">Bring your calendar in</p>
-                <p className="text-xs text-muted-foreground">
-                  See real commitments while Sunnie plans around them.
-                </p>
-              </div>
-              <Link
-                href="/settings#accounts"
-                className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
-              >
-                Connect
-              </Link>
-            </div>
-          )}
           <div className="sunnie-calendar-frame h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[var(--shadow-paper)]">
             {view === "day" ? (
               <DayView currentDate={currentDate} onDateClick={setDate} />

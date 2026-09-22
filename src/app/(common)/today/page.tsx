@@ -100,6 +100,7 @@ export default function TodayPage() {
   const [events, setEvents] = useState<CommitmentEvent[]>([]);
   const [hours, setHours] = useState<CommitmentHours | null>(null);
   const [plan, setPlan] = useState<TodayPlan | null>(null);
+  const [hasCalendar, setHasCalendar] = useState<boolean | null>(null);
   const [captureTitle, setCaptureTitle] = useState("");
   const [now, setNow] = useState(() => new Date());
 
@@ -124,24 +125,33 @@ export default function TodayPage() {
         start: start.toISOString(),
         end: end.toISOString(),
       });
-      const [taskData, eventData, planData, calendarData, autoScheduleData] =
-        await Promise.all([
-          fetch("/api/tasks").then((response) =>
-            expectJson<TodayTask[]>(response)
-          ),
-          fetch(`/api/events?${range}`).then((response) =>
-            expectJson<CommitmentEvent[]>(response)
-          ),
-          fetch(`/api/daily-plan?date=${key}`).then((response) =>
-            expectJson<TodayPlan | null>(response)
-          ),
-          fetch("/api/calendar-settings")
-            .then((response) => expectJson<CalendarHours>(response))
-            .catch(() => null),
-          fetch("/api/auto-schedule-settings")
-            .then((response) => expectJson<AutoScheduleHours>(response))
-            .catch(() => null),
-        ]);
+      const [
+        taskData,
+        eventData,
+        planData,
+        calendarData,
+        autoScheduleData,
+        feedData,
+      ] = await Promise.all([
+        fetch("/api/tasks").then((response) =>
+          expectJson<TodayTask[]>(response)
+        ),
+        fetch(`/api/events?${range}`).then((response) =>
+          expectJson<CommitmentEvent[]>(response)
+        ),
+        fetch(`/api/daily-plan?date=${key}`).then((response) =>
+          expectJson<TodayPlan | null>(response)
+        ),
+        fetch("/api/calendar-settings")
+          .then((response) => expectJson<CalendarHours>(response))
+          .catch(() => null),
+        fetch("/api/auto-schedule-settings")
+          .then((response) => expectJson<AutoScheduleHours>(response))
+          .catch(() => null),
+        fetch("/api/feeds")
+          .then((response) => expectJson<{ id: string }[]>(response))
+          .catch(() => null),
+      ]);
       let workHours: CommitmentHours | null = null;
       if (calendarData) {
         workHours = {
@@ -181,6 +191,7 @@ export default function TodayPage() {
       setEvents(eventData);
       setHours(workHours);
       setPlan(savedPlan);
+      setHasCalendar(feedData ? feedData.length > 0 : null);
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Couldn't open today."
@@ -421,12 +432,19 @@ export default function TodayPage() {
   const completeTask = async (task: TodayTask) => {
     setBusy(true);
     setError(null);
+    const previous = tasks;
+    const nextStatus = task.status === "completed" ? "todo" : "completed";
+    setTasks((current) =>
+      current.map((item) =>
+        item.id === task.id ? { ...item, status: nextStatus } : item
+      )
+    );
     try {
       const updated = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: task.status === "completed" ? "todo" : "completed",
+          status: nextStatus,
         }),
       }).then((response) => expectJson<TodayTask>(response));
       setTasks((current) =>
@@ -435,6 +453,7 @@ export default function TodayPage() {
         )
       );
     } catch (caught) {
+      setTasks(previous);
       setError(
         caught instanceof Error ? caught.message : "Couldn't update the task."
       );
@@ -447,6 +466,10 @@ export default function TodayPage() {
     event.preventDefault();
     const title = captureTitle.trim();
     if (!title) return;
+    const addToToday =
+      (event.nativeEvent as SubmitEvent).submitter?.getAttribute(
+        "data-placement"
+      ) === "today";
     setBusy(true);
     setError(null);
     try {
@@ -457,9 +480,15 @@ export default function TodayPage() {
       }).then((response) => expectJson<TodayTask>(response));
       setTasks((current) => [created, ...current]);
       setCaptureTitle("");
-      setAnnouncement(
-        "Saved for later. It hasn't been added to today's commitment."
-      );
+      if (addToToday) {
+        const committed = await saveCommitment([...committedIds, created.id]);
+        if (committed)
+          setAnnouncement("Added to today. You can start when ready.");
+      } else {
+        setAnnouncement(
+          "Saved for later. It hasn't been added to today's commitment."
+        );
+      }
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Couldn't save that thought."
@@ -471,20 +500,20 @@ export default function TodayPage() {
 
   if (loading) {
     return (
-      <main
+      <div
         aria-label="Loading today"
         className="mx-auto max-w-5xl space-y-4 p-4 sm:p-8"
       >
         <SunnieSkeleton className="h-20 rounded-2xl" />
         <SunnieSkeleton className="h-60 rounded-2xl" />
         <SunnieSkeleton className="h-44 rounded-2xl" />
-      </main>
+      </div>
     );
   }
 
   if (!plan || !suggestion) {
     return (
-      <main className="mx-auto max-w-2xl p-6 text-center">
+      <div className="mx-auto max-w-2xl p-6 text-center">
         <h1 className="text-2xl font-semibold">Today needs a moment</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {error || "Sunnie couldn't load your plan."}
@@ -495,12 +524,12 @@ export default function TodayPage() {
         >
           Try again
         </button>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-full bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8">
+    <div className="min-h-full bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8">
       <div className="mx-auto max-w-5xl space-y-5">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -579,7 +608,7 @@ export default function TodayPage() {
                 </h2>
                 <p className="mt-2 text-sm text-secondary-foreground">
                   {suggestion.usableMinutes === 0
-                    ? "This can wait until your next work window"
+                    ? "This can wait until your next work window, or you can start now"
                     : prettyMinutes(nextTask.duration ?? 30)}
                   {nextTask.project?.name ? ` · ${nextTask.project.name}` : ""}
                   {nextTask.dueDate && nextTask.dueDate.slice(0, 10) <= dateKey
@@ -587,14 +616,22 @@ export default function TodayPage() {
                     : ""}
                 </p>
               </div>
-              {suggestion.usableMinutes > 0 && (
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void completeTask(nextTask)}
+                  disabled={busy}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <Check className="h-4 w-4" /> Done
+                </button>
                 <Link
                   href={`/focus?taskId=${encodeURIComponent(nextTask.id)}`}
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-pressed)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-pressed)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   Start focus <ArrowRight className="h-4 w-4" />
                 </Link>
-              )}
+              </div>
             </div>
           ) : urgentOutside.length > 0 ? (
             <div>
@@ -640,10 +677,75 @@ export default function TodayPage() {
               </p>
               <h2 className="mt-2 text-2xl font-semibold">Your day is open.</h2>
               <p className="mt-2 text-sm text-secondary-foreground">
-                Choose one meaningful thing below, or leave the space open.
+                {tasks.length === 0
+                  ? "Add one thing to do today, or save a thought for later."
+                  : "Choose one meaningful thing below, or leave the space open."}
               </p>
             </div>
           )}
+        </section>
+
+        {hasCalendar === false && (
+          <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-secondary-foreground">
+            <span>
+              Your tasks work now. Connect a calendar when you want Sunnie to
+              plan around events.
+            </span>
+            <Link
+              href="/settings#accounts"
+              className="shrink-0 font-semibold text-primary underline underline-offset-4"
+            >
+              Connect calendar
+            </Link>
+          </p>
+        )}
+
+        <section
+          aria-label="Quick capture"
+          className="rounded-2xl border border-border bg-card px-4 py-3 sm:px-5"
+        >
+          <form onSubmit={capture} className="flex items-center gap-2">
+            <label htmlFor="today-quick-capture" className="sr-only">
+              Capture a thought for later
+            </label>
+            <input
+              id="today-quick-capture"
+              value={captureTitle}
+              onChange={(event) => setCaptureTitle(event.target.value)}
+              placeholder="Something on your mind? Save it for later…"
+              className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0"
+            />
+            {!nextTask && committedIds.length < 12 && (
+              <button
+                type="submit"
+                data-placement="today"
+                disabled={busy || !captureTitle.trim()}
+                className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-40"
+              >
+                Do today
+              </button>
+            )}
+            <button
+              type="submit"
+              data-placement="later"
+              disabled={busy || !captureTitle.trim()}
+              aria-label="Save thought for later"
+              className={cn(
+                "grid h-10 shrink-0 place-items-center rounded-xl disabled:opacity-40",
+                !nextTask && committedIds.length < 12
+                  ? "px-2 text-xs font-semibold text-primary"
+                  : "w-10 bg-primary text-primary-foreground"
+              )}
+            >
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : !nextTask && committedIds.length < 12 ? (
+                "Later"
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </button>
+          </form>
         </section>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -713,6 +815,22 @@ export default function TodayPage() {
                   >
                     {task.title}
                   </span>
+                  {task.status !== "completed" && task.id !== nextTask?.id && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void saveCommitment([
+                          task.id,
+                          ...committedIds.filter((id) => id !== task.id),
+                        ])
+                      }
+                      disabled={busy}
+                      aria-label={`Do ${task.title} next`}
+                      className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-primary hover:bg-muted disabled:opacity-50"
+                    >
+                      Do next
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() =>
@@ -797,33 +915,6 @@ export default function TodayPage() {
 
           <aside className="space-y-5">
             <section className="rounded-2xl border border-border bg-card p-4">
-              <h2 className="text-sm font-semibold">Capture a thought</h2>
-              <p className="mt-1 text-sm text-secondary-foreground">
-                It goes to your backlog, outside today&apos;s commitment.
-              </p>
-              <form onSubmit={capture} className="mt-3 flex gap-2">
-                <input
-                  value={captureTitle}
-                  onChange={(event) => setCaptureTitle(event.target.value)}
-                  placeholder="Something on your mind…"
-                  aria-label="Capture a thought for later"
-                  className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
-                />
-                <button
-                  type="submit"
-                  disabled={busy || !captureTitle.trim()}
-                  aria-label="Save for later"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground disabled:opacity-40"
-                >
-                  {busy ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                </button>
-              </form>
-            </section>
-            <section className="rounded-2xl border border-border bg-card p-4">
               <h2 className="text-sm font-semibold">The rest of your day</h2>
               {upcomingEvent ? (
                 <p className="mt-3 flex items-start gap-2 text-sm text-secondary-foreground">
@@ -842,7 +933,9 @@ export default function TodayPage() {
               )}
               <p className="mt-3 text-sm text-secondary-foreground">
                 {workday
-                  ? `About ${prettyMinutes(suggestion.usableMinutes)} of workable time, with ${prettyMinutes(suggestion.bufferMinutes)} left for breaks and transitions.`
+                  ? suggestion.usableMinutes === 0
+                    ? "Your work window has ended. There is no need to fill the evening."
+                    : `About ${prettyMinutes(suggestion.usableMinutes)} of workable time, with ${prettyMinutes(suggestion.bufferMinutes)} left for breaks and transitions.`
                   : "Outside your regular work hours, Sunnie keeps the commitment light."}
               </p>
               {energyMode === "low" && (
@@ -876,12 +969,15 @@ export default function TodayPage() {
 
         <div className="flex flex-wrap items-center gap-3 pb-4 text-sm text-secondary-foreground">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span>Want to organize more?</span>
-          <Link href="/plan" className="font-semibold text-primary underline">
-            Open detailed Plan
+          <span>Want to look further ahead?</span>
+          <Link
+            href="/upcoming"
+            className="font-semibold text-primary underline"
+          >
+            Open Upcoming
           </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

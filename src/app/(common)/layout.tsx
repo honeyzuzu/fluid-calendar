@@ -8,7 +8,6 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "@/components/dnd/DndProvider";
 import { AppNav } from "@/components/navigation/AppNav";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import { DailyIntentionBanner } from "@/components/planning/DailyIntentionBanner";
 import { DailyRhythmPrompt } from "@/components/planning/DailyRhythmPrompt";
 import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
@@ -131,7 +130,6 @@ export default function RootLayout({
               onClose={() => setShortcutsOpen(false)}
             />
             <AppNav />
-            <DailyIntentionBanner />
             <DailyRhythmPrompt />
             {ONBOARDING_TOUR_ENABLED && <OnboardingTour />}
             <div

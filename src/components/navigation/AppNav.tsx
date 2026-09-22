@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import {
   CalendarDays,
+  Clock3,
   Keyboard,
   Lightbulb,
   ListTodo,
@@ -64,25 +65,28 @@ export function AppNav({ className }: AppNavProps) {
       icon: Sun,
     },
     {
+      href: "/upcoming",
+      label: "Upcoming",
+      mobileLabel: "Upcoming",
+      icon: Clock3,
+    },
+    { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: ListTodo },
+    {
       href: "/calendar",
       label: "Calendar",
       mobileLabel: "Calendar",
       icon: CalendarDays,
     },
-    { href: "/tasks", label: "Tasks", mobileLabel: "Tasks", icon: ListTodo },
-    {
-      href: "/focus",
-      label: "Focus",
-      mobileLabel: "Focus",
-      icon: Lightbulb,
-    },
   ];
   const moreLinks = [
-    { href: "/plan", label: "Detailed Plan", icon: Sparkles },
+    { href: "/focus", label: "Focus", icon: Lightbulb },
+    { href: "/review", label: "Review", icon: Sparkles },
     { href: "/friends", label: "Friends", icon: UsersRound },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
-  const moreIsActive = moreLinks.some((link) => pathname === link.href);
+  const moreIsActive =
+    pathname === "/plan" ||
+    moreLinks.some((link) => pathname === link.href.split("?")[0]);
 
   return (
     <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -18,41 +18,49 @@ import { TaskQueue } from "./TaskQueue";
 export function FocusMode() {
   const [mounted, setMounted] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(true);
-  const selectedFromUrl = useRef(false);
   const tasks = useTaskStore((state) => state.tasks);
+  const fetchTasks = useTaskStore((state) => state.fetchTasks);
   const switchToTask = useFocusModeStore((state) => state.switchToTask);
+  const currentTaskId = useFocusModeStore((state) => state.currentTaskId);
 
   // Add hydration safety
-  const {
-    getCurrentTask,
-    isProcessing,
-    actionType,
-    actionMessage,
-    stopProcessing,
-  } = useFocusModeStore();
+  const { isProcessing, actionType, actionMessage, stopProcessing } =
+    useFocusModeStore();
 
   // Get current task and queued tasks - do this before any conditional returns
-  const currentTask = getCurrentTask();
+  const currentTask = tasks.find((task) => task.id === currentTaskId) ?? null;
 
   // This effect will only run on the client
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (selectedFromUrl.current) return;
+    let active = true;
     const taskId = new URLSearchParams(window.location.search).get("taskId");
-    if (!taskId) {
-      selectedFromUrl.current = true;
-      return;
-    }
-    if (
-      tasks.some((task) => task.id === taskId && task.status !== "completed")
-    ) {
+    void fetchTasks().then(async () => {
+      if (!active || !taskId) return;
+      let task = useTaskStore
+        .getState()
+        .tasks.find((item) => item.id === taskId);
+      if (!task) {
+        const response = await fetch(
+          `/api/tasks/${encodeURIComponent(taskId)}`
+        );
+        if (!response.ok || !active) return;
+        task = await response.json();
+        if (!active || !task) return;
+        useTaskStore.setState((state) => ({
+          tasks: state.tasks.some((item) => item.id === taskId)
+            ? state.tasks
+            : [task!, ...state.tasks],
+        }));
+      }
+      if (task.status === "completed" || !active) return;
       switchToTask(taskId);
-      selectedFromUrl.current = true;
-    }
-  }, [switchToTask, tasks]);
+      setIsQueueOpen(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [fetchTasks, switchToTask]);
 
   // If not mounted yet, render a simple loading state
   if (!mounted) {

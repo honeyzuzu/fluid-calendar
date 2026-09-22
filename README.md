@@ -4,7 +4,8 @@ A private planner for the owner, friends, and family, built from the open-source
 
 ## What Sunnie does
 
-- Manage tasks and projects, capture a Brain Dump, and refine unfinished details with Task Tune-up from one Tasks workspace.
+- Open Today for one next action, quick capture, and a finite daily commitment; use Upcoming to move work from the backlog into a week and day.
+- Manage tasks and projects, capture several thoughts at once, and refine unfinished details from the Tasks workspace.
 - Begin with a playful Daily Rise, close with a private Daily Unwind, and plan from Backlog to This week to a selected day without repeating the weekly review.
 - Schedule tasks around calendar conflicts, working hours, sleep hours, and locked blocks.
 - Review completed tasks and past events, save private weekly reflections, and choose next-week priorities.
@@ -13,6 +14,8 @@ A private planner for the owner, friends, and family, built from the open-source
 - Share optional calendar availability with accepted friends, with individual privacy controls.
 
 The application supports desktop and mobile. Public signup defaults to off; the initial admin can temporarily enable it to onboard friends. Outlook code remains partially exposed from upstream; see [AGENTS.md](AGENTS.md) for the current integration caveats and detailed feature inventory.
+
+During the current UI rework, regular users see the Sunnie Base colorway. Admins retain the colorway picker and Theme Lab. The older `/plan` route remains available while its daily and review tools move into focused destinations.
 
 ## Local development on Windows
 

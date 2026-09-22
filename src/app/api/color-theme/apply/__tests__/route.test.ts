@@ -7,7 +7,10 @@ import { POST } from "../route";
 
 jest.mock("@/lib/auth/api-auth", () => ({ authenticateRequest: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({
-  prisma: { userSettings: { upsert: jest.fn() } },
+  prisma: {
+    user: { findUnique: jest.fn() },
+    userSettings: { upsert: jest.fn() },
+  },
 }));
 
 function request(colorTheme: unknown) {
@@ -21,6 +24,7 @@ function request(colorTheme: unknown) {
 beforeEach(() => {
   jest.clearAllMocks();
   (authenticateRequest as jest.Mock).mockResolvedValue({ userId: "owner" });
+  (prisma.user.findUnique as jest.Mock).mockResolvedValue({ role: "admin" });
   (prisma.userSettings.upsert as jest.Mock).mockResolvedValue({
     userId: "owner",
     colorTheme: "spring-fresh-air",
@@ -56,4 +60,11 @@ it("changes only the authenticated user's selected colorway", async () => {
       colorTheme: "spring-fresh-air",
     }),
   });
+});
+
+it("keeps regular users on Sunnie Base", async () => {
+  (prisma.user.findUnique as jest.Mock).mockResolvedValue({ role: "user" });
+  const response = await POST(request("spring-fresh-air"));
+  expect(response?.status).toBe(403);
+  expect(prisma.userSettings.upsert).not.toHaveBeenCalled();
 });

@@ -73,13 +73,8 @@ export function ProjectSidebar() {
   }, [fetchProjects]);
 
   useEffect(() => {
-    const roomyWindow = window.matchMedia("(min-width: 1280px)");
-    const syncWithWindow = (event?: MediaQueryListEvent) =>
-      setIsSidebarOpen(event?.matches ?? roomyWindow.matches);
-    syncWithWindow();
-    roomyWindow.addEventListener("change", syncWithWindow);
-    return () => roomyWindow.removeEventListener("change", syncWithWindow);
-  }, []);
+    if (activeProject) setIsSidebarOpen(true);
+  }, [activeProject]);
 
   // Fetch task list mappings for projects
   useEffect(() => {
@@ -176,7 +171,7 @@ export function ProjectSidebar() {
       <div
         className={cn(
           "relative z-40 hidden flex-none flex-col self-stretch bg-card transition-[width] duration-300 md:flex",
-          isSidebarOpen ? "w-64" : "w-6"
+          isSidebarOpen ? "w-64" : "w-10"
         )}
       >
         <button
@@ -188,7 +183,10 @@ export function ProjectSidebar() {
           title={
             isSidebarOpen ? "Close projects sidebar" : "Open projects sidebar"
           }
-          className="absolute -right-[27px] top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-colors hover:bg-muted"
+          className={cn(
+            "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-colors hover:bg-muted",
+            isSidebarOpen ? "-right-[27px]" : "right-0"
+          )}
         >
           {isSidebarOpen ? (
             <ChevronLeft className="h-5 w-5" />

@@ -270,193 +270,195 @@ export function UserSettings() {
         </SettingRow>
       )}
 
-      <SettingRow
-        label="Planner colorway"
-        description="Changes Sunnie's overall theme and its coordinated seasonal item palettes."
-      >
-        <div className="space-y-3">
-          <div
-            role="radiogroup"
-            aria-label="Planner colorway"
-            className="grid max-w-2xl gap-3 sm:grid-cols-2"
-          >
-            {Object.values(COLOR_THEMES).map((theme) => {
-              const selected = selectedColorTheme === theme.id;
-              const stationery = getSunnieTheme(theme.id);
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  aria-label={theme.name}
-                  aria-disabled={isApplyingColorTheme}
-                  onClick={() => void applyColorTheme(theme.id)}
-                  className={`sunnie-theme-choice relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                    selected
-                      ? "border-primary ring-2 ring-primary/35"
-                      : "border-border hover:-translate-y-0.5 hover:shadow-[var(--shadow-paper)]"
-                  }`}
-                  style={
-                    {
-                      backgroundColor: theme.core.surface,
-                      color: theme.core.ink,
-                      borderColor: theme.core.border,
-                      ...getPlannerThemeCssVariables(stationery),
-                    } as CSSProperties
-                  }
-                >
-                  <span
-                    aria-hidden="true"
-                    className="sunnie-theme-choice-preview mb-3 block h-28 overflow-hidden rounded-xl border"
-                    style={{
-                      borderColor: theme.core.border,
-                      backgroundColor: theme.core.canvas,
-                    }}
+      {session?.user?.role === "admin" && (
+        <SettingRow
+          label="Planner colorway"
+          description="Changes Sunnie's overall theme and its coordinated seasonal item palettes."
+        >
+          <div className="space-y-3">
+            <div
+              role="radiogroup"
+              aria-label="Planner colorway"
+              className="grid max-w-2xl gap-3 sm:grid-cols-2"
+            >
+              {Object.values(COLOR_THEMES).map((theme) => {
+                const selected = selectedColorTheme === theme.id;
+                const stationery = getSunnieTheme(theme.id);
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={theme.name}
+                    aria-disabled={isApplyingColorTheme}
+                    onClick={() => void applyColorTheme(theme.id)}
+                    className={`sunnie-theme-choice relative overflow-hidden rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                      selected
+                        ? "border-primary ring-2 ring-primary/35"
+                        : "border-border hover:-translate-y-0.5 hover:shadow-[var(--shadow-paper)]"
+                    }`}
+                    style={
+                      {
+                        backgroundColor: theme.core.surface,
+                        color: theme.core.ink,
+                        borderColor: theme.core.border,
+                        ...getPlannerThemeCssVariables(stationery),
+                      } as CSSProperties
+                    }
                   >
                     <span
-                      className="sunnie-theme-choice-tape"
-                      style={{ backgroundColor: theme.core.accent }}
-                    />
-                    <span
-                      className="sunnie-theme-choice-note"
+                      aria-hidden="true"
+                      className="sunnie-theme-choice-preview mb-3 block h-28 overflow-hidden rounded-xl border"
                       style={{
-                        backgroundColor: theme.core.surfaceRaised,
                         borderColor: theme.core.border,
+                        backgroundColor: theme.core.canvas,
                       }}
                     >
                       <span
-                        className="sunnie-theme-choice-note-title"
-                        style={{ color: theme.core.primary }}
-                      >
-                        {stationery.visual.stationery.paperName}
-                      </span>
-                      <span
-                        className="sunnie-theme-choice-note-line"
-                        style={{ backgroundColor: theme.core.border }}
+                        className="sunnie-theme-choice-tape"
+                        style={{ backgroundColor: theme.core.accent }}
                       />
                       <span
-                        className="sunnie-theme-choice-note-line short"
-                        style={{ backgroundColor: theme.core.border }}
-                      />
-                      <span
-                        className="sunnie-theme-choice-note-dot"
-                        style={{ backgroundColor: theme.core.warmGlow }}
-                      />
-                    </span>
-                    <span className="sunnie-theme-choice-sticker-one" />
-                    <span className="sunnie-theme-choice-sticker-two" />
-                  </span>
-                  <span
-                    className="flex min-h-10 items-start justify-between gap-2 text-sm font-bold"
-                    style={{ color: theme.core.ink }}
-                  >
-                    <span className="inline-flex min-w-0 items-start gap-2">
-                      <ThemeMotifIcon
-                        motif={theme.motif.intentionIcon}
-                        className="h-4 w-4 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="break-words leading-5">
-                        {theme.name}
-                      </span>
-                    </span>
-                    {selected && <Check className="h-4 w-4 shrink-0" />}
-                  </span>
-                  <span
-                    className="mt-1 block text-xs"
-                    style={{ color: theme.core.inkSoft }}
-                  >
-                    {stationery.visual.stationery.caption}
-                  </span>
-                  <span className="mt-3 flex gap-1" aria-hidden="true">
-                    {[
-                      theme.core.primary,
-                      theme.core.accent,
-                      theme.core.warmGlow,
-                      theme.core.coolGlow,
-                    ].map((color, index) => (
-                      <span
-                        key={index}
-                        className="h-2.5 w-9 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex max-w-sm items-start gap-2 text-xs text-muted-foreground">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-              <ThemeMotifIcon
-                motif={COLOR_THEMES[selectedColorTheme].motif.intentionIcon}
-                className="h-4 w-4"
-                aria-label={
-                  COLOR_THEMES[selectedColorTheme].motif.intentionLabel
-                }
-              />
-            </span>
-            <span>
-              {COLOR_THEMES[selectedColorTheme].description}
-              <span className="mt-0.5 block font-medium text-foreground">
-                Intention motif:{" "}
-                {COLOR_THEMES[selectedColorTheme].motif.intentionLabel}
-              </span>
-            </span>
-          </div>
-          <div className="grid max-w-md gap-3 sm:grid-cols-2">
-            {Object.entries(COLOR_THEMES[selectedColorTheme].palettes).map(
-              ([paletteKey, swatches]) => (
-                <section
-                  key={paletteKey}
-                  className="rounded-xl border border-border bg-card/70 p-3"
-                >
-                  <p className="text-xs font-semibold text-foreground">
-                    {
-                      COLOR_THEMES[selectedColorTheme].paletteNames[
-                        paletteKey as keyof (typeof COLOR_THEMES)[ColorThemeId]["palettes"]
-                      ]
-                    }
-                  </p>
-                  <p className="mb-2 text-[10px] capitalize text-muted-foreground">
-                    {paletteKey}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {swatches.map((swatch) => (
-                      <span
-                        key={swatch.id}
-                        className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
-                        title={`${swatch.name} ${swatch.value}`}
+                        className="sunnie-theme-choice-note"
+                        style={{
+                          backgroundColor: theme.core.surfaceRaised,
+                          borderColor: theme.core.border,
+                        }}
                       >
                         <span
-                          className="h-4 w-4 rounded-full border border-border shadow-sm"
-                          style={{ backgroundColor: swatch.value }}
+                          className="sunnie-theme-choice-note-title"
+                          style={{ color: theme.core.primary }}
+                        >
+                          {stationery.visual.stationery.paperName}
+                        </span>
+                        <span
+                          className="sunnie-theme-choice-note-line"
+                          style={{ backgroundColor: theme.core.border }}
                         />
-                        {swatch.name}
+                        <span
+                          className="sunnie-theme-choice-note-line short"
+                          style={{ backgroundColor: theme.core.border }}
+                        />
+                        <span
+                          className="sunnie-theme-choice-note-dot"
+                          style={{ backgroundColor: theme.core.warmGlow }}
+                        />
                       </span>
-                    ))}
-                  </div>
-                </section>
-              )
+                      <span className="sunnie-theme-choice-sticker-one" />
+                      <span className="sunnie-theme-choice-sticker-two" />
+                    </span>
+                    <span
+                      className="flex min-h-10 items-start justify-between gap-2 text-sm font-bold"
+                      style={{ color: theme.core.ink }}
+                    >
+                      <span className="inline-flex min-w-0 items-start gap-2">
+                        <ThemeMotifIcon
+                          motif={theme.motif.intentionIcon}
+                          className="h-4 w-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="break-words leading-5">
+                          {theme.name}
+                        </span>
+                      </span>
+                      {selected && <Check className="h-4 w-4 shrink-0" />}
+                    </span>
+                    <span
+                      className="mt-1 block text-xs"
+                      style={{ color: theme.core.inkSoft }}
+                    >
+                      {stationery.visual.stationery.caption}
+                    </span>
+                    <span className="mt-3 flex gap-1" aria-hidden="true">
+                      {[
+                        theme.core.primary,
+                        theme.core.accent,
+                        theme.core.warmGlow,
+                        theme.core.coolGlow,
+                      ].map((color, index) => (
+                        <span
+                          key={index}
+                          className="h-2.5 w-9 rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex max-w-sm items-start gap-2 text-xs text-muted-foreground">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+                <ThemeMotifIcon
+                  motif={COLOR_THEMES[selectedColorTheme].motif.intentionIcon}
+                  className="h-4 w-4"
+                  aria-label={
+                    COLOR_THEMES[selectedColorTheme].motif.intentionLabel
+                  }
+                />
+              </span>
+              <span>
+                {COLOR_THEMES[selectedColorTheme].description}
+                <span className="mt-0.5 block font-medium text-foreground">
+                  Intention motif:{" "}
+                  {COLOR_THEMES[selectedColorTheme].motif.intentionLabel}
+                </span>
+              </span>
+            </div>
+            <div className="grid max-w-md gap-3 sm:grid-cols-2">
+              {Object.entries(COLOR_THEMES[selectedColorTheme].palettes).map(
+                ([paletteKey, swatches]) => (
+                  <section
+                    key={paletteKey}
+                    className="rounded-xl border border-border bg-card/70 p-3"
+                  >
+                    <p className="text-xs font-semibold text-foreground">
+                      {
+                        COLOR_THEMES[selectedColorTheme].paletteNames[
+                          paletteKey as keyof (typeof COLOR_THEMES)[ColorThemeId]["palettes"]
+                        ]
+                      }
+                    </p>
+                    <p className="mb-2 text-[10px] capitalize text-muted-foreground">
+                      {paletteKey}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {swatches.map((swatch) => (
+                        <span
+                          key={swatch.id}
+                          className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                          title={`${swatch.name} ${swatch.value}`}
+                        >
+                          <span
+                            className="h-4 w-4 rounded-full border border-border shadow-sm"
+                            style={{ backgroundColor: swatch.value }}
+                          />
+                          {swatch.name}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                )
+              )}
+            </div>
+            <p className="max-w-sm text-xs text-muted-foreground">
+              Choosing a colorway updates Sunnie and every theme-linked color
+              immediately. Custom colors stay unchanged.
+            </p>
+            {colorThemeError && (
+              <p className="text-xs font-medium text-destructive" role="alert">
+                {colorThemeError}
+              </p>
+            )}
+            {isApplyingColorTheme && (
+              <p className="text-xs font-medium text-info" role="status">
+                Applying colorway…
+              </p>
             )}
           </div>
-          <p className="max-w-sm text-xs text-muted-foreground">
-            Choosing a colorway updates Sunnie and every theme-linked color
-            immediately. Custom colors stay unchanged.
-          </p>
-          {colorThemeError && (
-            <p className="text-xs font-medium text-destructive" role="alert">
-              {colorThemeError}
-            </p>
-          )}
-          {isApplyingColorTheme && (
-            <p className="text-xs font-medium text-info" role="status">
-              Applying colorway…
-            </p>
-          )}
-        </div>
-      </SettingRow>
+        </SettingRow>
+      )}
 
       <SettingRow
         label="Calendar style"

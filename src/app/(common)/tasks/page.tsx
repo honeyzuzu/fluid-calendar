@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import Link from "next/link";
 
@@ -55,6 +55,9 @@ export default function TasksPage() {
 
   const [workspace, setWorkspace] = useState<TasksWorkspace>("tasks");
   const [initialLoading, setInitialLoading] = useState(true);
+  const [quickTitle, setQuickTitle] = useState("");
+  const [quickSaving, setQuickSaving] = useState(false);
+  const [quickError, setQuickError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [taskPendingDelete, setTaskPendingDelete] = useState<Task>();
   const [initialProjectId, setInitialProjectId] = useState<
@@ -107,6 +110,32 @@ export default function TasksPage() {
 
   const handleCreateTask = async (task: NewTask) => {
     await createTask(task);
+  };
+
+  const captureTask = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = quickTitle.trim();
+    if (!title || quickSaving) return;
+    setQuickSaving(true);
+    setQuickError(null);
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, status: "todo", isAutoScheduled: false }),
+      });
+      if (!response.ok)
+        throw new Error("Sunnie couldn't save that task. Try again.");
+      const created = (await response.json()) as Task;
+      useTaskStore.setState((state) => ({ tasks: [created, ...state.tasks] }));
+      setQuickTitle("");
+    } catch (caught) {
+      setQuickError(
+        caught instanceof Error ? caught.message : "Couldn't save that task."
+      );
+    } finally {
+      setQuickSaving(false);
+    }
   };
 
   const handleUpdateTask = async (task: NewTask) => {
@@ -218,41 +247,46 @@ export default function TasksPage() {
                   onClick={() => selectWorkspace("tasks")}
                   icon={ListTodo}
                 >
-                  My tasks
+                  All tasks
                 </WorkspaceButton>
                 <WorkspaceButton
                   active={workspace === "brain-dump"}
                   onClick={() => selectWorkspace("brain-dump")}
                   icon={Brain}
                 >
-                  Brain dump
+                  Capture many
                 </WorkspaceButton>
                 <WorkspaceButton
                   active={workspace === "tune-up"}
                   onClick={() => selectWorkspace("tune-up")}
                   icon={WandSparkles}
                 >
-                  Tune-up
+                  Needs details
                 </WorkspaceButton>
               </div>
             </div>
             {workspace === "tasks" && (
               <div className="flex w-full items-center gap-2 sm:w-auto">
-                <div className="group relative min-w-0 flex-1 sm:flex-none">
-                  <Button
-                    variant="secondary"
-                    onClick={handleAutoSchedule}
-                    aria-describedby="auto-schedule-description auto-schedule-tooltip"
-                    className="w-full sm:w-auto"
-                  >
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    <span className="sm:hidden">Auto-schedule</span>
-                    <span className="hidden sm:inline">
+                <details className="group relative min-w-0 flex-1 sm:flex-none">
+                  <summary className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80">
+                    <Sparkles className="h-4 w-4" /> Schedule
+                  </summary>
+                  <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-card p-3 shadow-lg">
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Place eligible tasks around your calendar for the next
+                      seven days.
+                    </p>
+                    <Button
+                      variant="secondary"
+                      onClick={handleAutoSchedule}
+                      aria-describedby="auto-schedule-description auto-schedule-tooltip"
+                      className="w-full"
+                    >
                       Auto-schedule tasks
-                    </span>
-                  </Button>
-                  <AutoScheduleTooltip id="auto-schedule-tooltip" />
-                </div>
+                    </Button>
+                    <AutoScheduleTooltip id="auto-schedule-tooltip" />
+                  </div>
+                </details>
                 <Button
                   data-create-task-button
                   className="min-w-0 flex-1 sm:flex-none"
@@ -278,7 +312,37 @@ export default function TasksPage() {
             )}
           </div>
 
-          {workspace === "tasks" && <MobileProjectPicker />}
+          {workspace === "tasks" && projects.length > 0 && (
+            <MobileProjectPicker />
+          )}
+          {workspace === "tasks" && (
+            <div className="mx-auto mt-3 w-full max-w-[1480px]">
+              <form
+                onSubmit={captureTask}
+                className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2"
+              >
+                <input
+                  value={quickTitle}
+                  onChange={(event) => setQuickTitle(event.target.value)}
+                  aria-label="Capture a task for later"
+                  placeholder="Add a task to your backlog…"
+                  className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none"
+                />
+                <Button
+                  type="submit"
+                  disabled={quickSaving || !quickTitle.trim()}
+                  size="sm"
+                >
+                  Add
+                </Button>
+              </form>
+              {quickError && (
+                <p role="alert" className="mt-1 text-xs text-destructive">
+                  {quickError}
+                </p>
+              )}
+            </div>
+          )}
           {workspace === "tasks" && (
             <details className="mx-auto mt-3 w-full max-w-[1480px] rounded-xl border border-border bg-muted px-3 py-2 text-sm">
               <summary className="cursor-pointer font-medium">
@@ -303,7 +367,7 @@ export default function TasksPage() {
                 ))}
               </div>
               <Link
-                href="/plan#weekly-review"
+                href="/review#weekly-review"
                 className="mt-2 inline-block text-xs underline"
               >
                 Browse older weeks

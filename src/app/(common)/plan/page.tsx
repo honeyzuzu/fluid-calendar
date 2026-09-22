@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { AnimatePresence, motion } from "framer-motion";
@@ -197,6 +198,9 @@ async function expectJson<T>(response: Response): Promise<T> {
 }
 
 export default function PlanPage() {
+  const pathname = usePathname();
+  const isUpcomingPage = pathname === "/upcoming";
+  const isReviewPage = pathname === "/review";
   const timeFormat = useSettingsStore((state) => state.user.timeFormat);
   const plannerColorTheme = getColorTheme(
     useSettingsStore((state) => state.user.colorTheme)
@@ -204,7 +208,9 @@ export default function PlanPage() {
   const IntentionIcon = getThemeMotifIcon(
     plannerColorTheme.motif.intentionIcon
   );
-  const [view, setView] = useState<"today" | "week" | "review">("today");
+  const [view, setView] = useState<"today" | "week" | "review">(
+    isUpcomingPage ? "week" : isReviewPage ? "review" : "today"
+  );
   const [ritual, setRitual] = useState<"rise" | "unwind" | null>(null);
   const [requestedRitual, setRequestedRitual] = useState<
     "rise" | "unwind" | null
@@ -346,6 +352,10 @@ export default function PlanPage() {
     }
     if (requestedView === "week" || requestedView === "review") {
       setView(requestedView);
+    } else if (isUpcomingPage) {
+      setView("week");
+    } else if (isReviewPage) {
+      setView("review");
     }
     if (requestedRitual === "rise" || requestedRitual === "unwind") {
       setView("today");
@@ -353,7 +363,7 @@ export default function PlanPage() {
       window.history.replaceState({}, "", "/plan");
     }
     setUrlReady(true);
-  }, []);
+  }, [isReviewPage, isUpcomingPage]);
 
   const userTodayKey = userTimeZone
     ? dateKeyInTimeZone(new Date(), userTimeZone)
@@ -922,22 +932,36 @@ export default function PlanPage() {
   return (
     <div className="min-h-full w-full min-w-0 overflow-x-clip bg-background px-3 py-5 text-foreground min-[380px]:px-4 sm:px-5 lg:p-8">
       <div className="mx-auto w-full min-w-0 max-w-[1440px]">
-        <header className="sunnie-plan-hero relative mb-5 overflow-hidden rounded-[2rem] border border-border p-4 shadow-[var(--shadow-raised)] sm:p-5">
+        <header
+          className={cn(
+            "relative mb-5 overflow-hidden rounded-[2rem] border border-border p-4 shadow-[var(--shadow-raised)] sm:p-5",
+            isUpcomingPage || isReviewPage ? "bg-card" : "sunnie-plan-hero"
+          )}
+        >
           <span aria-hidden="true" className="sunnie-plan-sticker-one" />
           <span aria-hidden="true" className="sunnie-plan-sticker-two" />
           <div className="relative flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div className="min-w-0 max-w-2xl">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card/55 px-3 py-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> Your daily rhythm
+                  <Sparkles className="h-3.5 w-3.5" />{" "}
+                  {isUpcomingPage
+                    ? "Plan ahead"
+                    : isReviewPage
+                      ? "Look back"
+                      : "Your daily rhythm"}
                 </span>
               </div>
               <h1 className="sunnie-display-heading break-words text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-4xl">
                 {view === "today"
                   ? "Shape a day that feels like yours."
                   : view === "week"
-                    ? "Give the week a gentle shape."
-                    : "Look back kindly, then begin again."}
+                    ? isUpcomingPage
+                      ? "Upcoming"
+                      : "Give the week a gentle shape."
+                    : isReviewPage
+                      ? "Review"
+                      : "Look back kindly, then begin again."}
               </h1>
               {view !== "review" && (
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-secondary-foreground">
@@ -1014,32 +1038,34 @@ export default function PlanPage() {
           </div>
         </header>
 
-        <nav
-          aria-label="Planning views"
-          className="mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card/65 p-1.5 shadow-sm sm:mx-auto sm:max-w-lg"
-        >
-          {(
-            [
-              ["today", "Today"],
-              ["week", "Week"],
-              ["review", "Review"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              aria-current={view === id ? "page" : undefined}
-              onClick={() => changeView(id)}
-              className={cn(
-                "rounded-xl px-3 py-2.5 text-sm font-semibold transition",
-                view === id
-                  ? "bg-accent text-accent-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-card"
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        {!isUpcomingPage && !isReviewPage && (
+          <nav
+            aria-label="Planning views"
+            className="mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card/65 p-1.5 shadow-sm sm:mx-auto sm:max-w-lg"
+          >
+            {(
+              [
+                ["today", "Today"],
+                ["week", "Week"],
+                ["review", "Review"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                aria-current={view === id ? "page" : undefined}
+                onClick={() => changeView(id)}
+                className={cn(
+                  "rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+                  view === id
+                    ? "bg-accent text-accent-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-card"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
 
         {error && (
           <div className="mb-5 rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -1194,6 +1220,94 @@ export default function PlanPage() {
               </div>
             </section>
 
+            {isUpcomingPage && view === "week" && (
+              <section
+                className="order-2 rounded-3xl border border-border bg-card p-4 shadow-[var(--shadow-paper)] sm:p-5"
+                aria-label="Selected day's tasks"
+              >
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg font-semibold">Choose a day</h2>
+                    <p className="mt-1 text-sm text-secondary-foreground">
+                      Move a task into the selected day from This week below.
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {todayTasks.length}{" "}
+                    {todayTasks.length === 1 ? "task" : "tasks"} on this day
+                  </span>
+                </div>
+                <div
+                  className="mt-4 grid grid-cols-7 gap-1 sm:gap-2"
+                  aria-label="Days this week"
+                >
+                  {Array.from({ length: 7 }, (_, index) => {
+                    const day = new Date(weekStart);
+                    day.setDate(day.getDate() + index);
+                    const active = localDateKey(day) === selectedKey;
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setSelectedDate(day)}
+                        aria-pressed={active}
+                        className={cn(
+                          "rounded-xl border px-1 py-2 text-center text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          active
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-secondary-foreground hover:bg-muted"
+                        )}
+                      >
+                        <span className="block">
+                          {day.toLocaleDateString(undefined, {
+                            weekday: "short",
+                          })}
+                        </span>
+                        <span className="mt-0.5 block text-base">
+                          {day.getDate()}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 space-y-2">
+                  {todayTasks.length === 0 && (
+                    <p className="rounded-xl bg-muted p-4 text-sm text-secondary-foreground">
+                      No tasks placed on this day yet.
+                    </p>
+                  )}
+                  {todayTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/70 px-3 py-2.5"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                        {task.title}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {task.duration ?? 30} min
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void updateTask(task.id, {
+                            startDate: null,
+                            scheduledStart: null,
+                            scheduledEnd: null,
+                            scheduleLocked: false,
+                          })
+                        }
+                        className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-muted"
+                        aria-label={`Move ${task.title} out of this day`}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section
               className={cn(
                 "sunnie-paper-panel order-3 min-w-0 max-w-full overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card/85 to-accent/45 p-4 shadow-[var(--shadow-paper)] sm:p-6",
@@ -1301,7 +1415,7 @@ export default function PlanPage() {
                     </p>
                   )}
                   <div className="grid gap-1 sm:grid-cols-2">
-                    {backlogTasks.map((task) => (
+                    {backlogTasks.slice(0, 8).map((task) => (
                       <button
                         key={task.id}
                         onClick={() =>
@@ -1321,6 +1435,14 @@ export default function PlanPage() {
                       </button>
                     ))}
                   </div>
+                  {backlogTasks.length > 8 && (
+                    <Link
+                      href="/tasks"
+                      className="mt-3 inline-block text-xs font-semibold text-primary underline underline-offset-4"
+                    >
+                      See all {backlogTasks.length} backlog tasks
+                    </Link>
+                  )}
                 </div>
               </div>
             </section>
@@ -1718,13 +1840,6 @@ export default function PlanPage() {
           </div>
         )}
         <div className={cn((view !== "review" || loading) && "hidden")}>
-          <MoodGarden
-            initialMonth={selectedDate}
-            onStartCheckIn={openRitual}
-            refreshKey={moodEntries
-              .map((entry) => `${entry.phase}:${entry.updatedAt}`)
-              .join("|")}
-          />
           <WeeklyReview
             onTasksChanged={() => {
               void fetch("/api/tasks")
@@ -1739,6 +1854,20 @@ export default function PlanPage() {
                 );
             }}
           />
+          <details className="mt-5 rounded-2xl border border-border bg-card px-4 py-3">
+            <summary className="cursor-pointer text-sm font-semibold text-secondary-foreground">
+              Mood Garden and daily check-ins
+            </summary>
+            <div className="mt-4">
+              <MoodGarden
+                initialMonth={selectedDate}
+                onStartCheckIn={openRitual}
+                refreshKey={moodEntries
+                  .map((entry) => `${entry.phase}:${entry.updatedAt}`)
+                  .join("|")}
+              />
+            </div>
+          </details>
         </div>
         <DailyRise
           open={ritual === "rise"}

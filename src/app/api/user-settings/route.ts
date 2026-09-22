@@ -20,16 +20,38 @@ export async function GET(request: NextRequest) {
     const userId = auth.userId;
 
     // Get the user settings or create default ones if they don't exist
-    const settings = await prisma.userSettings.upsert({
-      where: { userId },
-      update: {},
-      create: {
-        userId,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-    });
+    let settings;
+    try {
+      settings = await prisma.userSettings.upsert({
+        where: { userId },
+        update: {},
+        create: {
+          userId,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      });
+    } catch (error) {
+      // Two first-load requests can race to create the same settings row.
+      if (
+        !error ||
+        typeof error !== "object" ||
+        !("code" in error) ||
+        error.code !== "P2002"
+      ) {
+        throw error;
+      }
+      settings = await prisma.userSettings.findUnique({ where: { userId } });
+      if (!settings) throw error;
+    }
 
-    return NextResponse.json(settings);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    return NextResponse.json({
+      ...settings,
+      colorTheme: user?.role === "admin" ? settings.colorTheme : "base",
+    });
   } catch (error) {
     logger.error(
       "Failed to fetch user settings",
@@ -86,6 +108,18 @@ export async function PATCH(request: NextRequest) {
         { error: "Choose a valid planner colorway" },
         { status: 400 }
       );
+    }
+    if (updates.colorTheme !== undefined && updates.colorTheme !== "base") {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      if (user?.role !== "admin") {
+        return NextResponse.json(
+          { error: "Only admins can change planner colorways" },
+          { status: 403 }
+        );
+      }
     }
     if (
       updates.calendarStyle !== undefined &&

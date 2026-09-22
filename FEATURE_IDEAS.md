@@ -18,6 +18,10 @@ This is a repository planning document, separate from Sunnie's in-app Brain Dump
 
 <!-- Move an idea here when you want to discuss it. Preserve the original thought. -->
 
+- **Original thought (2026-09-21):** “i want to rework the entire ui of sunnie” and “there is honestly a ton of friction in using it”; “for now, lets turn off the themes and have all users only be on the main sunnie color scheme, admin can still play with themes though”; “maybe we should break down each page or even rework the existing pages that exist? reduce them or change waht pages exist?” The owner agreed with the action-first diagnosis and asked to work through every page one by one.
+  - **First version in progress:** One clear job for Today, Upcoming, Tasks, Calendar, and Focus; quick capture without scheduling decisions; Sunnie Base for regular users; admin-only theme exploration; and old routes kept available during the transition. See [the selected work](@TODO.md).
+  - **Open questions to test with use:** Whether Focus needs its own destination after direct task entry becomes habitual, and whether the detailed daily Plan should remain accessible after Upcoming and Today cover its useful actions.
+
 When useful, explore:
 
 - **Original thought:** What you want, in your own words.

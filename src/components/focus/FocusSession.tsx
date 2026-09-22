@@ -630,31 +630,44 @@ export function FocusSession({
         </button>
       </div>
 
-      <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-secondary-foreground">
-          <span className="rounded-full bg-muted px-2.5 py-1">
-            Energy: {friendlyValue(taskEnergy)}
-          </span>
-          <span className="rounded-full bg-accent px-2.5 py-1">
-            Urgency: {friendlyValue(taskPriority)}
-          </span>
-          {estimatedMinutes && (
-            <span className="rounded-full bg-secondary px-2.5 py-1">
-              Estimate: {estimatedMinutes} min
-            </span>
+      {(taskEnergy ||
+        (taskPriority && taskPriority !== "none") ||
+        estimatedMinutes ||
+        taskDescription) && (
+        <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
+          {(taskEnergy ||
+            (taskPriority && taskPriority !== "none") ||
+            estimatedMinutes) && (
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-secondary-foreground">
+              {taskEnergy && (
+                <span className="rounded-full bg-muted px-2.5 py-1">
+                  Energy: {friendlyValue(taskEnergy)}
+                </span>
+              )}
+              {taskPriority && taskPriority !== "none" && (
+                <span className="rounded-full bg-accent px-2.5 py-1">
+                  Urgency: {friendlyValue(taskPriority)}
+                </span>
+              )}
+              {estimatedMinutes && (
+                <span className="rounded-full bg-secondary px-2.5 py-1">
+                  Estimate: {estimatedMinutes} min
+                </span>
+              )}
+            </div>
+          )}
+          {taskDescription && (
+            <details className="mt-3 rounded-2xl border border-border bg-background/70 px-3 py-2.5">
+              <summary className="cursor-pointer text-xs font-semibold text-secondary-foreground">
+                Task note
+              </summary>
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-secondary-foreground">
+                {taskDescription}
+              </p>
+            </details>
           )}
         </div>
-        {taskDescription && (
-          <div className="mt-3 rounded-2xl border border-border bg-background/70 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Task note
-            </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-secondary-foreground">
-              {taskDescription}
-            </p>
-          </div>
-        )}
-      </div>
+      )}
 
       <div className="p-3 sm:p-5">
         {(phase === "setup-ready" || phase === "focus-ready") && (

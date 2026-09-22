@@ -22,6 +22,16 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.userId;
     const colorTheme: ColorThemeId = body.colorTheme;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    if (colorTheme !== "base" && user?.role !== "admin") {
+      return NextResponse.json(
+        { error: "Only admins can change planner colorways" },
+        { status: 403 }
+      );
+    }
     await prisma.userSettings.upsert({
       where: { userId },
       update: { colorTheme },
