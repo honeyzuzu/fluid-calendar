@@ -55,7 +55,8 @@ describe("responsive application shell", () => {
     const calendar = read("src/components/calendar/Calendar.tsx");
     expect(calendar).toContain("md:flex-wrap");
     expect(calendar).toContain("2xl:w-auto");
-    expect(calendar).toContain("min-w-0 flex-1 truncate");
+    expect(calendar).toContain("min-w-0 flex-1 px-2 md:hidden");
+    expect(calendar).toContain("truncate text-base font-semibold");
     expect(calendar).toContain("md:hidden");
   });
 

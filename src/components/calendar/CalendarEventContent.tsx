@@ -28,6 +28,7 @@ export const CalendarEventContent = memo(function CalendarEventContent({
   const isTask = eventInfo.event.extendedProps.isTask;
   const isFriendEvent = eventInfo.event.extendedProps.isFriendEvent;
   const isRecurring = eventInfo.event.extendedProps.isRecurring;
+  const isFree = eventInfo.event.extendedProps.isFree;
   const status = eventInfo.event.extendedProps.status;
   const priority = eventInfo.event.extendedProps.priority;
   const location = eventInfo.event.extendedProps.location;
@@ -37,6 +38,16 @@ export const CalendarEventContent = memo(function CalendarEventContent({
   const endTime = eventInfo.event.end?.getTime() ?? 0;
   const startTime = eventInfo.event.start?.getTime() ?? 0;
   const duration = endTime - startTime;
+  const isLongTimedEvent =
+    !isTask &&
+    !eventInfo.event.allDay &&
+    eventInfo.view.type.startsWith("timeGrid") &&
+    duration >= 3 * 60 * 60 * 1000;
+  const showTimedRange =
+    eventInfo.view.type.startsWith("timeGrid") &&
+    !eventInfo.event.allDay &&
+    duration >= 45 * 60 * 1000 &&
+    Boolean(eventInfo.timeText);
   const isCompactTimedTask =
     !!isTask &&
     eventInfo.view.type.startsWith("timeGrid") &&
@@ -79,9 +90,9 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       ? presentation.allDayAppearance
       : presentation.eventAppearance;
   const textColor = getHarmonizedTextColor(
-    ["outline", "ticket", "scalloped", "marker"].includes(
+    (isFree || ["outline", "ticket", "scalloped", "marker"].includes(
       effectiveEventAppearance
-    )
+    ))
       ? theme.core.surfaceRaised
       : eventColor,
     {
@@ -97,7 +108,8 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       data-priority={priority || "none"}
       style={{ color: textColor }}
       className={cn(
-        "flex h-full flex-col justify-start gap-1 overflow-hidden text-[11px]",
+        "flex h-full flex-col justify-start gap-0.5 overflow-hidden text-xs",
+        isLongTimedEvent && "overflow-visible",
         isCompactTimedTask && "justify-center gap-0",
         isOverdue && "font-semibold",
         status === TaskStatus.COMPLETED && "line-through opacity-65"
@@ -106,7 +118,8 @@ export const CalendarEventContent = memo(function CalendarEventContent({
       <div
         className={cn(
           "flex w-full items-center",
-          isCompactTimedTask ? "gap-1" : "gap-1.5"
+          isCompactTimedTask ? "gap-1" : "gap-1.5",
+          isLongTimedEvent && "sticky top-1 z-10"
         )}
       >
         {isTask ? (
@@ -158,6 +171,16 @@ export const CalendarEventContent = memo(function CalendarEventContent({
           </div>
         </div>
       </div>
+      {showTimedRange && (
+        <span
+          className={cn(
+            "truncate pl-5 text-[10px] font-medium tabular-nums opacity-80",
+            isLongTimedEvent && "sticky top-5 z-10"
+          )}
+        >
+          {eventInfo.timeText}
+        </span>
+      )}
       {location && duration > 1800000 && (
         <div className="event-location truncate pl-5 text-[10px] leading-snug opacity-80">
           {location}

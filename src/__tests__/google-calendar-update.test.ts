@@ -51,3 +51,35 @@ it("updates a series duration without moving its original first date", async () 
     }),
   });
 });
+
+it("sends changed reminders to Google and leaves them out of unrelated edits", async () => {
+  const get = jest.fn().mockResolvedValue({ data: { id: "meeting" } });
+  const patch = jest.fn().mockResolvedValue({ data: { id: "meeting" } });
+  const calendar = { events: { get, patch } } as unknown as calendar_v3.Calendar;
+
+  await updateGoogleEvent(
+    "account",
+    "user",
+    "calendar",
+    "meeting",
+    { title: "Meeting", reminderMinutes: [30, 60], useDefaultReminders: false },
+    async () => calendar
+  );
+  expect(patch.mock.calls[0][0].requestBody.reminders).toEqual({
+    useDefault: false,
+    overrides: [
+      { method: "popup", minutes: 30 },
+      { method: "popup", minutes: 60 },
+    ],
+  });
+
+  await updateGoogleEvent(
+    "account",
+    "user",
+    "calendar",
+    "meeting",
+    { title: "Renamed" },
+    async () => calendar
+  );
+  expect(patch.mock.calls[1][0].requestBody.reminders).toBeUndefined();
+});

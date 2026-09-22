@@ -1,5 +1,6 @@
 import { fromZonedTime } from "date-fns-tz";
 
+import { blocksCalendarTime } from "@/lib/calendar-availability";
 import { dateKeyInTimeZone } from "@/lib/daily-intention";
 
 export type CommitmentEnergyMode = "normal" | "low";
@@ -142,7 +143,7 @@ export function suggestDailyCommitment(input: {
           (event) =>
             !event.allDay &&
             event.feed?.enabled !== false &&
-            event.status?.toLowerCase() !== "cancelled" &&
+            blocksCalendarTime(event) &&
             !event.externalEventId?.startsWith("sunnie-recovery-event:") &&
             !mirroredBlocks.has(`${event.feedId}:${event.externalEventId}`)
         )

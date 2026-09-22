@@ -2,6 +2,14 @@
 
 Last updated: 2026-09-21
 
+## Calendar page pass (implemented September 21, 2026)
+
+The Calendar header now shows the selected day, week, month, or year in the account time zone, with that time zone visible beside the view controls. On phones, the date navigation and view controls use two compact rows; a desktop-to-phone resize closes the feed panel so it cannot cover the canvas. Accounts without a connected calendar get a visible explanation and a Connect calendar action while scheduled Sunnie tasks remain visible. Connected calendars retain event creation.
+
+Timed events use ordinary rounded blocks. Overlapping events sit side by side, long blocks have a quiet dot pattern and keep their title and time readable while scrolling, and provider Free events use a light striped treatment. A Free or cancelled event does not reserve time for auto-scheduling, daily capacity, Today commitments, or low-energy recovery and is not shared as a busy block with friends. The event quick view shows times in the account time zone and keeps private naming near the event title; private names stay in Sunnie rather than updating the provider. Feed rows have accessible visibility labels and a named action menu; removal requires confirmation and explains that the provider calendar stays intact.
+
+Signed-in local browser QA covered a new account with no calendar and a dense calendar at desktop and phone widths, including feed removal, private naming, and saved Google reminder controls. Google/CalDAV reminder and private-name resync still need verification against connected live providers. This pass has no schema change.
+
 ## Tasks page pass (September 21, 2026)
 
 The Tasks list keeps one-line capture in Backlog and now places search directly above the list. New accounts see a specific capture invitation in the empty state, while filtered empty views ask users to adjust the view. New list preferences sort by newest creation first; existing saved sort choices are respected. A single readable card list replaces the ultra-wide table at every width. Cards show Backlog guidance for unplanned work plus direct Start Focus and Add details actions. Tasks opens in All tasks, and the task form can create and select a project in place. Capture and modal saves acknowledge the saved task separately from later calendar scheduling feedback. A quick backlog capture has auto-scheduling disabled and does not trigger the background scheduling pass. Capture many and Needs details remain secondary tools.

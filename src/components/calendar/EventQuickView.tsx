@@ -27,12 +27,18 @@ import {
   getCalendarEventTitle,
   isUntitledImportedEvent,
 } from "@/lib/calendar-event-title";
-import { format, isFutureDate, newDate } from "@/lib/date-utils";
+import {
+  formatDateTimeInTimeZone,
+  formatTimeInTimeZone,
+  isFutureDate,
+  newDate,
+} from "@/lib/date-utils";
 import { getProjectDisplayColor } from "@/lib/project-colors";
 import { isTaskOverdue } from "@/lib/task-utils";
 import { cn } from "@/lib/utils";
 
 import { useCalendarStore } from "@/store/calendar";
+import { useSettingsStore } from "@/store/settings";
 
 import { AttendeeStatus, CalendarEvent } from "@/types/calendar";
 import { Priority, Task, TaskStatus } from "@/types/task";
@@ -84,6 +90,20 @@ export function EventQuickView({
   referenceElement,
 }: EventQuickViewProps) {
   const { colorTheme } = useTheme();
+  const { user: userSettings } = useSettingsStore();
+  const timeZone = userSettings.timeZone || undefined;
+  const timeFormat = userSettings.timeFormat;
+  const dateTimeLabel = (value: Date | string | number) =>
+    formatDateTimeInTimeZone(value, timeZone, timeFormat);
+  const timeLabel = (value: Date | string | number) =>
+    formatTimeInTimeZone(value, timeZone, timeFormat);
+  const allDayLabel = (value: Date | string | number) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(newDate(value));
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingLabel, setEditingLabel] = useState(false);
   const [labelDraft, setLabelDraft] = useState("");
@@ -210,7 +230,7 @@ export function EventQuickView({
         >
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="event-title flex items-center gap-2 font-medium text-foreground">
+              <h3 className="event-title flex min-w-0 items-center gap-2 break-words font-medium text-foreground">
                 {displayTitle}
                 {isTask ? (
                   <>
@@ -295,16 +315,16 @@ export function EventQuickView({
 
             {!isTask && eventItem && (
               <div className="space-y-2 text-sm text-muted-foreground">
-                <div className="rounded-lg bg-muted/50 p-2.5 text-xs">
-                  <p>
-                    {missingSourceTitle
-                      ? "This calendar did not share an event name. Add one just for yourself in Sunnie."
-                      : "Give this event a private name in Sunnie if you like."}{" "}
-                    The original calendar will not change.
-                  </p>
+                <div className="text-xs">
+                  {missingSourceTitle && (
+                    <p className="mb-1.5 rounded-lg bg-muted/50 px-2.5 py-2">
+                      This calendar shared only free/busy time. A private name
+                      stays in Sunnie and does not change the original event.
+                    </p>
+                  )}
                   {editingLabel ? (
                     <form
-                      className="mt-2 flex flex-wrap gap-2"
+                      className="flex flex-wrap gap-2"
                       onSubmit={(event) => {
                         event.preventDefault();
                         void savePrivateLabel();
@@ -344,7 +364,7 @@ export function EventQuickView({
                     <button
                       type="button"
                       onClick={() => setEditingLabel(true)}
-                      className="mt-2 font-medium text-primary underline-offset-2 hover:underline"
+                      className="font-medium text-primary underline-offset-2 hover:underline"
                     >
                       {savedLabel ? "Edit private name" : "Add private name"}
                     </button>
@@ -358,11 +378,20 @@ export function EventQuickView({
                 <div className="flex items-center gap-2">
                   <IoTimeOutline className="h-4 w-4 flex-shrink-0" />
                   <span>
-                    {format(newDate(eventItem.start), "PPp")} -{" "}
-                    {format(
-                      newDate(eventItem.end),
-                      eventItem.allDay ? "PP" : "p"
-                    )}
+                    {eventItem.allDay
+                      ? (() => {
+                          const start = allDayLabel(eventItem.start);
+                          const end = allDayLabel(
+                            Math.max(
+                              newDate(eventItem.start).getTime(),
+                              newDate(eventItem.end).getTime() - 1
+                            )
+                          );
+                          return start === end
+                            ? `${start} · All day`
+                            : `${start} – ${end} · All day`;
+                        })()
+                      : `${dateTimeLabel(eventItem.start)} – ${timeLabel(eventItem.end)}`}
                   </span>
                 </div>
                 {eventItem.location && (
@@ -419,7 +448,7 @@ export function EventQuickView({
                             "text-primary font-medium"
                         )}
                       >
-                        Due {format(newDate(taskItem.dueDate), "PPp")}
+                        Due {dateTimeLabel(taskItem.dueDate)}
                         {isOverdue && " (OVERDUE)"}
                         {isFutureDate(taskItem.dueDate) && " (UPCOMING)"}
                       </span>
@@ -450,7 +479,7 @@ export function EventQuickView({
                           "text-primary font-medium"
                       )}
                     >
-                      Starts {format(newDate(taskItem.startDate), "PPp")}
+                      Starts {dateTimeLabel(taskItem.startDate)}
                       {isFutureDate(taskItem.startDate) && " (UPCOMING)"}
                     </span>
                   </div>
@@ -480,8 +509,8 @@ export function EventQuickView({
                       <div className="flex-1">
                         <div>
                           Scheduled:{" "}
-                          {format(newDate(taskItem.scheduledStart), "PPp")} -{" "}
-                          {format(newDate(taskItem.scheduledEnd), "p")}
+                          {dateTimeLabel(taskItem.scheduledStart)} –{" "}
+                          {timeLabel(taskItem.scheduledEnd)}
                         </div>
                       </div>
                     </div>

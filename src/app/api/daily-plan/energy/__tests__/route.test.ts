@@ -94,6 +94,18 @@ it("books local recovery and defers only flexible uncommitted blocks", async () 
         scheduledEnd: null,
       },
     ]);
+  (prisma.calendarEvent.findMany as jest.Mock).mockResolvedValue([
+    {
+      id: "free-event",
+      start: new Date("2026-09-21T13:00:00Z"),
+      end: new Date("2026-09-21T15:00:00Z"),
+      allDay: false,
+      isFree: true,
+      status: "confirmed",
+      externalEventId: "provider-free",
+      feed: { enabled: true },
+    },
+  ]);
 
   const response = await PUT(
     request({

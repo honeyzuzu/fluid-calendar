@@ -1,3 +1,5 @@
+import { blocksCalendarTime } from "@/lib/calendar-availability";
+
 export type DailyCapacitySettings = {
   enabled: boolean;
   start: string;
@@ -15,6 +17,7 @@ type CapacityEvent = {
   start: string;
   end: string;
   allDay: boolean;
+  isFree?: boolean;
   status?: string | null;
   externalEventId?: string | null;
   feedId?: string | null;
@@ -92,7 +95,7 @@ export function calculateDailyCapacity(
       .filter(
         (event) =>
           !event.allDay &&
-          event.status?.toLowerCase() !== "cancelled" &&
+          blocksCalendarTime(event) &&
           !mirroredBlocks.has(`${event.feedId}:${event.externalEventId}`)
       )
       .map((event) => [

@@ -1,5 +1,6 @@
 import { fromZonedTime } from "date-fns-tz";
 
+import { blocksCalendarTime } from "@/lib/calendar-availability";
 import type { CommitmentEvent, CommitmentHours } from "@/lib/daily-commitment";
 import { dateKeyInTimeZone } from "@/lib/daily-intention";
 
@@ -76,7 +77,7 @@ export function findRecoveryBlock(input: {
       (event) =>
         !event.allDay &&
         event.feed?.enabled !== false &&
-        event.status?.toLowerCase() !== "cancelled" &&
+        blocksCalendarTime(event) &&
         !event.externalEventId?.startsWith(RECOVERY_EVENT_PREFIX)
     )
     .map((event) => ({

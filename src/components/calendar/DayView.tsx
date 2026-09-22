@@ -150,6 +150,7 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
             allDay: item.allDay,
+            isFree: item.isFree,
             taskId: item.id,
             color: item.color,
             colorSlot: item.colorSlot,
@@ -350,7 +351,7 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
         slotMaxTime="24:00:00"
         scrollTime={calendarSettings.workingHours.start}
         expandRows={true}
-        slotEventOverlap={true}
+        slotEventOverlap={false}
         stickyHeaderDates={true}
         slotDuration="00:30:00"
         timeZone={userSettings.timeZone || "local"}

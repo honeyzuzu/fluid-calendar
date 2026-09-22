@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { blocksCalendarTime } from "@/lib/calendar-availability";
 import { prisma } from "@/lib/prisma";
 
 const LOG_SOURCE = "friend-events-route";
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
   const [events, tasks] = await Promise.all([
     prisma.calendarEvent.findMany({
       where: {
-        feed: { userId: { in: friendIds } },
+        feed: { userId: { in: friendIds }, enabled: true },
         start: { lt: end },
         end: { gt: start },
       },
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
   );
   const blocks = [
     ...events.flatMap((event) => {
+      if (!blocksCalendarTime(event)) return [];
       const share = event.feed.userId
         ? friendMap.get(event.feed.userId)
         : undefined;

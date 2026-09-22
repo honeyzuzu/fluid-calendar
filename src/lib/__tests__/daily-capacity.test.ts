@@ -39,7 +39,7 @@ it("combines task estimates with non-overlapping meeting time", () => {
   });
 });
 
-it("ignores all-day, cancelled, and mirrored task events", () => {
+it("ignores all-day, cancelled, free, and mirrored task events", () => {
   const capacity = calculateDailyCapacity(
     new Date(2026, 8, 9),
     [{ duration: null, blockEventId: "task-event", blockFeedId: "mine" }],
@@ -54,6 +54,12 @@ it("ignores all-day, cancelled, and mirrored task events", () => {
         end: new Date(2026, 8, 9, 11).toISOString(),
         allDay: false,
         status: "cancelled",
+      },
+      {
+        start: new Date(2026, 8, 9, 10, 30).toISOString(),
+        end: new Date(2026, 8, 9, 11, 30).toISOString(),
+        allDay: false,
+        isFree: true,
       },
       {
         start: new Date(2026, 8, 9, 11).toISOString(),

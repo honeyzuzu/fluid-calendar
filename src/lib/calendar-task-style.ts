@@ -3,6 +3,7 @@ const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 interface CalendarTaskStyleInput {
   isTask: boolean;
   allDay?: boolean;
+  isFree?: boolean;
   taskId?: string;
   color?: string | null;
   colorSlot?: string | null;
@@ -22,13 +23,21 @@ function getTaskColorSlot(taskId = "", colorSlot?: string | null) {
 export function getCalendarItemClassNames({
   isTask,
   allDay,
+  isFree,
   taskId,
   color,
   colorSlot,
   durationMs,
 }: CalendarTaskStyleInput): string[] {
   if (!isTask)
-    return ["calendar-event", ...(allDay ? ["calendar-event-all-day"] : [])];
+    return [
+      "calendar-event",
+      ...(allDay ? ["calendar-event-all-day"] : []),
+      ...(isFree ? ["calendar-event-free"] : []),
+      ...(!allDay && durationMs >= 3 * 60 * 60 * 1000
+        ? ["calendar-event-long"]
+        : []),
+    ];
 
   return [
     "calendar-task",

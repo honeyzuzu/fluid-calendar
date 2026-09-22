@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import {
-  RefreshCw as BsArrowRepeat,
-  Trash2 as BsTrash,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
   UsersRound,
 } from "lucide-react";
 import { BsGoogle, BsMicrosoft } from "react-icons/bs";
@@ -13,15 +14,30 @@ import { toast } from "sonner";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
-import { newDate } from "@/lib/date-utils";
 import { getFriendCalendarColor } from "@/lib/friend-calendar-colors";
 import { cn } from "@/lib/utils";
+
+import { CalendarFeed } from "@/types/calendar";
 
 import {
   useCalendarStore,
@@ -49,6 +65,8 @@ export function FeedManager() {
   const friendColors = colorTheme.palettes.friends;
   const [syncingFeeds, setSyncingFeeds] = useState<Set<string>>(new Set());
   const [colorFeedId, setColorFeedId] = useState<string | null>(null);
+  const [feedToRemove, setFeedToRemove] = useState<CalendarFeed | null>(null);
+  const [isRemovingFeed, setIsRemovingFeed] = useState(false);
   const [friendShares, setFriendShares] = useState<FriendShare[]>([]);
   const { feeds, removeFeed, toggleFeed, updateFeed, syncFeed } =
     useCalendarStore();
@@ -79,17 +97,6 @@ export function FeedManager() {
     };
   }, [friendRefreshRevision]);
 
-  const handleRemoveFeed = useCallback(
-    async (feedId: string) => {
-      try {
-        await removeFeed(feedId);
-      } catch (error) {
-        console.error("Failed to remove feed:", error);
-      }
-    },
-    [removeFeed]
-  );
-
   const handleSyncFeed = useCallback(
     async (feedId: string) => {
       if (syncingFeeds.has(feedId)) return;
@@ -97,6 +104,8 @@ export function FeedManager() {
       try {
         setSyncingFeeds((prev) => new Set(prev).add(feedId));
         await syncFeed(feedId);
+      } catch {
+        toast.error("Could not refresh this calendar. Try again.");
       } finally {
         setSyncingFeeds((prev) => {
           const next = new Set(prev);
@@ -119,12 +128,17 @@ export function FeedManager() {
           {feeds.map((feed) => (
             <div
               key={feed.id}
-              className="flex items-center justify-between rounded-md p-2 hover:bg-muted/50"
+              className="flex items-center justify-between gap-2 rounded-xl px-2 py-2 hover:bg-muted/50"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
                 <Checkbox
                   checked={feed.enabled}
-                  onCheckedChange={() => toggleFeed(feed.id)}
+                  onCheckedChange={() =>
+                    void toggleFeed(feed.id).catch(() =>
+                      toast.error("Could not change calendar visibility. Try again.")
+                    )
+                  }
+                  aria-label={`Show ${feed.name} on Calendar`}
                   className="h-4 w-4"
                 />
                 <Popover
@@ -173,7 +187,7 @@ export function FeedManager() {
                     />
                   </PopoverContent>
                 </Popover>
-                <span className="calendar-name max-w-[150px] truncate text-sm text-foreground">
+                <span className="calendar-name min-w-0 truncate text-sm font-medium text-foreground">
                   {feed.name}
                 </span>
                 {feed.type === "GOOGLE" && (
@@ -189,33 +203,31 @@ export function FeedManager() {
                   />
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleSyncFeed(feed.id)}
-                  disabled={syncingFeeds.has(feed.id)}
-                  title={`Refresh ${feed.name}. ${feed.lastSync ? `Last refreshed ${newDate(feed.lastSync).toLocaleString()}.` : "Not refreshed yet."}`}
-                  aria-label={`Refresh ${feed.name}`}
-                  className={cn(
-                    "rounded-full p-1.5 text-muted-foreground hover:text-foreground",
-                    "hover:bg-muted/50 focus:outline-none focus:ring-2",
-                    "focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
-                    "disabled:opacity-50"
-                  )}
-                >
-                  <BsArrowRepeat
-                    className={cn(
-                      "h-3.5 w-3.5",
-                      syncingFeeds.has(feed.id) && "animate-spin"
-                    )}
-                  />
-                </button>
-                <button
-                  onClick={() => handleRemoveFeed(feed.id)}
-                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted/50 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-                >
-                  <BsTrash className="h-3.5 w-3.5" />
-                </button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`More actions for ${feed.name}`}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-[80] w-52">
+                  <DropdownMenuItem
+                    disabled={syncingFeeds.has(feed.id)}
+                    onSelect={() => void handleSyncFeed(feed.id)}
+                  >
+                    <RefreshCw className="h-4 w-4" /> Refresh calendar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={() => setFeedToRemove(feed)}
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove from Sunnie
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ))}
           {feeds.length === 0 && (
@@ -356,6 +368,49 @@ export function FeedManager() {
           </div>
         </div>
       </div>
+      <Dialog
+        open={!!feedToRemove}
+        onOpenChange={(open) => !open && !isRemovingFeed && setFeedToRemove(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {feedToRemove?.name}?</DialogTitle>
+            <DialogDescription>
+              Sunnie will stop showing this calendar and remove its local event
+              copies. The original calendar at your provider will stay as it is.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <button
+              type="button"
+              disabled={isRemovingFeed}
+              onClick={() => setFeedToRemove(null)}
+              className="rounded-xl border border-border px-4 py-2 text-sm font-semibold"
+            >
+              Keep calendar
+            </button>
+            <button
+              type="button"
+              disabled={isRemovingFeed}
+              onClick={async () => {
+                if (!feedToRemove) return;
+                setIsRemovingFeed(true);
+                try {
+                  await removeFeed(feedToRemove.id);
+                  setFeedToRemove(null);
+                } catch {
+                  toast.error("Could not remove this calendar from Sunnie. Try again.");
+                } finally {
+                  setIsRemovingFeed(false);
+                }
+              }}
+              className="rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
+            >
+              {isRemovingFeed ? "Removing…" : "Remove calendar"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

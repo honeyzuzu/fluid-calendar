@@ -2107,3 +2107,20 @@ html[data-theme-decorative-accent="scalloped"]
 .sunnie-calendar-frame .fc-event.calendar-task::after {
   display: none !important;
 }
+
+.sunnie-calendar-frame .fc-event.calendar-event-long {
+  background-image:
+    radial-gradient(circle, #ffffff6b 1px, transparent 1.5px),
+    linear-gradient(145deg, #ffffff42, transparent 58%) !important;
+  background-size: 17px 17px, 100% 100% !important;
+}
+
+.sunnie-calendar-frame .fc-event.calendar-event-free {
+  background-color: hsl(var(--card)) !important;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 12px,
+    #84938a14 12px 13px
+  ) !important;
+  box-shadow: inset 3px 0 0 currentColor !important;
+}

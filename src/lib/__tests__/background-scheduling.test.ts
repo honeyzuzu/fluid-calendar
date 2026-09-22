@@ -13,6 +13,7 @@ function event(
   overrides: Partial<{
     allDay: boolean;
     status: string | null;
+    isFree: boolean;
     externalEventId: string | null;
   }> = {}
 ) {
@@ -94,7 +95,7 @@ describe("automatic scheduling", () => {
     ).toBe(true);
   });
 
-  it("ignores all-day, cancelled, and mirrored task-block events", () => {
+  it("ignores all-day, cancelled, free, and mirrored task-block events", () => {
     const overlapping = event(
       "2026-09-17T14:30:00.000Z",
       "2026-09-17T15:30:00.000Z"
@@ -106,6 +107,7 @@ describe("automatic scheduling", () => {
         [
           { ...overlapping, allDay: true },
           { ...overlapping, status: "cancelled" },
+          { ...overlapping, isFree: true },
           { ...overlapping, externalEventId: "pushed-block" },
         ],
         new Set(["pushed-block"]),

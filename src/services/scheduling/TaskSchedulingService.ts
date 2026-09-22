@@ -167,6 +167,7 @@ export async function scheduleAllTasksForUser(
               end: true,
               allDay: true,
               status: true,
+              isFree: true,
               externalEventId: true,
             },
           })

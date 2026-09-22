@@ -148,6 +148,7 @@ export function MultiMonthView({
           classNames: getCalendarItemClassNames({
             isTask: !!item.extendedProps?.isTask,
             allDay: item.allDay,
+            isFree: item.isFree,
             taskId: item.id,
             color: item.color,
             colorSlot: item.colorSlot,

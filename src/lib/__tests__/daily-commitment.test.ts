@@ -53,6 +53,26 @@ it("keeps the daily commitment finite and reserves breaks and meetings", () => {
   expect(result.usableMinutes).toBe(324);
 });
 
+it("does not count a free provider event as a meeting", () => {
+  const result = suggestDailyCommitment({
+    dateKey,
+    timeZone,
+    energyMode: "normal",
+    hours,
+    now,
+    tasks: [],
+    events: [
+      {
+        start: "2026-09-21T14:00:00.000Z",
+        end: "2026-09-21T15:00:00.000Z",
+        allDay: false,
+        isFree: true,
+      },
+    ],
+  });
+  expect(result.meetingMinutes).toBe(0);
+});
+
 it("makes a low-energy plan smaller while keeping a due task visible", () => {
   const tasks = [
     {

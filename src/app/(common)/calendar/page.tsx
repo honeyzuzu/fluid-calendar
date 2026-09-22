@@ -118,6 +118,8 @@ export default async function HomePage() {
       isRecurring: event.isRecurring,
       recurrenceRule: event.recurrenceRule || undefined,
       allDay: event.allDay,
+      reminderMinutes: event.reminderMinutes,
+      useDefaultReminders: event.useDefaultReminders,
       status: event.status as EventStatus | undefined,
       sequence: event.sequence || undefined,
       created: event.created || undefined,

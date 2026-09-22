@@ -28,6 +28,7 @@ import {
   useViewStore,
 } from "@/store/calendar";
 import { useTaskStore } from "@/store/task";
+import { useSettingsStore } from "@/store/settings";
 
 import { CalendarEvent, CalendarFeed } from "@/types/calendar";
 
@@ -57,6 +58,7 @@ export function Calendar({
     requestFriendCalendarRefresh,
   } = useCalendarUIStore();
   const { feeds, setFeeds, setEvents, syncAllFeeds } = useCalendarStore();
+  const { user: userSettings } = useSettingsStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const refreshInFlight = useRef(false);
@@ -146,19 +148,25 @@ export function Calendar({
     ? `Refresh calendars now. Last refreshed ${lastRefreshedAt.toLocaleString()}. Auto-refreshes every 5 minutes.`
     : "Refresh calendars now. Auto-refreshes every 5 minutes.";
 
-  // Keep the calendar canvas usable before the layout reaches phone width.
+  // Keep the canvas visible when opening Calendar or crossing into a compact
+  // viewport after the page has already mounted.
   useEffect(() => {
-    if (window.matchMedia("(max-width: 1279px)").matches) {
-      setSidebarOpen(false);
-    }
-    if (window.matchMedia("(max-width: 767px)").matches) {
-      if (view === "multiMonth") {
+    const compact = window.matchMedia("(max-width: 1279px)");
+    const phone = window.matchMedia("(max-width: 767px)");
+    const adaptToViewport = () => {
+      if (compact.matches) setSidebarOpen(false);
+      if (phone.matches && useViewStore.getState().view === "multiMonth") {
         setView("day");
       }
-    }
-    // This is intentionally a one-time responsive initialization.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    };
+    adaptToViewport();
+    compact.addEventListener("change", adaptToViewport);
+    phone.addEventListener("change", adaptToViewport);
+    return () => {
+      compact.removeEventListener("change", adaptToViewport);
+      phone.removeEventListener("change", adaptToViewport);
+    };
+  }, [setSidebarOpen, setView]);
 
   // Persisted desktop state hydrates after the first render. Re-apply the
   // compact layout then so it cannot reopen over the calendar canvas.
@@ -169,7 +177,14 @@ export function Calendar({
   }, [isHydrated, setSidebarOpen]);
 
   const navigationUnit = getCalendarNavigationUnit(view);
-  const calendarHeading = getCalendarHeading(view, currentDate);
+  const calendarHeading = getCalendarHeading(
+    view,
+    currentDate,
+    userSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    userSettings.weekStartDay
+  );
+  const timeZoneLabel =
+    userSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const handlePrevWeek = () => {
     if (view === "multiMonth") {
@@ -218,7 +233,7 @@ export function Calendar({
       <aside
         className={cn(
           "sunnie-theme-sidebar-pattern absolute inset-y-0 left-0 z-50 h-full w-[min(20rem,86vw)] flex-none border-r border-border bg-card shadow-2xl xl:relative xl:inset-auto xl:z-auto xl:w-80 xl:shadow-none",
-          "transform transition-transform duration-300 ease-in-out",
+          "transform transition-transform duration-300 ease-in-out max-xl:duration-0",
           !isHydrated && "opacity-0 duration-0",
           isSidebarOpen
             ? "translate-x-0 xl:ml-0"
@@ -240,7 +255,7 @@ export function Calendar({
         }
         onClick={() => setSidebarOpen(!isSidebarOpen)}
         className={cn(
-          "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-[left,background-color] duration-300 hover:bg-muted",
+          "absolute top-4 z-[70] grid h-11 w-7 place-items-center rounded-r-xl border border-l-0 border-border bg-card text-secondary-foreground transition-[left,background-color] duration-300 hover:bg-muted max-xl:duration-0",
           isSidebarOpen
             ? "left-[calc(min(20rem,86vw)-1px)] xl:left-[319px]"
             : "left-0"
@@ -273,9 +288,14 @@ export function Calendar({
         {/* Header */}
         <header className="sunnie-calendar-toolbar relative z-30 flex flex-none flex-col gap-2 overflow-visible border-b border-border bg-card/85 py-2.5 pl-10 pr-3 backdrop-blur-md md:flex-row md:flex-wrap md:items-center md:gap-3 md:px-5 md:py-3">
           <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
-            <h1 className="min-w-0 flex-1 truncate px-2 text-base font-semibold text-foreground md:hidden">
-              {calendarHeading}
-            </h1>
+            <div className="min-w-0 flex-1 px-2 md:hidden">
+              <h1 className="truncate text-base font-semibold text-foreground">
+                {calendarHeading}
+              </h1>
+              <p className="truncate text-[11px] text-muted-foreground">
+                Times in {timeZoneLabel}
+              </p>
+            </div>
 
             <div className="flex shrink-0 items-center gap-1 md:hidden">
               <button
@@ -299,7 +319,7 @@ export function Calendar({
             </div>
           </div>
 
-          <div className="flex w-full min-w-0 flex-wrap items-center gap-1 md:flex-1 md:flex-nowrap md:gap-2">
+          <div className="hidden w-full min-w-0 flex-wrap items-center gap-1 md:flex md:flex-1 md:flex-nowrap md:gap-2">
             <button
               onClick={() => setDate(newDate())}
               className="shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted md:px-3"
@@ -329,13 +349,25 @@ export function Calendar({
               </button>
             </div>
 
-            <h1 className="hidden min-w-0 flex-1 truncate text-lg font-semibold text-foreground md:block xl:text-xl">
-              {calendarHeading}
-            </h1>
+            <div className="hidden min-w-0 flex-1 md:block">
+              <h1 className="truncate text-lg font-semibold text-foreground xl:text-xl">
+                {calendarHeading}
+              </h1>
+              <p className="truncate text-xs text-muted-foreground">
+                Times in {timeZoneLabel}
+              </p>
+            </div>
           </div>
 
           {/* View Switching Buttons */}
-          <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-1 border-t border-border/70 pt-2 md:gap-2 2xl:ml-auto 2xl:w-auto 2xl:flex-nowrap 2xl:border-0 2xl:pt-0">
+          <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-1 md:gap-2 md:border-t md:border-border/70 md:pt-2 2xl:ml-auto 2xl:w-auto 2xl:flex-nowrap 2xl:border-0 2xl:pt-0">
+            <button
+              onClick={() => setDate(newDate())}
+              className="shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted md:hidden"
+              title="Go to Today (t)"
+            >
+              Today
+            </button>
             <button
               type="button"
               onClick={() => void refreshCalendars()}
@@ -348,14 +380,7 @@ export function Calendar({
                 className={cn("h-4 w-4", isRefreshing && "animate-spin")}
               />
             </button>
-            {feeds.length === 0 ? (
-              <Link
-                href="/settings#accounts"
-                className="mr-1 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm md:mr-2"
-              >
-                Connect calendar
-              </Link>
-            ) : (
+            {feeds.length > 0 && (
               <button
                 onClick={handleAddEvent}
                 data-testid="add-event-button"
@@ -421,6 +446,21 @@ export function Calendar({
             </div>
           </div>
         </header>
+
+        {feeds.length === 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border bg-primary/10 px-4 py-3 text-sm md:px-6">
+            <p className="min-w-0 flex-1 text-foreground">
+              Connect a calendar to see your meetings here. Scheduled Sunnie
+              tasks can still appear on this canvas.
+            </p>
+            <Link
+              href="/settings#accounts"
+              className="shrink-0 rounded-xl bg-primary px-3 py-2 font-semibold text-primary-foreground"
+            >
+              Connect calendar
+            </Link>
+          </div>
+        )}
 
         {/* Calendar Grid */}
         <div className="relative z-0 flex-1 overflow-hidden bg-background p-1.5 sm:p-3">

@@ -241,6 +241,7 @@ export async function PUT(request: NextRequest) {
             end: event.end.toISOString(),
             allDay: event.allDay,
             status: event.status,
+            isFree: event.isFree,
             externalEventId: event.externalEventId,
             feed: event.feed,
           })),

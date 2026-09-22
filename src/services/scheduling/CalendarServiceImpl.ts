@@ -1,5 +1,6 @@
 import { CalendarEvent } from "@prisma/client";
 
+import { blocksCalendarTime } from "@/lib/calendar-availability";
 import { areIntervalsOverlapping } from "@/lib/date-utils";
 import { prisma } from "@/lib/prisma";
 
@@ -159,7 +160,7 @@ export class CalendarServiceImpl implements CalendarService {
     const endDay = new Date(this.getWeekTimestamp(end, false));
     endDay.setDate(endDay.getDate() + 1); // Add one more day just to be safe
 
-    const events = await prisma.calendarEvent.findMany({
+    const events = (await prisma.calendarEvent.findMany({
       where: {
         feedId: {
           in: selectedCalendarIds,
@@ -177,7 +178,7 @@ export class CalendarServiceImpl implements CalendarService {
           },
         ],
       },
-    });
+    })).filter(blocksCalendarTime);
 
     // Update cache with new timestamp
     this.cache = {

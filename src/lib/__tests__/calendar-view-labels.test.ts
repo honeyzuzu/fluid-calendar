@@ -20,4 +20,14 @@ describe("calendar view labels", () => {
     expect(getCalendarHeading("month", date)).toBe("September 2026");
     expect(getCalendarHeading("multiMonth", date)).toBe("2026");
   });
+
+  it("shows the visible week in the account time zone", () => {
+    const instant = new Date("2026-09-21T01:00:00.000Z");
+    expect(
+      getCalendarHeading("week", instant, "America/New_York", "sunday")
+    ).toBe("Sep 20–26, 2026");
+    expect(
+      getCalendarHeading("week", instant, "America/New_York", "monday")
+    ).toBe("Sep 14–20, 2026");
+  });
 });

@@ -1,5 +1,7 @@
 import type { CalendarEvent, Task } from "@prisma/client";
 
+import { blocksCalendarTime } from "@/lib/calendar-availability";
+
 const DEFAULT_TASK_DURATION = 30;
 
 /** Automatic refreshes keep only future task slots that still fit. An
@@ -8,10 +10,10 @@ const DEFAULT_TASK_DURATION = 30;
 export function needsBackgroundReschedule(
   task: Pick<Task, "scheduledStart" | "scheduledEnd" | "duration">,
   now: Date,
-  events: Pick<
+  events: (Pick<
     CalendarEvent,
     "start" | "end" | "allDay" | "status" | "externalEventId"
-  >[],
+  > & { isFree?: boolean })[],
   pushedBlockIds: Set<string>,
   bufferMinutes: number
 ) {
@@ -28,7 +30,7 @@ export function needsBackgroundReschedule(
   return events.some(
     (event) =>
       !event.allDay &&
-      event.status?.toLowerCase() !== "cancelled" &&
+      blocksCalendarTime(event) &&
       (!event.externalEventId || !pushedBlockIds.has(event.externalEventId)) &&
       event.start.getTime() < end.getTime() + buffer &&
       event.end.getTime() > start.getTime() - buffer
