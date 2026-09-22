@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { logger } from "@/lib/logger";
+import { normalizeNotificationReminderTiming } from "@/lib/notification-reminders";
 import { prisma } from "@/lib/prisma";
 
 const LOG_SOURCE = "NotificationSettingsAPI";
@@ -41,7 +42,9 @@ export async function GET(request: NextRequest) {
         eventCancellations: settings.eventCancellations,
         eventReminders: settings.eventReminders,
       },
-      defaultReminderTiming: JSON.parse(settings.defaultReminderTiming),
+      defaultReminderTiming: normalizeNotificationReminderTiming(
+        settings.defaultReminderTiming
+      ),
     });
   } catch (error) {
     logger.error(
@@ -74,9 +77,12 @@ export async function PATCH(request: NextRequest) {
       eventUpdates: updates.eventUpdates,
       eventCancellations: updates.eventCancellations,
       eventReminders: updates.eventReminders,
-      defaultReminderTiming: updates.defaultReminderTiming
-        ? JSON.stringify(updates.defaultReminderTiming)
-        : undefined,
+      defaultReminderTiming:
+        updates.defaultReminderTiming !== undefined
+          ? JSON.stringify(
+              normalizeNotificationReminderTiming(updates.defaultReminderTiming)
+            )
+          : undefined,
       dailyEmailOptedInAt:
         updates.dailyEmailEnabled === true ? new Date() : undefined,
       dailyEmailConsentSource:
@@ -102,7 +108,9 @@ export async function PATCH(request: NextRequest) {
         eventCancellations: settings.eventCancellations,
         eventReminders: settings.eventReminders,
       },
-      defaultReminderTiming: JSON.parse(settings.defaultReminderTiming),
+      defaultReminderTiming: normalizeNotificationReminderTiming(
+        settings.defaultReminderTiming
+      ),
     });
   } catch (error) {
     logger.error(

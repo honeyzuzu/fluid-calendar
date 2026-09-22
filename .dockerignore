@@ -1,5 +1,6 @@
 .git
 .next
+local/
 node_modules
 .turbo
 .cache
@@ -10,4 +11,4 @@ yarn-error.log*
 .DS_Store
 coverage
 .vscode
-*.log 
+*.log

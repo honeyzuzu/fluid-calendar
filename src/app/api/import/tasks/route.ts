@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
 
       // Import tasks
       let importedCount = 0;
+      let skippedCount = 0;
 
       for (const task of data.tasks) {
         try {
@@ -172,7 +173,11 @@ export async function POST(request: NextRequest) {
             externalTaskId: task.externalTaskId,
             source: task.source,
             lastSyncedAt: task.lastSyncedAt,
-            createdAt: new Date(task.createdAt as Date) || new Date(),
+            createdAt:
+              task.createdAt &&
+              !Number.isNaN(new Date(task.createdAt as Date).getTime())
+                ? new Date(task.createdAt as Date)
+                : new Date(),
             updatedAt: new Date(),
           };
 
@@ -207,6 +212,7 @@ export async function POST(request: NextRequest) {
 
           importedCount++;
         } catch (taskError) {
+          skippedCount++;
           logger.warn(
             "Error importing individual task",
             {
@@ -222,7 +228,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return { importedCount };
+      return { importedCount, skippedCount };
     });
 
     logger.info(
@@ -237,6 +243,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       imported: result.importedCount,
+      skipped: result.skippedCount,
     });
   } catch (error) {
     logger.error(

@@ -245,8 +245,8 @@ export function UserSettings() {
 
   return (
     <SettingsSection
-      title="User Settings"
-      description="Manage your personal preferences for the calendar application."
+      title="Personal preferences"
+      description="Choose how Sunnie looks, shows time, and invites you into your day."
     >
       {session?.user && (
         <SettingRow label="Profile" description="Your account information">
@@ -535,7 +535,7 @@ export function UserSettings() {
             updateUserSettings({ timeFormat: value as TimeFormat })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label="Time format">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -597,7 +597,7 @@ export function UserSettings() {
             updateUserSettings({ weekStartDay: value as WeekStartDay })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label="Week starts on">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -618,7 +618,7 @@ export function UserSettings() {
           value={user.timeZone}
           onValueChange={(value) => updateUserSettings({ timeZone: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label="Time zone">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-[300px]">
@@ -671,78 +671,96 @@ export function UserSettings() {
         </div>
       </SettingRow>
 
-      <SettingRow
-        label="Daily Rhythm"
-        description="Choose when Sunnie gently invites you to begin and close your day. Prompts appear while the app is open."
-      >
-        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
-          <label className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-2 text-sm font-medium">
-              <Sunrise className="h-4 w-4 text-primary" /> Daily Rise
-            </span>
-            <input
-              type="checkbox"
-              checked={user.dailyRiseEnabled}
-              onChange={(event) =>
-                updateUserSettings({ dailyRiseEnabled: event.target.checked })
-              }
-              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
-            />
-          </label>
-          {user.dailyRiseEnabled && (
-            <Input
-              aria-label="Daily Rise time"
-              type="time"
-              value={user.dailyRiseTime}
-              onChange={(event) =>
-                updateUserSettings({ dailyRiseTime: event.target.value })
-              }
-            />
-          )}
-          <label className="flex items-center justify-between gap-4 border-t border-border/70 pt-4">
-            <span className="flex items-center gap-2 text-sm font-medium">
-              <MoonStar className="h-4 w-4 text-primary" /> Daily Unwind
-            </span>
-            <input
-              type="checkbox"
-              checked={user.dailyUnwindEnabled}
-              onChange={(event) =>
-                updateUserSettings({ dailyUnwindEnabled: event.target.checked })
-              }
-              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
-            />
-          </label>
-          {user.dailyUnwindEnabled && (
-            <Input
-              aria-label="Daily Unwind time"
-              type="time"
-              value={user.dailyUnwindTime}
-              onChange={(event) =>
-                updateUserSettings({ dailyUnwindTime: event.target.value })
-              }
-            />
-          )}
-          <div className="border-t border-border/70 pt-4">
-            <Label className="text-xs">Prompt me</Label>
-            <Select
-              value={user.dailyRitualDays}
-              onValueChange={(value) =>
-                updateUserSettings({
-                  dailyRitualDays: value as "working" | "everyday",
-                })
-              }
-            >
-              <SelectTrigger className="mt-1.5">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="working">On my working days</SelectItem>
-                <SelectItem value="everyday">Every day</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <details className="rounded-2xl border border-border bg-muted/30 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-foreground">
+          Daily prompts
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            Rise {user.dailyRiseEnabled ? "on" : "off"} · Unwind{" "}
+            {user.dailyUnwindEnabled ? "on" : "off"}
+          </span>
+        </summary>
+        <div className="mt-5">
+          <SettingRow
+            label="Daily rhythm"
+            description="Choose when Sunnie gently invites you to begin and close your day. Prompts appear while the app is open."
+          >
+            <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+              <label className="flex items-center justify-between gap-4">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <Sunrise className="h-4 w-4 text-primary" /> Daily Rise
+                </span>
+                <input
+                  type="checkbox"
+                  checked={user.dailyRiseEnabled}
+                  onChange={(event) =>
+                    updateUserSettings({
+                      dailyRiseEnabled: event.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
+                />
+              </label>
+              {user.dailyRiseEnabled && (
+                <Input
+                  aria-label="Daily Rise time"
+                  type="time"
+                  value={user.dailyRiseTime}
+                  onChange={(event) =>
+                    updateUserSettings({ dailyRiseTime: event.target.value })
+                  }
+                />
+              )}
+              <label className="flex items-center justify-between gap-4 border-t border-border/70 pt-4">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <MoonStar className="h-4 w-4 text-primary" /> Daily Unwind
+                </span>
+                <input
+                  type="checkbox"
+                  checked={user.dailyUnwindEnabled}
+                  onChange={(event) =>
+                    updateUserSettings({
+                      dailyUnwindEnabled: event.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
+                />
+              </label>
+              {user.dailyUnwindEnabled && (
+                <Input
+                  aria-label="Daily Unwind time"
+                  type="time"
+                  value={user.dailyUnwindTime}
+                  onChange={(event) =>
+                    updateUserSettings({ dailyUnwindTime: event.target.value })
+                  }
+                />
+              )}
+              <div className="border-t border-border/70 pt-4">
+                <Label className="text-xs">Prompt me</Label>
+                <Select
+                  value={user.dailyRitualDays}
+                  onValueChange={(value) =>
+                    updateUserSettings({
+                      dailyRitualDays: value as "working" | "everyday",
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    aria-label="Daily prompt days"
+                    className="mt-1.5"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="working">On my working days</SelectItem>
+                    <SelectItem value="everyday">Every day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </SettingRow>
         </div>
-      </SettingRow>
+      </details>
     </SettingsSection>
   );
 }

@@ -20,6 +20,7 @@ export function CalendarSettings() {
   const { calendar, updateCalendarSettings, user, updateUserSettings } =
     useSettingsStore();
   const { feeds, loadFromDatabase } = useCalendarStore();
+  const enabledFeeds = feeds.filter((feed) => feed.enabled);
 
   // Load feeds when component mounts
   useEffect(() => {
@@ -38,40 +39,55 @@ export function CalendarSettings() {
 
   return (
     <SettingsSection
-      title="Calendar Settings"
-      description="Configure your calendar display and event defaults."
+      title="Calendar view"
+      description="Choose where new events go and how your calendar displays time."
     >
       <SettingRow
-        label="Default Calendar"
-        description="Choose which calendar new events are added to by default"
+        label="Default calendar"
+        description="New events use this calendar unless you choose another."
       >
-        <Select
-          value={calendar.defaultCalendarId || "none"}
-          onValueChange={(value) =>
-            updateCalendarSettings({
-              defaultCalendarId: value === "none" ? "" : value,
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a default calendar" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Select a default calendar</SelectItem>
-            {feeds
-              .filter((feed) => feed.enabled)
-              .map((feed) => (
+        <div className="space-y-2">
+          <Select
+            value={calendar.defaultCalendarId || "none"}
+            disabled={enabledFeeds.length === 0}
+            onValueChange={(value) =>
+              updateCalendarSettings({
+                defaultCalendarId: value === "none" ? "" : value,
+              })
+            }
+          >
+            <SelectTrigger aria-label="Default calendar">
+              <SelectValue placeholder="Select a default calendar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
+                Choose when creating an event
+              </SelectItem>
+              {enabledFeeds.map((feed) => (
                 <SelectItem key={feed.id} value={feed.id}>
                   {feed.name}
                 </SelectItem>
               ))}
-          </SelectContent>
-        </Select>
+            </SelectContent>
+          </Select>
+          {enabledFeeds.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No calendar is connected yet.{" "}
+              <a
+                href="#accounts"
+                className="font-semibold text-primary underline underline-offset-2"
+              >
+                Connect a calendar
+              </a>{" "}
+              to choose a default.
+            </p>
+          )}
+        </div>
       </SettingRow>
 
       <SettingRow
-        label="Week Start Day"
-        description="Set which day of the week your calendar should start on"
+        label="Week starts on"
+        description="Choose the first column in week and month views."
       >
         <Select
           value={user.weekStartDay}
@@ -81,7 +97,7 @@ export function CalendarSettings() {
             })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label="Calendar week starts on">
             <SelectValue placeholder="Select start day" />
           </SelectTrigger>
           <SelectContent>
@@ -92,8 +108,8 @@ export function CalendarSettings() {
       </SettingRow>
 
       <SettingRow
-        label="Working Hours"
-        description="Set your working hours for better calendar visualization"
+        label="Calendar display hours"
+        description="Shade your usual hours on Calendar. Task scheduling has its own availability."
       >
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -104,7 +120,7 @@ export function CalendarSettings() {
                 updateCalendarSettings({
                   workingHours: {
                     ...calendar.workingHours,
-                    enabled: checked as boolean,
+                    enabled: checked === true,
                   },
                 })
               }
@@ -112,10 +128,11 @@ export function CalendarSettings() {
             <Label htmlFor="show-working-hours">Show working hours</Label>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex gap-3">
             <div className="flex-1">
-              <Label>Start Time</Label>
+              <Label htmlFor="calendar-hours-start">From</Label>
               <Input
+                id="calendar-hours-start"
                 type="time"
                 value={calendar.workingHours.start}
                 onChange={(e) =>
@@ -129,8 +146,9 @@ export function CalendarSettings() {
               />
             </div>
             <div className="flex-1">
-              <Label>End Time</Label>
+              <Label htmlFor="calendar-hours-end">To</Label>
               <Input
+                id="calendar-hours-end"
                 type="time"
                 value={calendar.workingHours.end}
                 onChange={(e) =>
@@ -146,7 +164,7 @@ export function CalendarSettings() {
           </div>
 
           <div>
-            <Label>Working Days</Label>
+            <p className="text-sm font-medium">Days to shade</p>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {workingDays.map((day) => (
                 <div key={day.value} className="flex items-center space-x-2">
@@ -174,6 +192,12 @@ export function CalendarSettings() {
               ))}
             </div>
           </div>
+          <a
+            href="#auto-schedule"
+            className="inline-block text-sm font-semibold text-primary underline underline-offset-2"
+          >
+            Change task scheduling hours
+          </a>
         </div>
       </SettingRow>
     </SettingsSection>

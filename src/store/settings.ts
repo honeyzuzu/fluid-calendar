@@ -1,8 +1,10 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { BASE_COLOR_THEME } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
+import { normalizeNotificationReminderTiming } from "@/lib/notification-reminders";
 
 import { Settings } from "@/types/settings";
 
@@ -35,7 +37,7 @@ type NotificationSettingsResponse = {
   eventUpdates: boolean;
   eventCancellations: boolean;
   eventReminders: boolean;
-  defaultReminderTiming: string;
+  defaultReminderTiming: unknown;
 };
 
 type IntegrationSettingsResponse = {
@@ -111,7 +113,7 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
   },
   notifications: {
     emailNotifications: true,
-    dailyEmailEnabled: true,
+    dailyEmailEnabled: false,
     notifyFor: {
       eventInvites: true,
       eventUpdates: true,
@@ -165,32 +167,106 @@ const defaultSettings: Settings & { accounts: ConnectedAccount[] } = {
   accounts: [],
 };
 
+async function patchSettings(url: string, payload: unknown) {
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || `Request failed (${response.status})`);
+  }
+}
+
+function createQueuedSettingsSaver<Value>(label: string) {
+  let saved: Value | undefined;
+  let queue = Promise.resolve();
+  let version = 0;
+  let generation = 0;
+
+  return {
+    hydrate(value: Value) {
+      saved = value;
+      version = 0;
+      generation += 1;
+      queue = Promise.resolve();
+    },
+    enqueue(
+      previous: Value,
+      next: Value,
+      persistNext: () => Promise<void>,
+      rollback: (value: Value) => void
+    ) {
+      saved ??= previous;
+      const requestVersion = ++version;
+      const requestGeneration = generation;
+      queue = queue.then(async () => {
+        if (requestGeneration !== generation) return;
+        try {
+          await persistNext();
+          if (requestGeneration === generation) saved = next;
+        } catch (error) {
+          if (requestGeneration !== generation) return;
+          logger.error(
+            `Failed to save ${label}`,
+            { error: error instanceof Error ? error.message : "Unknown error" },
+            LOG_SOURCE
+          );
+          if (requestVersion === version) {
+            rollback(saved ?? previous);
+            toast.error(`${label} was not saved`, {
+              description: "Your last saved choice was restored. Try again.",
+            });
+          }
+        }
+      });
+    },
+  };
+}
+
+const calendarSaver = createQueuedSettingsSaver<Settings["calendar"]>(
+  "Calendar preference"
+);
+const notificationSaver = createQueuedSettingsSaver<Settings["notifications"]>(
+  "Notification preference"
+);
+const autoScheduleSaver = createQueuedSettingsSaver<Settings["autoSchedule"]>(
+  "Scheduling preference"
+);
+
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
       ...defaultSettings,
       initialized: false,
       hydrateFromServer: (settings) =>
-        set((state) => ({
-          user: { ...state.user, ...settings.user },
-          calendar: { ...state.calendar, ...settings.calendar },
-          notifications: {
-            ...state.notifications,
-            ...settings.notifications,
-          },
-          integrations: {
-            ...state.integrations,
-            ...settings.integrations,
-          },
-          data: { ...state.data, ...settings.data },
-          autoSchedule: {
-            ...state.autoSchedule,
-            ...settings.autoSchedule,
-          },
-          system: { ...state.system, ...settings.system },
-          accounts: settings.accounts ?? state.accounts,
-          initialized: true,
-        })),
+        set((state) => {
+          const next = {
+            user: { ...state.user, ...settings.user },
+            calendar: { ...state.calendar, ...settings.calendar },
+            notifications: {
+              ...state.notifications,
+              ...settings.notifications,
+            },
+            integrations: {
+              ...state.integrations,
+              ...settings.integrations,
+            },
+            data: { ...state.data, ...settings.data },
+            autoSchedule: {
+              ...state.autoSchedule,
+              ...settings.autoSchedule,
+            },
+            system: { ...state.system, ...settings.system },
+            accounts: settings.accounts ?? state.accounts,
+            initialized: true,
+          };
+          calendarSaver.hydrate(next.calendar);
+          notificationSaver.hydrate(next.notifications);
+          autoScheduleSaver.hydrate(next.autoSchedule);
+          return next;
+        }),
       updateUserSettings: (settings) =>
         set((state) => {
           // Update local state
@@ -233,75 +309,56 @@ export const useSettingsStore = create<SettingsStore>()(
                 },
                 LOG_SOURCE
               );
+              toast.error("Preference was not saved", {
+                description: "Your last saved choice was restored. Try again.",
+              });
             });
 
           return { user: newSettings };
         }),
       updateCalendarSettings: (settings) =>
         set((state) => {
-          // Update local state
+          const previousSettings = state.calendar;
           const newSettings = { ...state.calendar, ...settings };
-
-          // Save to database
-          fetch("/api/calendar-settings", {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              defaultCalendarId: newSettings.defaultCalendarId,
-              workingHoursEnabled: newSettings.workingHours.enabled,
-              workingHoursStart: newSettings.workingHours.start,
-              workingHoursEnd: newSettings.workingHours.end,
-              workingHoursDays: JSON.stringify(newSettings.workingHours.days),
-              defaultDuration: newSettings.eventDefaults.defaultDuration,
-              defaultColor: newSettings.eventDefaults.defaultColor,
-              defaultReminder: newSettings.eventDefaults.defaultReminder,
-              refreshInterval: newSettings.refreshInterval,
-            }),
-          }).catch((error) => {
-            logger.error(
-              "Failed to save calendar settings to database",
-              {
-                error: error instanceof Error ? error.message : "Unknown error",
-              },
-              LOG_SOURCE
-            );
-          });
+          calendarSaver.enqueue(
+            previousSettings,
+            newSettings,
+            () =>
+              patchSettings("/api/calendar-settings", {
+                defaultCalendarId: newSettings.defaultCalendarId,
+                workingHoursEnabled: newSettings.workingHours.enabled,
+                workingHoursStart: newSettings.workingHours.start,
+                workingHoursEnd: newSettings.workingHours.end,
+                workingHoursDays: JSON.stringify(newSettings.workingHours.days),
+                defaultDuration: newSettings.eventDefaults.defaultDuration,
+                defaultColor: newSettings.eventDefaults.defaultColor,
+                defaultReminder: newSettings.eventDefaults.defaultReminder,
+                refreshInterval: newSettings.refreshInterval,
+              }),
+            (saved) => set({ calendar: saved })
+          );
 
           return { calendar: newSettings };
         }),
       updateNotificationSettings: (settings) =>
         set((state) => {
-          // Update local state
+          const previousSettings = state.notifications;
           const newSettings = { ...state.notifications, ...settings };
-
-          // Save to database
-          fetch("/api/notification-settings", {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              emailNotifications: newSettings.emailNotifications,
-              dailyEmailEnabled: newSettings.dailyEmailEnabled,
-              eventInvites: newSettings.notifyFor.eventInvites,
-              eventUpdates: newSettings.notifyFor.eventUpdates,
-              eventCancellations: newSettings.notifyFor.eventCancellations,
-              eventReminders: newSettings.notifyFor.eventReminders,
-              defaultReminderTiming: JSON.stringify(
-                newSettings.defaultReminderTiming
-              ),
-            }),
-          }).catch((error) => {
-            logger.error(
-              "Failed to save notification settings to database",
-              {
-                error: error instanceof Error ? error.message : "Unknown error",
-              },
-              LOG_SOURCE
-            );
-          });
+          notificationSaver.enqueue(
+            previousSettings,
+            newSettings,
+            () =>
+              patchSettings("/api/notification-settings", {
+                emailNotifications: newSettings.emailNotifications,
+                dailyEmailEnabled: newSettings.dailyEmailEnabled,
+                eventInvites: newSettings.notifyFor.eventInvites,
+                eventUpdates: newSettings.notifyFor.eventUpdates,
+                eventCancellations: newSettings.notifyFor.eventCancellations,
+                eventReminders: newSettings.notifyFor.eventReminders,
+                defaultReminderTiming: newSettings.defaultReminderTiming,
+              }),
+            (saved) => set({ notifications: saved })
+          );
 
           return { notifications: newSettings };
         }),
@@ -362,25 +419,14 @@ export const useSettingsStore = create<SettingsStore>()(
         }),
       updateAutoScheduleSettings: (settings) =>
         set((state) => {
-          // Update local state
+          const previousSettings = state.autoSchedule;
           const newSettings = { ...state.autoSchedule, ...settings };
-
-          // Save to database
-          fetch("/api/auto-schedule-settings", {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newSettings),
-          }).catch((error) => {
-            logger.error(
-              "Failed to save auto schedule settings to database",
-              {
-                error: error instanceof Error ? error.message : "Unknown error",
-              },
-              LOG_SOURCE
-            );
-          });
+          autoScheduleSaver.enqueue(
+            previousSettings,
+            newSettings,
+            () => patchSettings("/api/auto-schedule-settings", newSettings),
+            (saved) => set({ autoSchedule: saved })
+          );
 
           return { autoSchedule: newSettings };
         }),
@@ -547,7 +593,7 @@ export const useSettingsStore = create<SettingsStore>()(
                 eventCancellations: notificationSettings.eventCancellations,
                 eventReminders: notificationSettings.eventReminders,
               },
-              defaultReminderTiming: JSON.parse(
+              defaultReminderTiming: normalizeNotificationReminderTiming(
                 notificationSettings.defaultReminderTiming
               ),
             },

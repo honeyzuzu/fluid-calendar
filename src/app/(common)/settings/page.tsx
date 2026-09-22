@@ -83,14 +83,14 @@ export default function SettingsPage() {
 
   const tabs = useMemo(() => {
     const baseTabs = [
-      { id: "user", label: "User" },
+      { id: "user", label: "Personal preferences" },
       { id: "about", label: "About Sunnie" },
-      { id: "calendar", label: "Calendar" },
-      { id: "auto-schedule", label: "Auto-Schedule" },
+      { id: "calendar", label: "Calendar view" },
+      { id: "auto-schedule", label: "Schedule tasks" },
       { id: "accounts", label: "Calendar accounts" },
       { id: "task-sync", label: "Task sync" },
-      { id: "notifications", label: "Notifications" },
-      { id: "import-export", label: "Import/Export" },
+      { id: "notifications", label: "Email & reminders" },
+      { id: "import-export", label: "Task data" },
     ] as const;
 
     // Add admin-only tabs
@@ -166,6 +166,11 @@ export default function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>("user");
 
+  const selectTab = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    window.location.hash = tab;
+  };
+
   // Check initial hash and handle changes
   useEffect(() => {
     const handleHashChange = () => {
@@ -207,13 +212,6 @@ export default function SettingsPage() {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-
-  // Update hash when tab changes
-  useEffect(() => {
-    if (isHydrated) {
-      window.location.hash = activeTab;
-    }
-  }, [activeTab, isHydrated]);
 
   const renderContent = () => {
     // Admin-only tabs
@@ -324,9 +322,7 @@ export default function SettingsPage() {
             <select
               id="settings-section"
               value={activeTab}
-              onChange={(event) =>
-                setActiveTab(event.target.value as SettingsTab)
-              }
+              onChange={(event) => selectTab(event.target.value as SettingsTab)}
               className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-[var(--shadow-paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {tabGroups.map((group) => (
@@ -356,7 +352,7 @@ export default function SettingsPage() {
                       href={`#${tab.id}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        setActiveTab(tab.id as SettingsTab);
+                        selectTab(tab.id as SettingsTab);
                       }}
                       className={cn(
                         "flex w-auto shrink-0 items-center whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full",

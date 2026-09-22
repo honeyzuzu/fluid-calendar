@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { useSettingsStore } from "@/store/settings";
 
 import { SettingRow, SettingsSection } from "./SettingsSection";
@@ -7,30 +9,42 @@ export function NotificationSettings() {
 
   return (
     <SettingsSection
-      title="Notification Settings"
-      description="Configure your notification preferences."
+      title="Email & reminders"
+      description="See where reminders are set and manage your saved email choice."
     >
       <SettingRow
-        label="Daily Email Updates"
-        description="Optional: receive one morning email summarizing upcoming meetings and tasks. Transactional account messages stay separate."
+        label="Event reminders"
+        description="Edit an event in Calendar to choose when its provider reminds you."
       >
-        <div className="space-y-2">
-          <label className="flex items-center">
+        <Link
+          href="/calendar"
+          className="inline-block text-sm font-semibold text-primary underline underline-offset-2"
+        >
+          Open Calendar
+        </Link>
+      </SettingRow>
+
+      <SettingRow
+        label="Daily planning email"
+        description="Sunnie does not send daily summary emails yet. Account messages, such as password resets, are separate."
+      >
+        {notifications.dailyEmailEnabled ? (
+          <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
-              checked={notifications.dailyEmailEnabled}
-              onChange={(e) =>
-                updateNotificationSettings({
-                  dailyEmailEnabled: e.target.checked,
-                })
+              checked
+              onChange={() =>
+                updateNotificationSettings({ dailyEmailEnabled: false })
               }
-              className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
+              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-ring"
             />
-            <span className="ml-2 text-sm">
-              Send me the optional daily planning email
-            </span>
+            <span>Keep my previously saved daily email preference on</span>
           </label>
-        </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Off. An opt-in will be offered if daily emails become available.
+          </p>
+        )}
       </SettingRow>
     </SettingsSection>
   );

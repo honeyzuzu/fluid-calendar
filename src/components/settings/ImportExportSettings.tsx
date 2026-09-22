@@ -45,7 +45,7 @@ export function ImportExportSettings() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `fluid-calendar-tasks-${
+      link.download = `sunnie-tasks-${
         new Date().toISOString().split("T")[0]
       }.json`;
       document.body.appendChild(link);
@@ -100,7 +100,16 @@ export function ImportExportSettings() {
           }
 
           const result = await response.json();
-          toast.success(`Import successful: ${result.imported} tasks imported`);
+          if (result.skipped) {
+            toast.warning(
+              `${result.imported} task${result.imported === 1 ? "" : "s"} imported; ${result.skipped} skipped`,
+              { description: "Check the file and retry any missing tasks." }
+            );
+          } else {
+            toast.success(
+              `${result.imported} task${result.imported === 1 ? "" : "s"} imported`
+            );
+          }
         } catch (error) {
           console.error("Import processing error:", error);
           toast.error(
@@ -134,9 +143,9 @@ export function ImportExportSettings() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Import/Export Tasks</CardTitle>
+          <CardTitle>Task data</CardTitle>
           <CardDescription>
-            Export your tasks to a file or import tasks from a file
+            Download a copy or bring tasks in from a JSON export.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -163,7 +172,7 @@ export function ImportExportSettings() {
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                Export Tasks
+                Download tasks
               </Button>
 
               <Button
@@ -177,14 +186,14 @@ export function ImportExportSettings() {
                 ) : (
                   <Upload className="h-4 w-4" />
                 )}
-                Import Tasks
+                Import tasks
               </Button>
 
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".json"
+                accept=".json,application/json"
                 className="hidden"
               />
             </div>
@@ -192,16 +201,13 @@ export function ImportExportSettings() {
 
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              <strong>Export:</strong> Creates a JSON file containing all your
-              tasks, projects, and tags.
+              Downloads include tasks, projects, and tags. Use the checkbox
+              above to include completed tasks.
             </p>
             <p>
-              <strong>Import:</strong> Imports tasks, projects, and tags from a
-              JSON file. Tasks will be associated with your account.
-            </p>
-            <p className="text-warning">
-              Note: Importing will not delete or modify your existing tasks, but
-              may create duplicates if tasks with similar titles exist.
+              Import adds tasks to your account and reuses matching project and
+              tag names. Existing tasks stay in place; importing the same file
+              twice can create duplicates.
             </p>
           </div>
         </CardContent>

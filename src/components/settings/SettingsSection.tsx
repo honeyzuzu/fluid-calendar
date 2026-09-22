@@ -29,19 +29,19 @@ export function SettingsSection({
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">{children}</CardContent>
+      <CardContent className="space-y-5">{children}</CardContent>
     </Card>
   );
 }
 
 export function SettingRow({ label, description, children }: SettingRowProps) {
   return (
-    <div className="flex flex-col space-y-6 md:flex-row md:items-start md:space-x-6 md:space-y-0">
-      <div className="flex-1 space-y-1">
+    <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] md:items-start md:gap-5">
+      <div className="min-w-0 space-y-1">
         <div className="text-sm font-medium leading-none">{label}</div>
         <div className="text-sm text-muted-foreground">{description}</div>
       </div>
-      <div className="flex-1">{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

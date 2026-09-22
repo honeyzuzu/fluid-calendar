@@ -2,6 +2,12 @@
 
 Last updated: 2026-09-22
 
+## Settings preferences and data pass (September 22, 2026)
+
+The final page pass makes Personal, Calendar view, Schedule tasks, Email & reminders, and Task data easier to scan at desktop and phone widths. Personal keeps optional daily prompts folded until needed. Calendar view explains that its working hours affect display, links directly to task scheduling hours, and sends accounts without a feed to Calendar accounts; the default-calendar control stays disabled until a feed exists. Schedule tasks shows readable day choices and starting points, folds optional energy windows, and only offers Google task-block push when a Google calendar is available. Settings section links and the mobile picker keep the URL hash and visible section in sync.
+
+Calendar, scheduling, and notification preferences update optimistically, serialize rapid saves, and restore the last saved choice with a visible error after a failed write. Existing daily-email opt-ins can be revoked, but new opt-ins are unavailable: this app has no daily-summary sender. Event reminder timing belongs to event editing in Calendar. Legacy notification reminder values that were JSON-encoded twice are read correctly and rewritten once on the next settings save. Task export uses Sunnie naming; imports accept tasks without a creation timestamp, keep existing tasks, and report skipped records. Signed-in local phone and desktop QA covered no-calendar and connected-feed accounts, save failures, rapid scheduling changes, legacy preferences, export, and import. No schema change is needed for this pass.
+
 ## Review page pass (September 22, 2026)
 
 `/review` now presents the week in one continuous reflection: a compact completion summary, past calendar moments only when calendars exist, optional private notes, decisions for unfinished tasks when any need attention, and a next-week note with a direct Upcoming link. The four-step switcher is gone. Reflection fields have clear accessible names. Save draft and Finish review remain separate; a finished review survives reload, and editing it can save a reopened draft or finish again. Changing weeks saves pending edits first. Task choices and completion undo update the review immediately and restore the item with a clear error if the request fails. The dormant onboarding tour still points to the matching sections.
@@ -42,7 +48,7 @@ Authenticated entry points and the Sunnie brand link lead to `/today`. The first
 
 Low-energy changes go through `/api/daily-plan/energy` in one database transaction. The action books a 30-minute recovery event in a dedicated local Sunnie calendar when a conflict-free slot fits before work ends. It removes eligible unfinished, unlocked, auto-scheduled task blocks with no provider push and no due-today/high-priority deadline from today, postponing their scheduling eligibility until the next configured workday. Eligible low-energy committed tasks are placed after recovery when a slot fits. Turning normal mode back on makes previously deferred tasks available again if their placement has not since changed; it does not silently restore stale calendar slots. Locked or externally pushed blocks are never changed by this action and are flagged on Today for review. Recovery never spills into the evening. Apply both checked-in daily commitment/energy migrations before serving this version against an existing database.
 
-The page-by-page UI rework is in progress. Today offers an optimistic Done action, direct choice of the next committed task, and a short capture form that can place an item into today's commitment or save it for later. `/upcoming` opens the weekly planner with a selected-day strip, and `/review` opens Weekly Review before a collapsed Mood Garden. Tasks offers one-line backlog capture and hides the Projects panel by default. Calendar emphasizes viewing and event editing; its no-calendar state links to connections instead of opening an event form, and scheduling remains available from Tasks and Upcoming. Focus fetches tasks on direct entry so a Today task link resolves reliably. The global intention banner is removed from the shell while the saved intention editor remains in legacy Plan. The `/plan` route still serves its former views and links during the transition.
+The page-by-page UI rework now covers Today, Upcoming, Tasks, Calendar, Friends, Focus, Review, and Settings. Today offers an optimistic Done action, direct choice of the next committed task, and short capture. `/upcoming` opens the weekly planner with a selected-day strip, and `/review` opens Weekly Review before a collapsed Mood Garden. Tasks offers one-line backlog capture; Calendar emphasizes viewing and event editing; Focus resolves a Today task link reliably. The global intention banner is removed from the shell while the saved intention editor remains in legacy Plan. The `/plan` route still serves its former views and links. Live provider resync and a dense imported-calendar check remain separate integration verification.
 
 On first load, concurrent settings requests may try to create the same user row. The user-settings GET now reads the winning row after a PostgreSQL uniqueness collision so a new account does not see an intermittent settings failure.
 
@@ -141,13 +147,15 @@ Important source locations:
 
 ## Production Startup and Database Lifecycle
 
-Railway builds the root `Dockerfile` using Node 22 Alpine. The build:
+Railway builds the root `Dockerfile` using Node 22 Alpine. The Docker build context excludes the ignored `local/` folder so local QA files and account environment files cannot enter the image build. The build:
 
 1. Installs dependencies including development dependencies.
 2. Rebuilds the native `bcrypt` binding from source.
 3. Generates Prisma Client.
 4. Runs the Next.js production build.
 5. Copies the standalone Next.js server and Prisma tooling into the runtime image.
+
+Next.js 15 currently emits a missing `route_client-reference-manifest.js` trace-copy warning for the `.open.ts` task-sync route on both Windows and Linux builds. The standalone image still builds, and an unauthenticated request to that route returns 401 at runtime. Recheck the warning when changing Next.js or task-sync route packaging.
 
 At container startup, `entrypoint.sh`:
 
@@ -259,7 +267,7 @@ server validation may still wait for confirmation.
 - Saved colorway, Calendar style, and motion preferences are cached per user and prepainted by the root layout, preventing a Base/Classic/full-motion flash before React hydrates. Server settings hydrate the client store without issuing a preference write, and non-admin Settings screens do not probe admin-only status routes.
 - Regular users are held to the Sunnie Base colorway while the interface is being redesigned. The Settings picker is admin-only, both colorway write routes reject seasonal choices for regular users, and settings reads expose Base to them without erasing a previously saved selection. Admins retain the colorway picker and Theme Lab. The root prepaint begins with Base; an admin's saved choice applies after settings hydrate.
 - Mobile Settings uses a native section picker while desktop retains the settings card navigation. Personal Settings includes an About section for the application version and the private, friend-oriented product principles; authenticated pages no longer expose a repository-linked version footer. Dialogs expose descriptions, keep one intentional content scroller, and restore focus to the control that opened them.
-- Daily summary email is opt-in for new accounts. `NotificationSettings` records the latest consent timestamp and source when the preference is changed; the migration preserves existing users' saved choices while changing the database default to off.
+- The database default for daily summary email is off, and the migration preserved existing users' saved choices. There is no daily-summary sender in this application yet, so Settings does not offer a new opt-in; users with an older enabled preference may revoke it. `NotificationSettings` still records the latest consent timestamp and source when the saved preference changes. Password-reset and other account messages are separate.
 - Core application surfaces use shared semantic page, paper, panel, toolbar, chip, segmented-control, empty-state, and skeleton primitives. Geometry-preserving skeletons replace full-page spinners while initial data loads; the root route fallback renders immediately, and the account area keeps an avatar-shaped placeholder instead of adding loading text to the navigation.
 - The upstream support banner has been removed from the calendar.
 
