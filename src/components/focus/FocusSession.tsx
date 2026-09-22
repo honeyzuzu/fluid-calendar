@@ -48,6 +48,7 @@ import {
   petMessage,
   phaseAfterEndingEarly,
   startingPhaseForSetup,
+  suggestFocusRhythm,
 } from "@/lib/focus-session";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +119,8 @@ type PersistedFocusState = {
   isRunning: boolean;
   checklist: Record<string, boolean>;
   subtaskPlan: string;
+  focusPlan?: number[];
+  currentRoundIndex?: number;
   roundReward: RoundReward;
 };
 
@@ -162,6 +165,12 @@ export function FocusSession({
       ? estimatedMinutes!
       : 25
   );
+  const [focusPlan, setFocusPlan] = useState<number[]>(() => [
+    FOCUS_DURATIONS.some((minutes) => minutes === estimatedMinutes)
+      ? estimatedMinutes!
+      : 25,
+  ]);
+  const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [protectedSeconds, setProtectedSeconds] = useState<number | null>(null);
@@ -193,12 +202,29 @@ export function FocusSession({
     [petId]
   );
   const usesCustomPet = petId === "custom" && customPetImage;
+  const suggestedRhythm = useMemo(
+    () => suggestFocusRhythm(estimatedMinutes),
+    [estimatedMinutes]
+  );
+  const hasNextPlannedRound = currentRoundIndex < focusPlan.length - 1;
+  const nextPlannedFocusMinutes = hasNextPlannedRound
+    ? focusPlan[currentRoundIndex + 1]
+    : null;
+  const isSuggestedRhythmSelected = Boolean(
+    suggestedRhythm &&
+      setupMinutes === suggestedRhythm.setupMinutes &&
+      breakMinutes === suggestedRhythm.breakMinutes &&
+      focusPlan.length === suggestedRhythm.focusMinutes.length &&
+      focusPlan.every(
+        (minutes, index) => minutes === suggestedRhythm.focusMinutes[index]
+      )
+  );
 
-  const finishQualifiedFocusRound = useCallback(() => {
+  const finishQualifiedFocusRound = useCallback((finishedMinutes: number) => {
     setIsRunning(false);
     setEndsAt(null);
     setRemainingSeconds(0);
-    setProtectedSeconds(focusMinutes * 60);
+    setProtectedSeconds((current) => (current ?? 0) + finishedMinutes * 60);
     setPhase("break-ready");
     setRoundReward({ status: "saving" });
 
@@ -217,7 +243,7 @@ export function FocusSession({
       .catch(() => {
         setRoundReward({ status: "not-awarded", reason: "save-failed" });
       });
-  }, [focusMinutes]);
+  }, []);
 
   useEffect(() => {
     try {
@@ -246,9 +272,22 @@ export function FocusSession({
       if (storedSession) {
         const saved = JSON.parse(storedSession) as Partial<PersistedFocusState>;
         if (saved.taskId === taskId && saved.phase) {
+          const savedFocusMinutes = saved.focusMinutes || 25;
+          const savedFocusPlan = saved.focusPlan?.filter(
+            (minutes) => Number.isFinite(minutes) && minutes > 0
+          );
+          const restoredFocusPlan = savedFocusPlan?.length
+            ? savedFocusPlan
+            : [savedFocusMinutes];
+          const restoredRoundIndex = Math.min(
+            Math.max(0, saved.currentRoundIndex ?? 0),
+            restoredFocusPlan.length - 1
+          );
           setPhase(saved.phase);
           setSetupMinutes(saved.setupMinutes ?? 0);
-          setFocusMinutes(saved.focusMinutes || 25);
+          setFocusMinutes(restoredFocusPlan[restoredRoundIndex]);
+          setFocusPlan(restoredFocusPlan);
+          setCurrentRoundIndex(restoredRoundIndex);
           setBreakMinutes(saved.breakMinutes || 5);
           setChecklist(saved.checklist || {});
           setSubtaskPlan(saved.subtaskPlan || "");
@@ -264,13 +303,31 @@ export function FocusSession({
             setIsRunning(restored > 0);
             if (restored === 0) {
               if (saved.phase === "setup") {
-                const focusSeconds = (saved.focusMinutes || 25) * 60;
+                const focusSeconds = restoredFocusPlan[restoredRoundIndex] * 60;
+                setProtectedSeconds(
+                  (saved.protectedSeconds ?? 0) + (saved.setupMinutes ?? 0) * 60
+                );
                 setPhase("focus");
                 setRemainingSeconds(focusSeconds);
                 setEndsAt(Date.now() + focusSeconds * 1000);
                 setIsRunning(true);
               } else if (saved.phase === "focus") {
-                void accountSunDrops.then(finishQualifiedFocusRound);
+                void accountSunDrops.then(() =>
+                  finishQualifiedFocusRound(
+                    restoredFocusPlan[restoredRoundIndex]
+                  )
+                );
+              } else if (saved.phase === "break") {
+                const hasRestoredNextRound =
+                  restoredRoundIndex < restoredFocusPlan.length - 1;
+                if (hasRestoredNextRound) {
+                  const nextRoundIndex = restoredRoundIndex + 1;
+                  setCurrentRoundIndex(nextRoundIndex);
+                  setFocusMinutes(restoredFocusPlan[nextRoundIndex]);
+                  setPhase("focus-ready");
+                } else {
+                  setPhase("complete");
+                }
               } else {
                 setPhase(nextPhaseAfterTimer(saved.phase));
               }
@@ -348,6 +405,8 @@ export function FocusSession({
       isRunning,
       checklist,
       subtaskPlan,
+      focusPlan,
+      currentRoundIndex,
       roundReward,
     };
     try {
@@ -359,7 +418,9 @@ export function FocusSession({
     breakMinutes,
     checklist,
     endsAt,
+    currentRoundIndex,
     focusMinutes,
+    focusPlan,
     hydrated,
     isRunning,
     phase,
@@ -418,6 +479,20 @@ export function FocusSession({
     [chimeId, prepareAudio, soundEnabled]
   );
 
+  const finishBreak = useCallback(() => {
+    if (!hasNextPlannedRound || nextPlannedFocusMinutes === null) {
+      setPhase("complete");
+      setRemainingSeconds(0);
+      return;
+    }
+
+    setCurrentRoundIndex((current) => current + 1);
+    setFocusMinutes(nextPlannedFocusMinutes);
+    setPhase("focus-ready");
+    setRemainingSeconds(0);
+    setRoundReward({ status: "idle" });
+  }, [hasNextPlannedRound, nextPlannedFocusMinutes]);
+
   useEffect(() => {
     if (!isRunning || !endsAt) return;
 
@@ -435,16 +510,17 @@ export function FocusSession({
       void playGentleChime();
       if (phase === "setup") {
         const focusSeconds = focusMinutes * 60;
+        setProtectedSeconds((current) => (current ?? 0) + setupMinutes * 60);
         setPhase("focus");
         setRemainingSeconds(focusSeconds);
         setEndsAt(Date.now() + focusSeconds * 1000);
         setIsRunning(true);
+      } else if (phase === "focus") {
+        finishQualifiedFocusRound(focusMinutes);
+      } else if (phase === "break") {
+        finishBreak();
       } else {
-        if (phase === "focus") {
-          finishQualifiedFocusRound();
-        } else {
-          setPhase(nextPhaseAfterTimer(phase));
-        }
+        setPhase(nextPhaseAfterTimer(phase));
       }
       window.setTimeout(() => {
         finishingRef.current = false;
@@ -456,11 +532,13 @@ export function FocusSession({
     return () => window.clearInterval(interval);
   }, [
     endsAt,
+    finishBreak,
     finishQualifiedFocusRound,
     focusMinutes,
     isRunning,
     phase,
     playGentleChime,
+    setupMinutes,
   ]);
 
   useEffect(() => {
@@ -486,10 +564,7 @@ export function FocusSession({
     setRemainingSeconds(seconds);
     setEndsAt(Date.now() + seconds * 1000);
     setIsRunning(true);
-    if (timerPhase === "focus") {
-      setProtectedSeconds(0);
-      setRoundReward({ status: "idle" });
-    }
+    if (timerPhase === "focus") setRoundReward({ status: "idle" });
   };
 
   const pauseTimer = () => {
@@ -517,20 +592,41 @@ export function FocusSession({
     }
     setRemainingSeconds(0);
     if (phase === "focus") {
-      setProtectedSeconds(Math.max(0, focusMinutes * 60 - remainingSeconds));
+      setProtectedSeconds(
+        (current) =>
+          (current ?? 0) + Math.max(0, focusMinutes * 60 - remainingSeconds)
+      );
       setRoundReward({ status: "not-awarded", reason: "ended-early" });
       setPhase(phaseAfterEndingEarly(phase));
     } else {
-      setPhase(phaseAfterEndingEarly(phase));
+      finishBreak();
     }
   };
 
   const startPlannedRound = () => {
-    startTimer(startingPhaseForSetup(setupMinutes));
+    if (phase === "setup-ready") {
+      setProtectedSeconds(0);
+      setCurrentRoundIndex(0);
+      setFocusMinutes(focusPlan[0] ?? focusMinutes);
+      startTimer(startingPhaseForSetup(setupMinutes));
+      return;
+    }
+    startTimer("focus");
+  };
+
+  const finishSetupEarly = () => {
+    setProtectedSeconds(
+      (current) =>
+        (current ?? 0) + Math.max(0, setupMinutes * 60 - remainingSeconds)
+    );
+    startTimer("focus");
   };
 
   const finishTaskEarly = () => {
-    setProtectedSeconds(Math.max(0, focusMinutes * 60 - remainingSeconds));
+    setProtectedSeconds(
+      (current) =>
+        (current ?? 0) + Math.max(0, focusMinutes * 60 - remainingSeconds)
+    );
     setIsRunning(false);
     setEndsAt(null);
     setRemainingSeconds(0);
@@ -539,6 +635,9 @@ export function FocusSession({
   };
 
   const startAnotherRound = () => {
+    setFocusPlan([focusMinutes]);
+    setCurrentRoundIndex(0);
+    setProtectedSeconds(0);
     startTimer("focus");
   };
 
@@ -546,7 +645,30 @@ export function FocusSession({
     setPhase("setup-ready");
     setChecklist({});
     setSubtaskPlan("");
+    setFocusPlan([focusMinutes]);
+    setCurrentRoundIndex(0);
+    setProtectedSeconds(null);
     setRemainingSeconds(setupMinutes * 60);
+  };
+
+  const applySuggestedRhythm = () => {
+    if (!suggestedRhythm) return;
+    setSetupMinutes(suggestedRhythm.setupMinutes);
+    setBreakMinutes(suggestedRhythm.breakMinutes);
+    setFocusPlan(suggestedRhythm.focusMinutes);
+    setCurrentRoundIndex(0);
+    setFocusMinutes(suggestedRhythm.focusMinutes[0]);
+    setProtectedSeconds(null);
+    setPhase("setup-ready");
+    setRemainingSeconds(0);
+    setRoundReward({ status: "idle" });
+  };
+
+  const chooseSingleFocusDuration = (minutes: number) => {
+    setFocusMinutes(minutes);
+    setFocusPlan([minutes]);
+    setCurrentRoundIndex(0);
+    setProtectedSeconds(null);
   };
 
   const handleCustomImage = (event: ChangeEvent<HTMLInputElement>) => {
@@ -700,19 +822,80 @@ export function FocusSession({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-                  Ready when you are
+                  {phase === "focus-ready"
+                    ? `Round ${currentRoundIndex + 1} of ${focusPlan.length}`
+                    : "Ready when you are"}
                 </p>
                 <h3 className="mt-1 text-base font-bold text-foreground sm:text-lg">
-                  {setupMinutes === 0
-                    ? "Start focusing whenever you're ready"
-                    : "Setup first, then Sunnie starts focus automatically"}
+                  {phase === "focus-ready"
+                    ? "Ready for the next focus round?"
+                    : setupMinutes === 0
+                      ? "Start focusing whenever you're ready"
+                      : "Setup first, then Sunnie starts focus automatically"}
                 </h3>
               </div>
             </div>
 
+            {phase === "setup-ready" &&
+              suggestedRhythm &&
+              suggestedRhythm.taskMinutes >= 30 && (
+                <div className="mt-3 rounded-2xl border border-primary/30 bg-muted/65 p-3 text-left sm:mt-4 sm:p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                        Suggested rhythm
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-foreground">
+                        A gentle plan for this{" "}
+                        {formatTaskEstimate(estimatedMinutes!)} task
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {formatMinutes(suggestedRhythm.taskMinutes)} of task
+                        time · about{" "}
+                        {formatMinutes(suggestedRhythm.elapsedMinutes)} on the
+                        clock
+                        {suggestedRhythm.focusMinutes.length > 1
+                          ? " with breaks"
+                          : ""}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applySuggestedRhythm}
+                      disabled={isSuggestedRhythmSelected}
+                      className="shrink-0 rounded-xl border border-primary/35 bg-card px-3 py-2 text-xs font-bold text-primary shadow-sm disabled:cursor-default disabled:bg-primary disabled:text-primary-foreground"
+                    >
+                      {isSuggestedRhythmSelected
+                        ? "Plan selected"
+                        : "Use this plan"}
+                    </button>
+                  </div>
+                  <RhythmSteps
+                    setupMinutes={suggestedRhythm.setupMinutes}
+                    focusMinutes={suggestedRhythm.focusMinutes}
+                    breakMinutes={suggestedRhythm.breakMinutes}
+                  />
+                </div>
+              )}
+
             <div className="mt-3 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground sm:mt-4">
-              {setupMinutes === 0 ? "No setup" : `${setupMinutes} min setup`} →{" "}
-              {focusMinutes} min focus → {breakMinutes} min break
+              {focusPlan.length > 1 ? (
+                <RhythmSteps
+                  setupMinutes={phase === "setup-ready" ? setupMinutes : 0}
+                  focusMinutes={focusPlan}
+                  breakMinutes={breakMinutes}
+                  currentRoundIndex={currentRoundIndex}
+                  compact
+                />
+              ) : (
+                <>
+                  {phase === "setup-ready" &&
+                    (setupMinutes === 0
+                      ? "No setup → "
+                      : `${setupMinutes} min setup → `)}
+                  {focusMinutes} min focus → {breakMinutes} min break
+                </>
+              )}
             </div>
 
             <button
@@ -720,13 +903,34 @@ export function FocusSession({
               onClick={startPlannedRound}
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-pressed)] hover:brightness-95 sm:mt-4 sm:w-auto"
             >
-              {setupMinutes === 0 ? (
+              {phase === "focus-ready" || setupMinutes === 0 ? (
                 <Play className="h-4 w-4 fill-current" />
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {setupMinutes === 0 ? "Start focus" : "Start setup, then focus"}
+              {phase === "focus-ready"
+                ? `Start round ${currentRoundIndex + 1}`
+                : setupMinutes === 0
+                  ? "Start focus"
+                  : focusPlan.length > 1
+                    ? "Start this rhythm"
+                    : "Start setup, then focus"}
             </button>
+
+            <label className="mt-4 block text-left text-xs font-bold text-secondary-foreground">
+              Subtasks for this focus
+              <textarea
+                value={subtaskPlan}
+                onChange={(event) => setSubtaskPlan(event.target.value)}
+                placeholder="Write the next 2–3 concrete steps…"
+                rows={3}
+                className="mt-1.5 w-full resize-y rounded-2xl border border-border bg-card/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/35"
+              />
+              <span className="mt-1.5 block font-normal text-muted-foreground">
+                These steps stay with this focus session and appear beside the
+                timer.
+              </span>
+            </label>
 
             <details className="mt-4 rounded-2xl border border-border bg-card/65 p-3">
               <summary className="cursor-pointer text-sm font-semibold text-secondary-foreground">
@@ -744,7 +948,7 @@ export function FocusSession({
                   label="Focus"
                   values={FOCUS_DURATIONS}
                   value={focusMinutes}
-                  onChange={setFocusMinutes}
+                  onChange={chooseSingleFocusDuration}
                 />
                 <DurationPicker
                   label="Break after"
@@ -790,17 +994,6 @@ export function FocusSession({
                   );
                 })}
               </div>
-
-              <label className="mt-3 block text-xs font-bold text-secondary-foreground">
-                Tiny subtask outline
-                <textarea
-                  value={subtaskPlan}
-                  onChange={(event) => setSubtaskPlan(event.target.value)}
-                  placeholder="What are the next 2–3 concrete steps?"
-                  rows={2}
-                  className="mt-1.5 w-full resize-none rounded-2xl border border-border bg-card/75 px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/35"
-                />
-              </label>
             </details>
           </div>
         )}
@@ -815,10 +1008,10 @@ export function FocusSession({
             onResume={resumeTimer}
             onEnd={endCurrentPhase}
             endLabel="Back to round plan"
-            onPrimaryAction={() => startTimer("focus")}
+            onPrimaryAction={finishSetupEarly}
             primaryActionLabel="Ready to start!"
             subtaskPlan={subtaskPlan}
-            nextLabel={`Focus starts next · ${focusMinutes} minutes`}
+            nextLabel={`${focusPlan.length > 1 ? `Round ${currentRoundIndex + 1} of ${focusPlan.length} · ` : "Focus starts next · "}${focusMinutes} minutes`}
           />
         )}
 
@@ -835,7 +1028,11 @@ export function FocusSession({
             onPrimaryAction={finishTaskEarly}
             primaryActionLabel="I finished the task"
             subtaskPlan={subtaskPlan}
-            nextLabel={`Break next · ${breakMinutes} minutes`}
+            nextLabel={
+              hasNextPlannedRound
+                ? `Round ${currentRoundIndex + 1} of ${focusPlan.length} · ${breakMinutes}-minute break next`
+                : `Optional break after · ${breakMinutes} minutes`
+            }
           />
         )}
 
@@ -848,7 +1045,9 @@ export function FocusSession({
               {roundReward.status === "not-awarded" &&
               roundReward.reason === "ended-early"
                 ? "Focus round ended"
-                : "Focus round complete!"}
+                : hasNextPlannedRound
+                  ? `Round ${currentRoundIndex + 1} of ${focusPlan.length} complete`
+                  : "Focus round complete!"}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {roundReward.status === "saving" && "Saving your sun drop…"}
@@ -886,10 +1085,10 @@ export function FocusSession({
               </button>
               <button
                 type="button"
-                onClick={() => setPhase("complete")}
+                onClick={finishBreak}
                 className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-secondary-foreground"
               >
-                Skip this break
+                {hasNextPlannedRound ? "Skip break" : "Skip this break"}
               </button>
             </div>
           </div>
@@ -906,6 +1105,11 @@ export function FocusSession({
             onEnd={endCurrentPhase}
             endLabel="End break"
             isBreak
+            nextLabel={
+              nextPlannedFocusMinutes !== null
+                ? `Round ${currentRoundIndex + 2} next · ${nextPlannedFocusMinutes} minutes`
+                : undefined
+            }
           />
         )}
 
@@ -1067,11 +1271,88 @@ export function FocusSession({
   );
 }
 
+function RhythmSteps({
+  setupMinutes,
+  focusMinutes,
+  breakMinutes,
+  currentRoundIndex,
+  compact = false,
+}: {
+  setupMinutes: number;
+  focusMinutes: number[];
+  breakMinutes: number;
+  currentRoundIndex?: number;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-1.5",
+        compact ? "justify-center" : "mt-3"
+      )}
+      aria-label="Focus rhythm"
+    >
+      {setupMinutes > 0 && (
+        <>
+          <span className="rounded-lg bg-card/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
+            {setupMinutes} setup
+          </span>
+          <span aria-hidden="true" className="text-muted-foreground">
+            →
+          </span>
+        </>
+      )}
+      {focusMinutes.map((minutes, index) => (
+        <div key={`${index}-${minutes}`} className="contents">
+          <span
+            className={cn(
+              "rounded-lg px-2 py-1 text-[11px] font-semibold",
+              currentRoundIndex === index
+                ? "bg-primary text-primary-foreground"
+                : "bg-card/80 text-secondary-foreground"
+            )}
+          >
+            {minutes} focus
+          </span>
+          {index < focusMinutes.length - 1 && (
+            <>
+              <span aria-hidden="true" className="text-muted-foreground">
+                →
+              </span>
+              <span className="rounded-lg bg-secondary/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
+                {breakMinutes} break
+              </span>
+              <span aria-hidden="true" className="text-muted-foreground">
+                →
+              </span>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function friendlyValue(value?: string | null) {
   if (!value || value === "none") return "Not set";
   return value
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  const hourText = `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  return remainder ? `${hourText} ${remainder} min` : hourText;
+}
+
+function formatTaskEstimate(minutes: number) {
+  if (minutes < 60) return `${minutes}-minute`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}-hour ${remainder}-minute` : `${hours}-hour`;
 }
 
 function formatProtectedTime(seconds: number | null) {

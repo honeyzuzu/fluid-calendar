@@ -6,6 +6,7 @@ import {
   petMessage,
   phaseAfterEndingEarly,
   startingPhaseForSetup,
+  suggestFocusRhythm,
 } from "@/lib/focus-session";
 
 describe("focus sessions", () => {
@@ -31,6 +32,33 @@ describe("focus sessions", () => {
     expect(SETUP_DURATIONS).toContain(0);
     expect(startingPhaseForSetup(0)).toBe("focus");
     expect(startingPhaseForSetup(5)).toBe("setup");
+  });
+
+  it("suggests a complete rhythm without counting breaks as task time", () => {
+    expect(suggestFocusRhythm(60)).toEqual({
+      taskMinutes: 60,
+      setupMinutes: 5,
+      focusMinutes: [25, 30],
+      breakMinutes: 5,
+      elapsedMinutes: 65,
+    });
+    expect(suggestFocusRhythm(90)).toEqual({
+      taskMinutes: 90,
+      setupMinutes: 5,
+      focusMinutes: [25, 30, 30],
+      breakMinutes: 5,
+      elapsedMinutes: 100,
+    });
+    expect(suggestFocusRhythm(120)?.focusMinutes).toEqual([25, 30, 30, 30]);
+    expect(suggestFocusRhythm(180)?.elapsedMinutes).toBe(205);
+  });
+
+  it("keeps shorter estimates in one approachable session", () => {
+    expect(suggestFocusRhythm(15)?.focusMinutes).toEqual([15]);
+    expect(suggestFocusRhythm(30)?.focusMinutes).toEqual([25]);
+    expect(suggestFocusRhythm(45)?.focusMinutes).toEqual([40]);
+    expect(suggestFocusRhythm(null)).toBeNull();
+    expect(suggestFocusRhythm(240)).toBeNull();
   });
 
   it("gives every pet a distinct, encouraging identity", () => {

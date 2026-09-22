@@ -71,6 +71,58 @@ export const SETUP_CHECKLIST = [
   { id: "distractions", label: "Silence or move distractions" },
 ] as const;
 
+export type SuggestedFocusRhythm = {
+  taskMinutes: number;
+  setupMinutes: number;
+  focusMinutes: number[];
+  breakMinutes: number;
+  elapsedMinutes: number;
+};
+
+/**
+ * Turn a task estimate into a gentle, finite rhythm. Setup counts toward the
+ * task estimate; breaks do not. Tasks under an hour stay in one piece. Longer
+ * work is split into rounds of at most 30 minutes, with any shorter round at
+ * the beginning so the final round never feels like a tiny leftover.
+ */
+export function suggestFocusRhythm(
+  estimatedMinutes?: number | null
+): SuggestedFocusRhythm | null {
+  if (
+    !estimatedMinutes ||
+    !Number.isFinite(estimatedMinutes) ||
+    estimatedMinutes < 15 ||
+    estimatedMinutes > 180
+  ) {
+    return null;
+  }
+
+  const taskMinutes = Math.round(estimatedMinutes);
+  const setupMinutes = taskMinutes >= 30 ? 5 : 0;
+  const focusRemaining = taskMinutes - setupMinutes;
+  const focusMinutes: number[] = [];
+
+  if (taskMinutes < 60) {
+    focusMinutes.push(focusRemaining);
+  } else {
+    const roundCount = Math.ceil(focusRemaining / 30);
+    focusMinutes.push(focusRemaining - (roundCount - 1) * 30);
+    focusMinutes.push(...Array.from({ length: roundCount - 1 }, () => 30));
+  }
+
+  const breakMinutes = 5;
+  const elapsedMinutes =
+    taskMinutes + Math.max(0, focusMinutes.length - 1) * breakMinutes;
+
+  return {
+    taskMinutes,
+    setupMinutes,
+    focusMinutes,
+    breakMinutes,
+    elapsedMinutes,
+  };
+}
+
 export function formatFocusTime(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
   const minutes = Math.floor(safeSeconds / 60);
