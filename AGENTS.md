@@ -186,6 +186,12 @@ That setup script forces the local URL for its Prisma commands rather than
 trusting a possibly inherited production environment variable.
 See `docs/local-postgres.md` for setup and maintenance commands.
 
+Never launch Docker Desktop as part of local development or verification. Use
+Docker-backed checks only when the Docker engine is already running. When it is
+not running, use non-Docker unit, build, preview, or browser-harness checks and
+report any resulting verification limitation instead of starting Docker
+Desktop.
+
 ## Environment and Secrets
 
 Never commit or print real secret values. Important configuration names include:
