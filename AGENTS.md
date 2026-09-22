@@ -1,6 +1,10 @@
 # Sunnie Planner Project State
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
+
+## Focus page pass (September 22, 2026)
+
+Focus loads the full unfiltered task list on direct entry, including when Tasks had a filter selected, and keeps that list after a task is completed or postponed. Its queue offers search and expandable ready, later, and completed-today sections. On phones, the queue appears before the empty ritual and becomes a labeled collapsed strip after task selection; it has its own scroll area so it cannot cover the session card. An active or paused timer blocks switching and queue completion until the round is ended. The timer, break, companion, chime, and sun-drop behavior remain in place. An early-ended round now reports the time actually protected, including after a reload or skipped break, instead of claiming the planned duration. Initial task loading uses a skeleton and a retryable failure state, avoiding a false empty page. No schema change is needed.
 
 ## Settings Connections page pass (implemented September 21, 2026)
 
@@ -275,6 +279,7 @@ server validation may still wait for confirmation.
 - Task cards keep a large leading completion toggle visible, use the title as the edit affordance, reserve dragging for the grip, and place destructive actions in a persistent overflow menu.
 - Task cards label priority and energy separately, so a task's energy level cannot be mistaken for its priority in the responsive card grid.
 - The Focus task queue gives every task a dedicated completion toggle. Completed tasks can be marked incomplete from the same control.
+- Focus offers all available tasks with queue search, leaves upcoming or postponed tasks in a separate later group, and prevents task switching while a timer is active or paused. The phone queue is above the empty state and collapses after selection without overlapping the timer card. Completing a task or ending a round does not inherit a Tasks-page filter. End-of-round copy uses actual protected time when a focus round ends early.
 - Focus setup may be 0, 5, or 10 minutes. A running setup can advance immediately with “Ready to start”; during focus, “I finished the task” completes the task while “End focus early” stops the round without completing it. Phase-specific labels replace the ambiguous shared “End early” action.
 - Project organization, filtering, sorting, tags, recurrence, and task sync are retained from FluidCalendar.
 - Projects use a separate warm pastel palette from calendar events. Their sidebar entries are full-color tiles; project color is organizational identity only and does not recolor the tasks inside the project.

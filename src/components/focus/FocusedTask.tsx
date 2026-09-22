@@ -19,9 +19,17 @@ import { FocusSession } from "./FocusSession";
 
 interface FocusedTaskProps {
   task: Task | null;
+  hasOpenTasks: boolean;
+  onChooseTask: () => void;
+  onSessionActiveChange: (active: boolean) => void;
 }
 
-export function FocusedTask({ task }: FocusedTaskProps) {
+export function FocusedTask({
+  task,
+  hasOpenTasks,
+  onChooseTask,
+  onSessionActiveChange,
+}: FocusedTaskProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const completeCurrentTask = useFocusModeStore(
     (state) => state.completeCurrentTask
@@ -44,19 +52,35 @@ export function FocusedTask({ task }: FocusedTaskProps) {
           Choose a task to begin
         </h1>
         <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-          Pick a task from the queue, settle in with a short setup, then focus
-          beside your companion. Sunnie will protect the timer and remind you to
-          take a real break.
+          {hasOpenTasks
+            ? "Pick a task from the queue, settle in with a short setup, then focus beside your companion."
+            : "Add a task to begin. Then settle in with a short setup and focus beside your companion."}{" "}
+          Sunnie will protect the timer and remind you to take a real break.
         </p>
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card/75 px-4 py-3 text-xs font-semibold text-secondary-foreground">
           <Clock3 className="h-4 w-4 text-primary" /> Setup → focus → break
         </div>
-        <Link
-          href="/tasks"
-          className="mt-5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm"
-        >
-          Add a task
-        </Link>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {hasOpenTasks && (
+            <button
+              type="button"
+              onClick={onChooseTask}
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Browse tasks
+            </button>
+          )}
+          <Link
+            href="/tasks"
+            className={
+              hasOpenTasks
+                ? "rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-secondary-foreground"
+                : "rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm"
+            }
+          >
+            Add a task
+          </Link>
+        </div>
       </div>
     );
   }
@@ -105,6 +129,7 @@ export function FocusedTask({ task }: FocusedTaskProps) {
         estimatedMinutes={task.duration}
         onCompleteTask={completeCurrentTask}
         onEditTask={() => setIsEditModalOpen(true)}
+        onSessionActiveChange={onSessionActiveChange}
       />
 
       <TaskModal

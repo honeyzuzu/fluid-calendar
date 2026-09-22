@@ -1,12 +1,12 @@
 # Sunnie work queue
 
-Last reviewed: 2026-09-21.
+Last reviewed: 2026-09-22.
 
 Use this file for concrete work we have chosen to do. Put rough feature thoughts in [FEATURE_IDEAS.md](FEATURE_IDEAS.md), and consult [AGENTS.md](AGENTS.md) for what already exists.
 
 ## Current work
 
-- [ ] **Page-by-page Sunnie UI rework** ([owner idea](FEATURE_IDEAS.md#ideas-were-fleshing-out)). Today, Upcoming, Tasks, Calendar, Settings → Calendar accounts, and Friends are in place. Friends now leads with incoming requests, makes both directions of sharing clear, keeps invites close at hand, confirms removal, and rolls back failed privacy changes. Signed-in two-account desktop and phone QA covered invitations, acceptance, visibility, rollback, and removal. Next page: Focus. Also verify Calendar reminder, private-name, and connection resync with live Google/CalDAV providers and review a dense imported calendar.
+- [ ] **Page-by-page Sunnie UI rework** ([owner idea](FEATURE_IDEAS.md#ideas-were-fleshing-out)). Today, Upcoming, Tasks, Calendar, Settings → Calendar accounts, Friends, and Focus are in place. Focus now shows every available task with search, puts the queue before the empty ritual on phones, protects a running or paused timer from task switches, and reports actual protected time after an early stop. Signed-in desktop and phone QA covered task choice, timer persistence, early end, and direct task links. Next page: Review. Also verify Calendar reminder, private-name, and connection resync with live Google/CalDAV providers and review a dense imported calendar.
 
 - [x] **Enough for Today shipped in `2a0ddf3`.** Sunnie opens on `/today` with a saved, finite daily commitment; a next task and direct Focus path; one-line backlog capture; and a compact mobile Focus start. Low-energy mode reduces the commitment, books local recovery inside working hours when a slot fits, removes eligible flexible blocks from today until the next workday, and puts eligible low-energy work after recovery. Due-today, locked, and externally pushed blocks remain visible for a decision. The detailed Plan, Calendar, and task tools remain available on demand. Both database migrations, the full unit suite, lint, type checking, the production build, and signed-in mobile browser flow passed before deployment.
 - [x] Scheduling availability presets shipped in `183bfd9`. Auto-scheduling offers editable Workweek, School & study, and Flexible week starting points rather than permanent student/full-time modes. Disabled-day scheduling now explains the selected day is unavailable and links directly to the relevant Settings section. This completes the selected weekend/student-scheduling idea in [FEATURE_IDEAS.md](FEATURE_IDEAS.md); per-day time windows remain a possible later data-model enhancement.

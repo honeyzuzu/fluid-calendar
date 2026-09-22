@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-import { Check } from "lucide-react";
+import Link from "next/link";
+
+import { Check, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { format, isBefore, newDate } from "@/lib/date-utils";
+import { format, newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
@@ -15,86 +17,43 @@ import { useTaskStore } from "@/store/task";
 
 import { Task, TaskStatus } from "@/types/task";
 
-export function TaskQueue() {
+interface TaskQueueProps {
+  onSelectTask?: () => void;
+  selectionLocked?: boolean;
+}
+
+export function TaskQueue({
+  onSelectTask,
+  selectionLocked = false,
+}: TaskQueueProps) {
   const { switchToTask, currentTaskId, getQueuedTasks } = useFocusModeStore();
   const { tasks, updateTask } = useTaskStore();
-
-  // State to track expanded sections
-  const [expandedSections, setExpandedSections] = useState<{
-    queued: boolean;
-    pastDue: boolean;
-    postponed: boolean;
-    completed: boolean;
-  }>({
-    queued: false,
-    pastDue: false,
-    postponed: false,
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState({
+    ready: false,
+    later: false,
     completed: false,
   });
 
-  // Get all tasks (including current task)
-  const allTasks = tasks;
+  const readyTasks = getQueuedTasks();
+  const readyIds = new Set(readyTasks.map((task) => task.id));
+  const laterTasks = tasks.filter(
+    (task) => task.status !== TaskStatus.COMPLETED && !readyIds.has(task.id)
+  );
+  const completedTasks = tasks
+    .filter((task) => task.status === TaskStatus.COMPLETED)
+    .sort(
+      (a, b) =>
+        (b.completedAt ? newDate(b.completedAt).getTime() : 0) -
+        (a.completedAt ? newDate(a.completedAt).getTime() : 0)
+    );
+  const query = search.trim().toLocaleLowerCase();
+  const matches = (task: Task) =>
+    !query || task.title.toLocaleLowerCase().includes(query);
 
-  // Queued tasks: get from focus mode store
-  const queuedTasks = getQueuedTasks();
-
-  // Past due tasks: not completed, due date in the past, not postponed
-  const pastDueTasks = allTasks
-    .filter(
-      (task) =>
-        task.status !== TaskStatus.COMPLETED &&
-        task.dueDate &&
-        isBefore(newDate(task.dueDate), newDate()) &&
-        !task.postponedUntil
-    )
-    .sort((a, b) => {
-      // Sort by due date (oldest first)
-      const dateA = a.dueDate ? newDate(a.dueDate).getTime() : 0;
-      const dateB = b.dueDate ? newDate(b.dueDate).getTime() : 0;
-      return dateA - dateB;
-    });
-
-  // Postponed tasks: not completed, postponed until future
-  const postponedTasks = allTasks
-    .filter(
-      (task) =>
-        task.status !== TaskStatus.COMPLETED &&
-        task.postponedUntil &&
-        isBefore(newDate(), newDate(task.postponedUntil))
-    )
-    .sort((a, b) => {
-      // Sort by postponed until date (earliest first)
-      const dateA = a.postponedUntil ? newDate(a.postponedUntil).getTime() : 0;
-      const dateB = b.postponedUntil ? newDate(b.postponedUntil).getTime() : 0;
-      return dateA - dateB;
-    });
-
-  // Recently completed tasks: completed, sorted by completion date (newest first)
-  const recentlyCompletedTasks = allTasks
-    .filter((task) => task.status === TaskStatus.COMPLETED && task.completedAt)
-    .sort((a, b) => {
-      const dateA = a.completedAt ? newDate(a.completedAt).getTime() : 0;
-      const dateB = b.completedAt ? newDate(b.completedAt).getTime() : 0;
-      return dateB - dateA; // Descending order (newest first)
-    });
-
-  logger.debug("[TaskQueue] Rendering with tasks:", {
-    queuedCount: queuedTasks.length,
-    pastDueCount: pastDueTasks.length,
-    postponedCount: postponedTasks.length,
-    recentlyCompletedCount: recentlyCompletedTasks.length,
-    currentTaskId,
-  });
-
-  // Toggle section expansion
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const toggleTaskCompletion = async (task: Task) => {
+  const toggleCompletion = async (task: Task) => {
+    setError(null);
     try {
       await updateTask(task.id, {
         status:
@@ -102,163 +61,175 @@ export function TaskQueue() {
             ? TaskStatus.TODO
             : TaskStatus.COMPLETED,
       });
-    } catch (error) {
+    } catch (caught) {
       logger.error("[TaskQueue] Failed to toggle task completion", {
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error),
+        error: caught instanceof Error ? caught.message : String(caught),
       });
+      setError(`Could not update “${task.title}”. Please try again.`);
     }
   };
 
-  // Render a task button
-  const renderTaskButton = (task: Task) => (
-    <div
-      key={task.id}
-      className={cn(
-        "group flex w-full items-center gap-1 rounded-xl px-1 py-1 transition hover:bg-accent/70",
-        task.id === currentTaskId &&
-          "bg-accent font-medium text-accent-foreground"
-      )}
-    >
-      <button
-        type="button"
-        className="min-w-0 flex-1 px-2 py-1 text-left"
-        onClick={() => switchToTask(task.id)}
+  const renderTask = (task: Task) => {
+    const done = task.status === TaskStatus.COMPLETED;
+    const current = task.id === currentTaskId;
+    return (
+      <li
+        key={task.id}
+        className={cn(
+          "flex min-w-0 items-center gap-1 rounded-xl border border-transparent p-1",
+          current && "border-primary/25 bg-primary/10"
+        )}
       >
-        <div className="flex w-full items-center justify-between">
+        <button
+          type="button"
+          onClick={() => {
+            switchToTask(task.id);
+            onSelectTask?.();
+          }}
+          disabled={done || (selectionLocked && !current)}
+          aria-current={current ? "true" : undefined}
+          className="min-w-0 flex-1 rounded-lg px-2 py-2 text-left text-sm font-medium text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default disabled:opacity-60"
+        >
           <span
             className={cn(
-              "truncate font-medium",
-              task.id === currentTaskId && "text-accent-foreground",
-              task.status === TaskStatus.COMPLETED &&
-                "text-muted-foreground line-through",
-              "task-title"
+              "block break-words leading-5",
+              done && "text-muted-foreground line-through"
             )}
           >
             {task.title}
           </span>
-
-          {/* Compact metadata display */}
-          <div className="ml-1 flex shrink-0 items-center space-x-1">
-            {task.status !== TaskStatus.COMPLETED && task.dueDate && (
-              <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-medium text-destructive">
-                {format(task.dueDate, "MM/dd")}
+          {task.dueDate && !done && (
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              Due {format(task.dueDate, "MMM d")}
+            </span>
+          )}
+          {task.postponedUntil &&
+            newDate(task.postponedUntil) > newDate() &&
+            !done && (
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Available later
               </span>
             )}
-
-            {task.postponedUntil &&
-              newDate(task.postponedUntil) > newDate() && (
-                <span className="rounded bg-warning/15 px-1.5 py-0.5 text-xs font-medium text-warning">
-                  {format(task.postponedUntil, "MM/dd")}
-                </span>
-              )}
-          </div>
-        </div>
-      </button>
-      <button
-        type="button"
-        onClick={() => void toggleTaskCompletion(task)}
-        aria-label={
-          task.status === TaskStatus.COMPLETED
-            ? `Mark ${task.title} incomplete`
-            : `Mark ${task.title} complete`
-        }
-        title={
-          task.status === TaskStatus.COMPLETED
-            ? "Mark incomplete"
-            : "Mark complete"
-        }
-        className={cn(
-          "grid h-8 w-8 shrink-0 place-items-center rounded-full border transition duration-300",
-          task.status === TaskStatus.COMPLETED
-            ? "border-primary bg-primary text-primary-foreground shadow-sm"
-            : "border-border bg-card/70 text-transparent hover:scale-105 hover:border-primary hover:text-primary"
-        )}
-      >
-        <Check className="h-4 w-4" />
-      </button>
-    </div>
-  );
-
-  // Render a section with a title and tasks
-  const renderSection = (
-    title: string,
-    sectionTasks: Task[],
-    sectionKey: keyof typeof expandedSections,
-    accentColor: string
-  ) => {
-    if (sectionTasks.length === 0) return null;
-
-    const isExpanded = expandedSections[sectionKey];
-    const displayTasks = isExpanded ? sectionTasks : sectionTasks.slice(0, 3);
-    const hasMore = sectionTasks.length > 3;
-
-    return (
-      <div className="mb-4">
-        <h3
+        </button>
+        <button
+          type="button"
+          onClick={() => void toggleCompletion(task)}
+          disabled={selectionLocked}
+          aria-label={
+            done
+              ? `Mark ${task.title} incomplete`
+              : `Mark ${task.title} complete`
+          }
+          title={done ? "Mark incomplete" : "Mark complete"}
           className={cn(
-            "mb-1 rounded-md px-3 py-1 text-xs font-medium",
-            accentColor
+            "grid h-9 w-9 shrink-0 place-items-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+            done
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-card text-transparent hover:border-primary hover:text-primary"
           )}
         >
-          {title} ({sectionTasks.length})
-        </h3>
-        <div className="flex flex-col space-y-1">
-          {displayTasks.map(renderTaskButton)}
-
-          {hasMore && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto py-1 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => toggleSection(sectionKey)}
-            >
-              {isExpanded
-                ? "Show less"
-                : `Show ${sectionTasks.length - 3} more`}
-            </Button>
-          )}
-        </div>
-      </div>
+          <Check className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </li>
     );
   };
 
-  return (
-    <div className="flex h-full flex-col overflow-hidden p-3">
-      <div className="flex flex-col space-y-2 overflow-y-auto">
-        {renderSection(
-          "Top Tasks",
-          queuedTasks,
-          "queued",
-          "bg-info/10 text-info"
+  const renderSection = (
+    key: "ready" | "later" | "completed",
+    label: string,
+    sectionTasks: Task[]
+  ) => {
+    const filtered = sectionTasks.filter(matches);
+    if (!filtered.length) return null;
+    const shown = query || expanded[key] ? filtered : filtered.slice(0, 4);
+    return (
+      <section
+        className="mb-4"
+        aria-label={`${label}, ${filtered.length} tasks`}
+      >
+        <h3 className="mb-1 px-2 text-xs font-bold text-secondary-foreground">
+          {label}{" "}
+          <span className="text-muted-foreground">{filtered.length}</span>
+        </h3>
+        <ul className="space-y-1">{shown.map(renderTask)}</ul>
+        {!query && filtered.length > 4 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-expanded={expanded[key]}
+            className="mt-1 w-full justify-start text-xs text-muted-foreground"
+            onClick={() =>
+              setExpanded((current) => ({ ...current, [key]: !current[key] }))
+            }
+          >
+            {expanded[key] ? "Show fewer" : `Show all ${filtered.length}`}
+          </Button>
         )}
-        {renderSection(
-          "Past Due",
-          pastDueTasks,
-          "pastDue",
-          "bg-destructive/10 text-destructive"
-        )}
-        {renderSection(
-          "Postponed",
-          postponedTasks,
-          "postponed",
-          "bg-warning/10 text-warning"
-        )}
-        {renderSection(
-          "Recently Completed",
-          recentlyCompletedTasks,
-          "completed",
-          "bg-success/10 text-success"
-        )}
+      </section>
+    );
+  };
 
-        {queuedTasks.length === 0 &&
-          pastDueTasks.length === 0 &&
-          postponedTasks.length === 0 &&
-          recentlyCompletedTasks.length === 0 && (
-            <div className="py-4 text-center text-sm text-muted-foreground">
-              No tasks available
-            </div>
-          )}
+  const hasMatches = [...readyTasks, ...laterTasks, ...completedTasks].some(
+    matches
+  );
+
+  return (
+    <div className="flex h-full min-h-0 flex-col p-3">
+      <div className="pr-12 md:pr-0">
+        <h2 className="text-sm font-bold text-foreground">Choose a task</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Pick one thing to give your attention.
+        </p>
+        <label htmlFor="focus-task-search" className="sr-only">
+          Find a focus task
+        </label>
+        <div className="relative mt-3">
+          <Search
+            aria-hidden="true"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            id="focus-task-search"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Find a task"
+            className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+      </div>
+      {selectionLocked && (
+        <p className="mt-2 rounded-lg bg-accent/70 px-2 py-1.5 text-xs text-secondary-foreground">
+          Finish or end this timer before switching tasks.
+        </p>
+      )}
+      {error && (
+        <p
+          role="alert"
+          className="mt-2 rounded-lg bg-destructive/10 px-2 py-1.5 text-xs text-destructive"
+        >
+          {error}
+        </p>
+      )}
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
+        {renderSection("ready", "Ready to focus", readyTasks)}
+        {renderSection("later", "For later", laterTasks)}
+        {renderSection("completed", "Completed today", completedTasks)}
+        {!hasMatches && (
+          <div className="rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+            {query ? "No tasks match that search." : "No tasks here yet."}
+            {!query && (
+              <Link
+                href="/tasks"
+                className="mt-2 block font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                Add a task
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

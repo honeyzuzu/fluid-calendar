@@ -22,7 +22,7 @@ interface TaskState {
   schedulingError: Error | null;
 
   // Task actions
-  fetchTasks: () => Promise<void>;
+  fetchTasks: (options?: { ignoreFilters?: boolean }) => Promise<void>;
   createTask: (task: NewTask) => Promise<Task>;
   updateTask: (id: string, updates: UpdateTask) => Promise<Task>;
   deleteTask: (id: string) => Promise<void>;
@@ -95,10 +95,12 @@ export const useTaskStore = create<TaskState>()(
       schedulingError: null,
 
       // Task actions
-      fetchTasks: async () => {
+      fetchTasks: async (options) => {
         set({ loading: true, error: null });
         try {
-          const { filters } = get();
+          const filters: TaskFilters = options?.ignoreFilters
+            ? {}
+            : get().filters;
           const params = new URLSearchParams();
 
           if (filters.status?.length) {

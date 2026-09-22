@@ -113,6 +113,7 @@ type PersistedFocusState = {
   focusMinutes: number;
   breakMinutes: number;
   remainingSeconds: number;
+  protectedSeconds?: number | null;
   endsAt: number | null;
   isRunning: boolean;
   checklist: Record<string, boolean>;
@@ -139,6 +140,7 @@ interface FocusSessionProps {
   estimatedMinutes?: number | null;
   onCompleteTask: () => void;
   onEditTask: () => void;
+  onSessionActiveChange: (active: boolean) => void;
 }
 
 export function FocusSession({
@@ -150,6 +152,7 @@ export function FocusSession({
   estimatedMinutes,
   onCompleteTask,
   onEditTask,
+  onSessionActiveChange,
 }: FocusSessionProps) {
   const [hydrated, setHydrated] = useState(false);
   const [phase, setPhase] = useState<FocusPhase>("setup-ready");
@@ -161,6 +164,7 @@ export function FocusSession({
   );
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [protectedSeconds, setProtectedSeconds] = useState<number | null>(null);
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
@@ -178,6 +182,12 @@ export function FocusSession({
   const audioContextRef = useRef<AudioContext | null>(null);
   const finishingRef = useRef(false);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    onSessionActiveChange(["setup", "focus", "break"].includes(phase));
+    return () => onSessionActiveChange(false);
+  }, [hydrated, onSessionActiveChange, phase]);
+
   const selectedPet = useMemo(
     () => FOCUS_PETS.find((pet) => pet.id === petId) || FOCUS_PETS[0],
     [petId]
@@ -188,6 +198,7 @@ export function FocusSession({
     setIsRunning(false);
     setEndsAt(null);
     setRemainingSeconds(0);
+    setProtectedSeconds(focusMinutes * 60);
     setPhase("break-ready");
     setRoundReward({ status: "saving" });
 
@@ -206,7 +217,7 @@ export function FocusSession({
       .catch(() => {
         setRoundReward({ status: "not-awarded", reason: "save-failed" });
       });
-  }, []);
+  }, [focusMinutes]);
 
   useEffect(() => {
     try {
@@ -241,6 +252,7 @@ export function FocusSession({
           setBreakMinutes(saved.breakMinutes || 5);
           setChecklist(saved.checklist || {});
           setSubtaskPlan(saved.subtaskPlan || "");
+          setProtectedSeconds(saved.protectedSeconds ?? null);
           setRoundReward(saved.roundReward || { status: "idle" });
           if (saved.isRunning && saved.endsAt) {
             const restored = Math.max(
@@ -331,6 +343,7 @@ export function FocusSession({
       focusMinutes,
       breakMinutes,
       remainingSeconds,
+      protectedSeconds,
       endsAt,
       isRunning,
       checklist,
@@ -351,6 +364,7 @@ export function FocusSession({
     isRunning,
     phase,
     remainingSeconds,
+    protectedSeconds,
     roundReward,
     setupMinutes,
     subtaskPlan,
@@ -472,7 +486,10 @@ export function FocusSession({
     setRemainingSeconds(seconds);
     setEndsAt(Date.now() + seconds * 1000);
     setIsRunning(true);
-    if (timerPhase === "focus") setRoundReward({ status: "idle" });
+    if (timerPhase === "focus") {
+      setProtectedSeconds(0);
+      setRoundReward({ status: "idle" });
+    }
   };
 
   const pauseTimer = () => {
@@ -500,6 +517,7 @@ export function FocusSession({
     }
     setRemainingSeconds(0);
     if (phase === "focus") {
+      setProtectedSeconds(Math.max(0, focusMinutes * 60 - remainingSeconds));
       setRoundReward({ status: "not-awarded", reason: "ended-early" });
       setPhase(phaseAfterEndingEarly(phase));
     } else {
@@ -512,6 +530,7 @@ export function FocusSession({
   };
 
   const finishTaskEarly = () => {
+    setProtectedSeconds(Math.max(0, focusMinutes * 60 - remainingSeconds));
     setIsRunning(false);
     setEndsAt(null);
     setRemainingSeconds(0);
@@ -618,7 +637,11 @@ export function FocusSession({
         <button
           type="button"
           onClick={() => setSoundEnabled((current) => !current)}
-          className="hidden w-fit items-center gap-1.5 rounded-xl bg-card/65 px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-card sm:inline-flex"
+          aria-label={
+            soundEnabled ? "Turn timer chimes off" : "Turn timer chimes on"
+          }
+          aria-pressed={soundEnabled}
+          className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-xl bg-card/65 p-2 text-xs font-semibold text-secondary-foreground hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3"
           title={soundEnabled ? "Timer chimes are on" : "Timer chimes are off"}
         >
           {soundEnabled ? (
@@ -626,7 +649,9 @@ export function FocusSession({
           ) : (
             <BellOff className="h-3.5 w-3.5" />
           )}
-          Chime {soundEnabled ? "on" : "off"}
+          <span className="hidden sm:inline">
+            Chime {soundEnabled ? "on" : "off"}
+          </span>
         </button>
       </div>
 
@@ -742,6 +767,7 @@ export function FocusSession({
                           [item.id]: !current[item.id],
                         }))
                       }
+                      aria-pressed={checked}
                       className={cn(
                         "flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left text-xs font-semibold transition",
                         checked
@@ -892,8 +918,9 @@ export function FocusSession({
               Nice work protecting that time
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              You protected {focusMinutes} minutes for {taskTitle}. Finish the
-              task if it&apos;s ready, or choose what would help next.
+              You protected {formatProtectedTime(protectedSeconds)} for{" "}
+              {taskTitle}. Finish the task if it&apos;s ready, or choose what
+              would help next.
             </p>
             <RoundTaskActions
               onCompleteTask={onCompleteTask}
@@ -930,6 +957,7 @@ export function FocusSession({
                 key={pet.id}
                 type="button"
                 onClick={() => setPetId(pet.id)}
+                aria-pressed={petId === pet.id}
                 className={cn(
                   "rounded-2xl border p-2 text-center transition",
                   petId === pet.id
@@ -1046,6 +1074,18 @@ function friendlyValue(value?: string | null) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function formatProtectedTime(seconds: number | null) {
+  if (seconds === null) return "some time";
+  if (seconds < 1) return "a brief moment";
+  if (seconds < 60) return `${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  const minuteText = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return remainder
+    ? `${minuteText} and ${remainder} ${remainder === 1 ? "second" : "seconds"}`
+    : minuteText;
+}
+
 function RoundTaskActions({
   onCompleteTask,
   onEditTask,
@@ -1104,6 +1144,7 @@ function DurationPicker({
             key={minutes}
             type="button"
             onClick={() => onChange(minutes)}
+            aria-pressed={value === minutes}
             className={cn(
               "rounded-xl border px-3 py-2 text-xs font-bold transition",
               value === minutes

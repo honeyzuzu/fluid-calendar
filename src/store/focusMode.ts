@@ -139,21 +139,17 @@ export const useFocusModeStore = create<FocusModeStore>()(
           );
         });
 
-        // Take top 3 tasks
-        const topTasks = sortedTasks.slice(0, 3);
-
         logger.debug(
           "[FocusMode] Sorted and filtered tasks",
           {
             totalTasks: tasks.length,
             availableTasks: availableTasks.length,
-            topTasksCount: topTasks.length,
-            topTaskIds: topTasks.map((t) => t.id),
+            readyTasksCount: sortedTasks.length,
           },
           LOG_SOURCE
         );
 
-        return topTasks;
+        return sortedTasks;
       },
 
       getQueuedTaskIds: () => {
@@ -213,7 +209,7 @@ export const useFocusModeStore = create<FocusModeStore>()(
             );
 
             // Refresh tasks to make sure our tasks list is up-to-date
-            await taskStore.fetchTasks();
+            await taskStore.fetchTasks({ ignoreFilters: true });
             get().startProcessing("celebration", "Task completed! ☀️");
             // Wait for celebration to finish (3 seconds)
             // Move to next task if available
@@ -320,7 +316,7 @@ export const useFocusModeStore = create<FocusModeStore>()(
             );
 
             // Refresh tasks to make sure our tasks list is up-to-date
-            await taskStore.fetchTasks();
+            await taskStore.fetchTasks({ ignoreFilters: true });
 
             // Move to next task if available
             const queuedTaskIds = get().getQueuedTaskIds();
