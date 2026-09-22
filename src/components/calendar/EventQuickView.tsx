@@ -43,6 +43,11 @@ import { useSettingsStore } from "@/store/settings";
 import { AttendeeStatus, CalendarEvent } from "@/types/calendar";
 import { Priority, Task, TaskStatus } from "@/types/task";
 
+import {
+  RecurringEventScope,
+  RecurringEventScopeDialog,
+} from "./RecurringEventScopeDialog";
+
 interface Attendee {
   name?: string;
   email: string;
@@ -65,7 +70,7 @@ interface EventQuickViewProps {
         } | null;
       });
   onEdit: () => void;
-  onDelete: () => void | Promise<void>;
+  onDelete: (scope?: RecurringEventScope) => void | Promise<void>;
   isTask: boolean;
   onStatusChange?: (taskId: string, status: TaskStatus) => void;
   referenceElement: HTMLElement | null;
@@ -508,8 +513,7 @@ export function EventQuickView({
                       <IoCalendarOutline className="h-4 w-4 flex-shrink-0" />
                       <div className="flex-1">
                         <div>
-                          Scheduled:{" "}
-                          {dateTimeLabel(taskItem.scheduledStart)} –{" "}
+                          Scheduled: {dateTimeLabel(taskItem.scheduledStart)} –{" "}
                           {timeLabel(taskItem.scheduledEnd)}
                         </div>
                       </div>
@@ -572,13 +576,25 @@ export function EventQuickView({
           </div>
         </PopoverContent>
       </Popover>
-      <SunnieDeleteDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        itemType={isTask ? "task" : "event"}
-        itemName={displayTitle}
-        onConfirm={onDelete}
-      />
+      {!isTask && eventItem?.isRecurring ? (
+        <RecurringEventScopeDialog
+          open={showDeleteDialog}
+          action="delete"
+          onCancel={() => setShowDeleteDialog(false)}
+          onChoose={async (scope) => {
+            await onDelete(scope);
+            setShowDeleteDialog(false);
+          }}
+        />
+      ) : (
+        <SunnieDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          itemType={isTask ? "task" : "event"}
+          itemName={displayTitle}
+          onConfirm={() => onDelete()}
+        />
+      )}
     </>
   );
 }

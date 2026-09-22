@@ -71,6 +71,42 @@ it("updates a series duration without moving its original first date", async () 
   });
 });
 
+it("patches the selected recurring occurrence instead of searching from its new time", async () => {
+  const get = jest.fn().mockResolvedValue({
+    data: { id: "instance-2", recurringEventId: "master" },
+  });
+  const patch = jest.fn().mockResolvedValue({
+    data: { id: "instance-2", recurringEventId: "master" },
+  });
+  const instances = jest.fn();
+  const calendar = {
+    events: { get, patch, instances },
+  } as unknown as calendar_v3.Calendar;
+
+  await updateGoogleEvent(
+    "account",
+    "user",
+    "calendar",
+    "instance-2",
+    {
+      mode: "single",
+      start: new Date("2026-09-24T16:00:00.000Z"),
+      end: new Date("2026-09-24T16:30:00.000Z"),
+      timeZone: "UTC",
+    },
+    async () => calendar
+  );
+
+  expect(instances).not.toHaveBeenCalled();
+  expect(patch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      calendarId: "calendar",
+      eventId: "instance-2",
+      requestBody: expect.objectContaining({ recurrence: undefined }),
+    })
+  );
+});
+
 it("sends changed reminders to Google and leaves them out of unrelated edits", async () => {
   const get = jest.fn().mockResolvedValue({ data: { id: "meeting" } });
   const patch = jest.fn().mockResolvedValue({ data: { id: "meeting" } });

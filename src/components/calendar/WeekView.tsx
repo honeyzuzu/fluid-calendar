@@ -114,7 +114,8 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   const [clickedElement, setClickedElement] = useState<HTMLElement | null>(
     null
   );
-  const { handleEventDrop, handleEventResize } = useCalendarDragHandlers();
+  const { handleEventDrop, handleEventResize, recurringScopeDialog } =
+    useCalendarDragHandlers();
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const timeZone =
     userSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -335,7 +336,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     handleQuickViewClose();
   };
 
-  const handleQuickViewDelete = async () => {
+  const handleQuickViewDelete = async (scope?: "single" | "series") => {
     if (!quickViewItem) return;
 
     if (isTask) {
@@ -343,7 +344,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     } else {
       await removeEvent(
         quickViewItem.id,
-        quickViewItem.isRecurring ? "series" : "single"
+        quickViewItem.isRecurring ? scope : "single"
       );
     }
     handleQuickViewClose();
@@ -469,6 +470,8 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
         defaultDate={selectedDate || eventModalStore.defaultDate}
         defaultEndDate={selectedEndDate || eventModalStore.defaultEndDate}
       />
+
+      {recurringScopeDialog}
 
       {selectedTask && (
         <TaskModal

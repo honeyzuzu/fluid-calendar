@@ -121,7 +121,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const [clickedElement, setClickedElement] = useState<HTMLElement | null>(
     null
   );
-  const { handleEventDrop } = useCalendarDragHandlers();
+  const { handleEventDrop, recurringScopeDialog } = useCalendarDragHandlers();
 
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
@@ -347,7 +347,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     handleQuickViewClose();
   };
 
-  const handleQuickViewDelete = async () => {
+  const handleQuickViewDelete = async (scope?: "single" | "series") => {
     if (!quickViewItem) return;
 
     if (isTask) {
@@ -355,7 +355,7 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
     } else {
       await removeEvent(
         quickViewItem.id,
-        quickViewItem.isRecurring ? "series" : "single"
+        quickViewItem.isRecurring ? scope : "single"
       );
     }
     handleQuickViewClose();
@@ -426,6 +426,8 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
         defaultDate={selectedDate || eventModalStore.defaultDate}
         defaultEndDate={selectedEndDate || eventModalStore.defaultEndDate}
       />
+
+      {recurringScopeDialog}
 
       {selectedTask && (
         <TaskModal

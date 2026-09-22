@@ -1,15 +1,28 @@
-import { useCallback } from "react";
+import { createElement, useCallback, useState } from "react";
 
 import type { EventDropArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
 import { toast } from "sonner";
 
-import { computeDropUpdate } from "@/lib/calendar-drag";
+import { DropUpdate, computeDropUpdate } from "@/lib/calendar-drag";
 
 import { useCalendarStore } from "@/store/calendar";
 import { useTaskStore } from "@/store/task";
 
 import { CalendarEvent } from "@/types/calendar";
+
+import {
+  RecurringEventScope,
+  RecurringEventScopeDialog,
+} from "./RecurringEventScopeDialog";
+
+type EventDropUpdate = Extract<DropUpdate, { kind: "event" }>;
+
+interface PendingRecurringChange {
+  info: EventDropArg | EventResizeDoneArg;
+  isResize: boolean;
+  update: EventDropUpdate;
+}
 
 // Shared eventDrop/eventResize handlers for the calendar views. The views
 // spread the original store item into extendedProps, so it is recovered here.
@@ -17,6 +30,27 @@ export function useCalendarDragHandlers() {
   const feeds = useCalendarStore((s) => s.feeds);
   const updateEvent = useCalendarStore((s) => s.updateEvent);
   const updateTask = useTaskStore((s) => s.updateTask);
+  const [pendingRecurringChange, setPendingRecurringChange] =
+    useState<PendingRecurringChange | null>(null);
+
+  const saveEventChange = useCallback(
+    async (pending: PendingRecurringChange, scope?: RecurringEventScope) => {
+      try {
+        await updateEvent(
+          pending.update.eventId,
+          pending.update.updates,
+          scope
+        );
+      } catch (error) {
+        console.error("Failed to apply calendar drag change:", error);
+        pending.info.revert();
+        toast.error(
+          pending.isResize ? "Failed to resize item" : "Failed to move item"
+        );
+      }
+    },
+    [updateEvent]
+  );
 
   const applyChange = useCallback(
     async (info: EventDropArg | EventResizeDoneArg, isResize: boolean) => {
@@ -50,12 +84,11 @@ export function useCalendarDragHandlers() {
         if (update.kind === "task") {
           await updateTask(update.taskId, update.updates);
         } else {
-          // No mode: the API routes resolve this row's own external event id
-          // (a recurring instance carries its instance-specific id), so a
-          // direct patch updates exactly this occurrence. mode "single" would
-          // instead look the instance up by the NEW start time and can patch
-          // the wrong occurrence.
-          await updateEvent(update.eventId, update.updates);
+          if (item.isRecurring) {
+            setPendingRecurringChange({ info, isResize, update });
+            return;
+          }
+          await saveEventChange({ info, isResize, update });
         }
       } catch (error) {
         console.error("Failed to apply calendar drag change:", error);
@@ -63,7 +96,7 @@ export function useCalendarDragHandlers() {
         toast.error(isResize ? "Failed to resize item" : "Failed to move item");
       }
     },
-    [feeds, updateEvent, updateTask]
+    [feeds, saveEventChange, updateTask]
   );
 
   const handleEventDrop = useCallback(
@@ -80,5 +113,29 @@ export function useCalendarDragHandlers() {
     [applyChange]
   );
 
-  return { handleEventDrop, handleEventResize };
+  const cancelRecurringChange = useCallback(() => {
+    setPendingRecurringChange((pending) => {
+      pending?.info.revert();
+      return null;
+    });
+  }, []);
+
+  const chooseRecurringScope = useCallback(
+    (scope: RecurringEventScope) => {
+      const pending = pendingRecurringChange;
+      if (!pending) return;
+      setPendingRecurringChange(null);
+      void saveEventChange(pending, scope);
+    },
+    [pendingRecurringChange, saveEventChange]
+  );
+
+  const recurringScopeDialog = createElement(RecurringEventScopeDialog, {
+    open: Boolean(pendingRecurringChange),
+    action: "change",
+    onChoose: chooseRecurringScope,
+    onCancel: cancelRecurringChange,
+  });
+
+  return { handleEventDrop, handleEventResize, recurringScopeDialog };
 }

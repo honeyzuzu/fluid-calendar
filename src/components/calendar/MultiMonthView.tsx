@@ -298,7 +298,7 @@ export function MultiMonthView({
     handleQuickViewClose();
   };
 
-  const handleQuickViewDelete = async () => {
+  const handleQuickViewDelete = async (scope?: "single" | "series") => {
     if (!quickViewItem) return;
 
     if (isTask) {
@@ -306,7 +306,7 @@ export function MultiMonthView({
     } else {
       await removeEvent(
         quickViewItem.id,
-        quickViewItem.isRecurring ? "series" : "single"
+        quickViewItem.isRecurring ? scope : "single"
       );
     }
     handleQuickViewClose();

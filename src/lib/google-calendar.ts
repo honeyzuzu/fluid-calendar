@@ -230,58 +230,9 @@ export async function updateGoogleEvent(
       return response.data;
     }
 
-    // For single instance updates
-    if (event.mode === "single") {
-      const instances = await calendar.events.instances({
-        calendarId,
-        eventId: existingEvent.data.recurringEventId || eventId,
-        timeMin: event.start?.toISOString() || newDate().toISOString(),
-        maxResults: 1,
-      });
-
-      if (instances.data.items?.[0]) {
-        // Update the specific instance
-        const response = await calendar.events.patch({
-          calendarId,
-          eventId: instances.data.items[0].id!,
-          requestBody: {
-            summary: event.title,
-            description: event.description,
-            location: event.location,
-            reminders:
-              event.reminderMinutes !== undefined
-                ? googleReminderPayload(
-                    Boolean(event.useDefaultReminders),
-                    event.reminderMinutes
-                  )
-                : undefined,
-            start: event.start
-              ? {
-                  dateTime: event.allDay
-                    ? undefined
-                    : event.start.toISOString(),
-                  date: event.allDay
-                    ? event.start.toISOString().split("T")[0]
-                    : undefined,
-                  timeZone,
-                }
-              : undefined,
-            end: event.end
-              ? {
-                  dateTime: event.allDay ? undefined : event.end.toISOString(),
-                  date: event.allDay
-                    ? event.end.toISOString().split("T")[0]
-                    : undefined,
-                  timeZone,
-                }
-              : undefined,
-          },
-        });
-        return response.data;
-      }
-    }
-
-    // If not part of a series or no instance found, update the event directly
+    // A recurring occurrence already has its own provider id. Patch that exact
+    // id for a single-occurrence change; searching again from the new start
+    // time can select the following occurrence after a drag.
     const response = await calendar.events.patch({
       calendarId,
       eventId,
@@ -314,13 +265,14 @@ export async function updateGoogleEvent(
               timeZone,
             }
           : undefined,
-        recurrence: event.recurrenceRule
-          ? [
-              event.recurrenceRule.startsWith("RRULE:")
-                ? event.recurrenceRule
-                : `RRULE:${event.recurrenceRule}`,
-            ]
-          : undefined,
+        recurrence:
+          event.mode !== "single" && event.recurrenceRule
+            ? [
+                event.recurrenceRule.startsWith("RRULE:")
+                  ? event.recurrenceRule
+                  : `RRULE:${event.recurrenceRule}`,
+              ]
+            : undefined,
       },
     });
     return response.data;

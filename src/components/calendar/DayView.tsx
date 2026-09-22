@@ -108,7 +108,8 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
   const [clickedElement, setClickedElement] = useState<HTMLElement | null>(
     null
   );
-  const { handleEventDrop, handleEventResize } = useCalendarDragHandlers();
+  const { handleEventDrop, handleEventResize, recurringScopeDialog } =
+    useCalendarDragHandlers();
 
   // Update events when the calendar view changes
   const handleDatesSet = useCallback(
@@ -298,7 +299,7 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
     handleQuickViewClose();
   };
 
-  const handleQuickViewDelete = async () => {
+  const handleQuickViewDelete = async (scope?: "single" | "series") => {
     if (!quickViewItem) return;
 
     if (isTask) {
@@ -306,7 +307,7 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
     } else {
       await removeEvent(
         quickViewItem.id,
-        quickViewItem.isRecurring ? "series" : "single"
+        quickViewItem.isRecurring ? scope : "single"
       );
     }
     handleQuickViewClose();
@@ -404,6 +405,8 @@ export function DayView({ currentDate, onDateClick }: DayViewProps) {
         defaultDate={selectedDate || eventModalStore.defaultDate}
         defaultEndDate={selectedEndDate || eventModalStore.defaultEndDate}
       />
+
+      {recurringScopeDialog}
 
       {selectedTask && (
         <TaskModal

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +46,7 @@ import { useSettingsStore } from "@/store/settings";
 
 import { CalendarEvent } from "@/types/calendar";
 
+import { RecurringEventScopeDialog } from "./RecurringEventScopeDialog";
 import { SunnieColorPicker } from "./SunnieColorPicker";
 
 interface EventModalProps {
@@ -286,9 +286,7 @@ export function EventModal({
   // Show recurrence dialog when editing a recurring event
   useEffect(() => {
     if (isOpen && event?.isRecurring && !editMode && !showRecurrenceDialog) {
-      //todo: we need to handle editing series vs single, for now forcing to always edit series
-      // setShowRecurrenceDialog(true);
-      setEditMode("series");
+      setShowRecurrenceDialog(true);
     }
   }, [isOpen, event?.isRecurring, editMode, showRecurrenceDialog]);
 
@@ -475,12 +473,15 @@ export function EventModal({
     setFormError(null);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (scope?: "single" | "series") => {
     if (!event?.id) return;
 
     try {
       setIsSubmitting(true);
-      await removeEvent(event.id, editMode);
+      await removeEvent(
+        event.id,
+        event.isRecurring ? scope || editMode : "single"
+      );
       resetState();
       onClose();
     } catch (error) {
@@ -937,64 +938,38 @@ export function EventModal({
         </DialogContent>
       </Dialog>
 
-      <SunnieDeleteDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        itemType="event"
-        itemName={event?.title}
-        onConfirm={handleDelete}
-      />
+      {event?.isRecurring ? (
+        <RecurringEventScopeDialog
+          open={showDeleteDialog}
+          action="delete"
+          onCancel={() => setShowDeleteDialog(false)}
+          onChoose={handleDelete}
+        />
+      ) : (
+        <SunnieDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          itemType="event"
+          itemName={event?.title}
+          onConfirm={() => handleDelete("single")}
+        />
+      )}
 
       {/* Recurring Event Edit Mode Dialog */}
-      <AlertDialog.Root
+      <RecurringEventScopeDialog
         open={showRecurrenceDialog}
-        onOpenChange={(open) => {
-          setShowRecurrenceDialog(open);
-          if (!open) onClose();
+        action="change"
+        testIdPrefix="edit"
+        onCancel={() => {
+          setEditMode("single");
+          setShowRecurrenceDialog(false);
+          onClose();
         }}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-[10001] bg-background/80 backdrop-blur-sm" />
-          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[10002] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg">
-            <AlertDialog.Title className="mb-4 text-lg font-semibold">
-              Edit Recurring Event
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mb-6 text-sm text-muted-foreground">
-              Would you like to edit this event or the entire series?
-            </AlertDialog.Description>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowRecurrenceDialog(false);
-                  onClose();
-                }}
-                data-testid="edit-cancel-button"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditMode("single");
-                  setShowRecurrenceDialog(false);
-                }}
-                data-testid="edit-single-event-button"
-              >
-                This Event
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditMode("series");
-                  setShowRecurrenceDialog(false);
-                }}
-                data-testid="edit-series-button"
-              >
-                Entire Series
-              </Button>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+        onChoose={(scope) => {
+          setEditMode(scope);
+          setShowRecurrenceDialog(false);
+        }}
+      />
     </>
   );
 
