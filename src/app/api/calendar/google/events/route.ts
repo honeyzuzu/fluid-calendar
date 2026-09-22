@@ -304,45 +304,97 @@ export async function PUT(request: NextRequest) {
       throw new Error("Failed to get event ID from Google Calendar");
     }
 
-    // Get the updated event and its instances
-    const { event: updatedEvent, instances } = await getGoogleEvent(
-      validatedEvent.feed.accountId,
-      userId,
-      validatedEvent.feed.url,
-      googleEvent.id
-    );
+    try {
+      // Get the updated event and its instances
+      const { event: updatedEvent, instances } = await getGoogleEvent(
+        validatedEvent.feed.accountId,
+        userId,
+        validatedEvent.feed.url,
+        googleEvent.id
+      );
 
-    const reconciliationMode = getGoogleReconciliationMode({
-      requestedMode: mode,
-      localIsRecurring: validatedEvent.isRecurring,
-      providerRecurringEventId: googleEvent.recurringEventId,
-      providerHasRecurrence: Boolean(updatedEvent.recurrence?.length),
-    });
-    const providerSeriesKey =
-      googleEvent.recurringEventId ||
-      updatedEvent.id ||
-      validatedEvent.externalEventId;
+      const reconciliationMode = getGoogleReconciliationMode({
+        requestedMode: mode,
+        localIsRecurring: validatedEvent.isRecurring,
+        providerRecurringEventId: googleEvent.recurringEventId,
+        providerHasRecurrence: Boolean(updatedEvent.recurrence?.length),
+      });
+      const providerSeriesKey =
+        googleEvent.recurringEventId ||
+        updatedEvent.id ||
+        validatedEvent.externalEventId;
 
-    // A recurring occurrence update returns the entire provider series. Replace
-    // that local series in one serialized transaction; deleting only the moved
-    // row before inserting every occurrence caused duplicates after each drag.
-    const records = await prisma.$transaction(
-      async (tx) => {
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`google-event:${validatedEvent.feed.id}:${providerSeriesKey}`}))`;
-        await deleteCalendarEventRows(tx, validatedEvent, reconciliationMode);
-        return writeEventToDatabase(
-          validatedEvent.feed.id,
-          updatedEvent,
-          instances,
-          "color" in updates ? updates.color : validatedEvent.color,
-          "colorSlot" in updates ? updates.colorSlot : validatedEvent.colorSlot,
-          tx
-        );
-      },
-      { timeout: 30000 }
-    );
+      // A recurring occurrence update returns the entire provider series. Replace
+      // that local series in one serialized transaction; deleting only the moved
+      // row before inserting every occurrence caused duplicates after each drag.
+      const records = await prisma.$transaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`google-event:${validatedEvent.feed.id}:${providerSeriesKey}`}))`;
+          await deleteCalendarEventRows(tx, validatedEvent, reconciliationMode);
+          return writeEventToDatabase(
+            validatedEvent.feed.id,
+            updatedEvent,
+            instances,
+            "color" in updates ? updates.color : validatedEvent.color,
+            "colorSlot" in updates
+              ? updates.colorSlot
+              : validatedEvent.colorSlot,
+            tx
+          );
+        },
+        { timeout: 30000 }
+      );
 
-    return NextResponse.json(records);
+      return NextResponse.json(records);
+    } catch (reconciliationError) {
+      // Google already accepted the mutation. Keep the selected row aligned
+      // with that authoritative result and let the client queue a full feed
+      // reconciliation instead of reporting a false failed move.
+      logger.error(
+        "Google event saved but local series reconciliation failed",
+        {
+          eventId: validatedEvent.id,
+          error:
+            reconciliationError instanceof Error
+              ? reconciliationError.message
+              : String(reconciliationError),
+        },
+        LOG_SOURCE
+      );
+      const fallbackRecord = await prisma.calendarEvent.update({
+        where: { id: validatedEvent.id },
+        data: {
+          title: typeof updates.title === "string" ? updates.title : undefined,
+          description:
+            typeof updates.description === "string"
+              ? updates.description
+              : undefined,
+          location:
+            typeof updates.location === "string" ? updates.location : undefined,
+          start: updates.start ? newDate(updates.start) : undefined,
+          end: updates.end ? newDate(updates.end) : undefined,
+          allDay:
+            typeof updates.allDay === "boolean" ? updates.allDay : undefined,
+          color: "color" in updates ? updates.color || null : undefined,
+          colorSlot:
+            "colorSlot" in updates ? updates.colorSlot || null : undefined,
+          reminderMinutes:
+            reminderMinutes === undefined ? undefined : reminderMinutes,
+          useDefaultReminders:
+            typeof updates.useDefaultReminders === "boolean"
+              ? updates.useDefaultReminders
+              : undefined,
+          lastModified: googleEvent.updated
+            ? newDate(googleEvent.updated)
+            : undefined,
+        },
+      });
+
+      return NextResponse.json({
+        records: [fallbackRecord],
+        reconciliationPending: true,
+      });
+    }
   } catch (error) {
     logger.error(
       "Failed to update Google calendar event:",

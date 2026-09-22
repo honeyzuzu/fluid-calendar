@@ -14,6 +14,8 @@ it("offers an explicit scope before changing or deleting recurring events", () =
   );
   const eventModal = source("src/components/calendar/EventModal.tsx");
   const quickView = source("src/components/calendar/EventQuickView.tsx");
+  const googleRoute = source("src/app/api/calendar/google/events/route.ts");
+  const calendarStore = source("src/store/calendar.ts");
 
   expect(dialog).toContain("Only this event");
   expect(dialog).toContain("This and future events");
@@ -22,4 +24,8 @@ it("offers an explicit scope before changing or deleting recurring events", () =
   expect(eventModal).toContain("setShowRecurrenceDialog(true)");
   expect(quickView).toContain("eventItem?.isRecurring");
   expect(quickView).toContain('action="delete"');
+  expect(googleRoute).toContain("reconciliationPending: true");
+  expect(calendarStore).toContain("triggerTaskRescheduleAfterCalendarChange");
+  expect(calendarStore).not.toContain("await triggerScheduleAllTasks();");
+  expect(calendarStore).toContain("result.reconciliationPending");
 });

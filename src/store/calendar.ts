@@ -35,6 +35,15 @@ function noteCalendarMutation() {
   calendarMutationRevision += 1;
 }
 
+function triggerTaskRescheduleAfterCalendarChange(context: string) {
+  void useTaskStore
+    .getState()
+    .triggerScheduleAllTasks()
+    .catch((error) => {
+      console.error(`Failed to auto-schedule after ${context}:`, error);
+    });
+}
+
 // Separate store for view preferences that will be persisted in localStorage
 interface ViewStore extends CalendarViewState {
   setView: (view: CalendarView) => void;
@@ -505,9 +514,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        triggerTaskRescheduleAfterCalendarChange("creating a Google event");
         return;
       }
 
@@ -527,9 +534,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        triggerTaskRescheduleAfterCalendarChange("creating an Outlook event");
         return;
       }
 
@@ -549,9 +554,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        triggerTaskRescheduleAfterCalendarChange("creating a CalDAV event");
         return;
       }
 
@@ -587,13 +590,17 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         if (!response.ok) {
           throw new Error("Failed to update event in Google Calendar");
         }
+        const result = (await response.json()) as {
+          reconciliationPending?: boolean;
+        };
 
         noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        if (result.reconciliationPending) {
+          void get().syncFeed(feed.id);
+        }
+        triggerTaskRescheduleAfterCalendarChange("updating a Google event");
         return;
       }
 
@@ -612,9 +619,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        triggerTaskRescheduleAfterCalendarChange("updating an Outlook event");
         return;
       }
 
@@ -633,9 +638,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
         noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
-        // Trigger auto-scheduling after event is created
-        const { triggerScheduleAllTasks } = useTaskStore.getState();
-        await triggerScheduleAllTasks();
+        triggerTaskRescheduleAfterCalendarChange("updating a CalDAV event");
         return;
       }
 
@@ -718,15 +721,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
             refreshError
           );
         });
-      void useTaskStore
-        .getState()
-        .triggerScheduleAllTasks()
-        .catch((scheduleError) => {
-          console.error(
-            "Failed to auto-schedule after event deletion:",
-            scheduleError
-          );
-        });
+      triggerTaskRescheduleAfterCalendarChange("deleting an event");
     } catch (error) {
       console.error("Failed to remove event:", error);
       throw error;
@@ -776,9 +771,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
 
       // Reload events from database
       await get().loadFromDatabase();
-      // Trigger auto-scheduling after event is created
-      const { triggerScheduleAllTasks } = useTaskStore.getState();
-      await triggerScheduleAllTasks();
+      triggerTaskRescheduleAfterCalendarChange("syncing a calendar");
     } catch (error) {
       console.error("Failed to sync feed:", error);
       // Update feed with error
