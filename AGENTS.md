@@ -2,6 +2,12 @@
 
 Last updated: 2026-09-21
 
+## Settings Connections page pass (implemented September 21, 2026)
+
+The Calendar no-feed action opens `/settings#accounts`, now labelled Calendar accounts in Settings. Connections presents Google, Apple, and generic CalDAV as separate choices with short setup guidance and a clear Google availability state. A successful Google OAuth connection returns to the same Settings section. Apple and CalDAV retain their test and validation flows; after an account is connected, Sunnie opens its available calendars so the user can finish setup. Adding a calendar updates the account count and the Calendar feed store without a page reload. The optional Task sync section explains that calendars work without task sync and no longer advertises an unavailable sync-history panel.
+
+Connected accounts show their provider, address, server, calendar count, and a direct Calendar link in a phone-safe layout. Removing an account requires a confirmation that distinguishes Sunnie's local copies from the original provider calendar. Feed and account deletion happen in one database transaction. Client removal checks the server response, updates the list after success, and reports a failed removal without hiding the account; a later list-refresh failure does not turn a successful removal into a failure message. Signed-in local desktop and phone QA covered the empty state, Apple form and validation, a simulated account connection and calendar add, and failed and successful removal. Live Google/CalDAV provider authentication and sync remain separate integration checks. No schema change is needed for this pass.
+
 ## Calendar page pass (implemented September 21, 2026)
 
 The Calendar header now shows the selected day, week, month, or year in the account time zone, with that time zone visible beside the view controls. On phones, the date navigation and view controls use two compact rows; a desktop-to-phone resize closes the feed panel so it cannot cover the canvas. Accounts without a connected calendar get a visible explanation and a Connect calendar action while scheduled Sunnie tasks remain visible. Connected calendars retain event creation.

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,12 +20,18 @@ interface AvailableCalendar {
 interface Props {
   accountId: string;
   provider: "GOOGLE" | "OUTLOOK" | "CALDAV";
+  onCalendarAdded?: () => void;
 }
 
-export function AvailableCalendars({ accountId, provider }: Props) {
+export function AvailableCalendars({
+  accountId,
+  provider,
+  onCalendarAdded,
+}: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [calendars, setCalendars] = useState<AvailableCalendar[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [addedCalendar, setAddedCalendar] = useState<string | null>(null);
   const [addingCalendars, setAddingCalendars] = useState<Set<string>>(
     new Set()
   );
@@ -114,18 +122,11 @@ export function AvailableCalendars({ accountId, provider }: Props) {
           return;
         }
 
-        // Remove from available list
         setCalendars((prev) =>
-          prev.filter((c) => {
-            if (calendar.alreadyAdded) {
-              return false;
-            }
-            if (c.id === calendar.id) {
-              return false;
-            }
-            return true;
-          })
+          prev.filter((candidate) => candidate.id !== calendar.id)
         );
+        setAddedCalendar(calendar.name);
+        onCalendarAdded?.();
       } catch (error) {
         console.error("Failed to add calendar:", error);
         setErrorMessage("Failed to add calendar");
@@ -137,16 +138,16 @@ export function AvailableCalendars({ accountId, provider }: Props) {
         });
       }
     },
-    [accountId, provider]
+    [accountId, provider, onCalendarAdded]
   );
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div aria-label="Loading available calendars" className="space-y-2">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex items-center justify-between rounded-md border bg-card p-4"
+            className="flex items-center justify-between rounded-xl border bg-card p-3"
           >
             <div className="flex items-center gap-2">
               <Skeleton className="h-5 w-16" />
@@ -181,33 +182,64 @@ export function AvailableCalendars({ accountId, provider }: Props) {
 
   if (calendars.length === 0) {
     return (
-      <div className="py-4 text-center text-muted-foreground">
-        No available calendars found
+      <div className="space-y-2 text-sm text-muted-foreground">
+        {addedCalendar && (
+          <p role="status" className="text-success">
+            {addedCalendar} was added to Sunnie.
+          </p>
+        )}
+        <p>
+          All available calendars are already added, or this account has none to
+          share.
+        </p>
+        <Link
+          href="/calendar"
+          className="inline-block font-semibold text-primary hover:underline"
+        >
+          View Calendar
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-sm font-semibold text-foreground">
+          Calendars available to add
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Choose the calendars you want to see in Sunnie. You can hide one later
+          from Calendar.
+        </p>
+      </div>
+      {addedCalendar && (
+        <p role="status" className="text-sm text-success">
+          {addedCalendar} was added to Sunnie.
+        </p>
+      )}
       <div className="space-y-2">
         {calendars.map((calendar) => (
           <div
             key={calendar.id}
-            className="flex items-center justify-between rounded-md border bg-card p-4"
+            className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="min-w-0 break-words text-sm font-medium text-foreground">
+                {calendar.name}
+              </span>
               <Badge variant="outline" className="capitalize">
                 {calendar.accessRole?.toLowerCase() ||
                   (calendar.canEdit ? "owner" : "reader")}
               </Badge>
-              <span className="text-sm">{calendar.name}</span>
             </div>
             <Button
               size="sm"
               onClick={() => handleAddCalendar(calendar)}
               disabled={addingCalendars.has(calendar.id)}
+              aria-label={`Add ${calendar.name} to Sunnie`}
             >
-              {addingCalendars.has(calendar.id) ? "Adding..." : "Add"}
+              {addingCalendars.has(calendar.id) ? "Adding…" : "Add calendar"}
             </Button>
           </div>
         ))}

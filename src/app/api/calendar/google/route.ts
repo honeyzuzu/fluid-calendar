@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.redirect(
-        new URL("/settings", process.env.NEXTAUTH_URL!)
+        new URL("/settings#accounts", process.env.NEXTAUTH_URL!)
       );
     } catch (error) {
       console.error("Failed to exchange code for tokens:", error);

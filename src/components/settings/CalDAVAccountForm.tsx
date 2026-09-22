@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,7 +36,7 @@ interface TestResult {
 
 interface CalDAVAccountFormProps {
   preset?: "apple" | "generic";
-  onSuccess?: () => void;
+  onSuccess?: (accountId: string) => void;
   onCancel?: () => void;
 }
 
@@ -225,14 +227,13 @@ export function CalDAVAccountForm({
         );
       }
 
-      await response.json();
-
-      alert(
-        `Successfully connected ${isApple ? "Apple Calendar" : "CalDAV calendar"} for ${formData.username}`
+      const result = (await response.json()) as { accountId: string };
+      toast.success(
+        "Account connected. Choose the calendars to add to Sunnie."
       );
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(result.accountId);
       }
     } catch (error) {
       logger.error(
@@ -327,7 +328,7 @@ export function CalDAVAccountForm({
         </CardTitle>
         <CardDescription>
           {isApple
-            ? "Bring your iCloud calendars into Sunnie with secure CalDAV sync."
+            ? "Bring your iCloud calendars into Sunnie with CalDAV sync."
             : "Add a calendar from Fastmail, Nextcloud, or another CalDAV provider."}
         </CardDescription>
       </CardHeader>

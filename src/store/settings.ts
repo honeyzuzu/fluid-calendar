@@ -414,16 +414,27 @@ export const useSettingsStore = create<SettingsStore>()(
         })),
       removeAccount: async (accountId) => {
         try {
-          await fetch("/api/accounts", {
+          const response = await fetch("/api/accounts", {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ accountId }),
           });
+          if (!response.ok) {
+            throw new Error(`Failed to remove account (${response.status})`);
+          }
 
-          // Refresh accounts after removal
-          await get().refreshAccounts();
+          set((state) => ({
+            accounts: state.accounts.filter(
+              (account) => account.id !== accountId
+            ),
+          }));
+          // The account is already removed. A later list refresh failure must
+          // not report the removal itself as failed.
+          await get()
+            .refreshAccounts()
+            .catch(() => undefined);
         } catch (error) {
           logger.error(
             "Failed to remove account",
@@ -439,6 +450,9 @@ export const useSettingsStore = create<SettingsStore>()(
       refreshAccounts: async () => {
         try {
           const response = await fetch("/api/accounts");
+          if (!response.ok) {
+            throw new Error(`Failed to load accounts (${response.status})`);
+          }
           const accounts = await response.json();
           set({ accounts });
         } catch (error) {

@@ -87,8 +87,8 @@ export default function SettingsPage() {
       { id: "about", label: "About Sunnie" },
       { id: "calendar", label: "Calendar" },
       { id: "auto-schedule", label: "Auto-Schedule" },
-      { id: "accounts", label: "Accounts" },
-      { id: "task-sync", label: "Task Sync" },
+      { id: "accounts", label: "Calendar accounts" },
+      { id: "task-sync", label: "Task sync" },
       { id: "notifications", label: "Notifications" },
       { id: "import-export", label: "Import/Export" },
     ] as const;

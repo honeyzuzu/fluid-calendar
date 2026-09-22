@@ -90,21 +90,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // First delete all calendar feeds associated with this account
-    await prisma.calendarFeed.deleteMany({
-      where: {
-        accountId,
-        userId,
-      },
-    });
-
-    // Then delete the account
-    await prisma.connectedAccount.delete({
-      where: {
-        id: accountId,
-        userId,
-      },
-    });
+    // Keep feed removal and account removal atomic. If either fails, retain
+    // the entire connection so the user can retry without losing calendar data.
+    await prisma.$transaction([
+      prisma.calendarFeed.deleteMany({ where: { accountId, userId } }),
+      prisma.connectedAccount.delete({ where: { id: accountId, userId } }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

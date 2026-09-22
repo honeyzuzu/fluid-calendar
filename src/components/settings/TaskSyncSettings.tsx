@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  Calendar,
-  ExternalLink,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Trash2,
-} from "lucide-react";
+import { Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -32,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { format } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
@@ -88,7 +80,6 @@ export function TaskSyncSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("task-lists");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newProviderName, setNewProviderName] = useState("");
@@ -878,26 +869,10 @@ export function TaskSyncSettings() {
     );
   };
 
-  // Render sync history
-  const renderSyncHistory = () => {
-    if (!selectedProvider) return null;
-
-    return (
-      <SettingRow
-        label="Sync History"
-        description="View recent sync activities and results"
-      >
-        <div className="p-4 text-center text-muted-foreground">
-          <p>Sync history will be available in a future update.</p>
-        </div>
-      </SettingRow>
-    );
-  };
-
   return (
     <SettingsSection
-      title="Task Synchronization"
-      description="Manage task synchronization with Google Tasks and compatible CalDAV services."
+      title="Task sync"
+      description="Optional: bring Google Tasks or compatible CalDAV task lists into Sunnie projects. Your calendars work without this."
     >
       {compatibleAccounts.length === 0 ? (
         <SettingRow
@@ -919,28 +894,7 @@ export function TaskSyncSettings() {
             <>
               {renderProviderDetails()}
 
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <TabsList className="mb-4 w-full">
-                  <TabsTrigger value="task-lists" className="flex-1">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Task Lists
-                  </TabsTrigger>
-                  <TabsTrigger value="sync-history" className="flex-1">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Sync History
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="task-lists" className="mt-0">
-                  {renderTaskLists()}
-                </TabsContent>
-                <TabsContent value="sync-history" className="mt-0">
-                  {renderSyncHistory()}
-                </TabsContent>
-              </Tabs>
+              {renderTaskLists()}
             </>
           )}
         </>
