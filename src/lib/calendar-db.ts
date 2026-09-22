@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 import {
@@ -99,6 +101,16 @@ export async function deleteCalendarEvent(
     throw new Error("Event not found");
   }
 
+  await deleteCalendarEventRows(prisma, event, mode);
+
+  return event;
+}
+
+export async function deleteCalendarEventRows(
+  db: Pick<Prisma.TransactionClient, "calendarEvent">,
+  event: CalendarEventWithFeed,
+  mode: "single" | "series" = "single"
+) {
   if (mode === "series") {
     // Provider-created recurring instances do not always have a local master
     // row, but they do share recurringEventId. Remove both relationship forms
@@ -108,7 +120,7 @@ export async function deleteCalendarEvent(
       ? event.externalEventId
       : event.recurringEventId;
 
-    await prisma.calendarEvent.deleteMany({
+    await db.calendarEvent.deleteMany({
       where: {
         feedId: event.feedId,
         OR: [
@@ -127,12 +139,10 @@ export async function deleteCalendarEvent(
     });
   } else {
     //delete a single instance
-    await prisma.calendarEvent.delete({
+    await db.calendarEvent.delete({
       where: {
         id: event.id,
       },
     });
   }
-
-  return event;
 }

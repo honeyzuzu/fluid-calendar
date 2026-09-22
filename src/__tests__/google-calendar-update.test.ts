@@ -1,6 +1,25 @@
 import { calendar_v3 } from "googleapis";
 
-import { updateGoogleEvent } from "@/lib/google-calendar";
+import {
+  getGoogleReconciliationMode,
+  updateGoogleEvent,
+} from "@/lib/google-calendar";
+
+it("replaces a recurring series locally after moving one occurrence", () => {
+  expect(
+    getGoogleReconciliationMode({
+      localIsRecurring: true,
+      providerRecurringEventId: "master",
+      providerHasRecurrence: true,
+    })
+  ).toBe("series");
+  expect(
+    getGoogleReconciliationMode({
+      localIsRecurring: false,
+      providerHasRecurrence: false,
+    })
+  ).toBe("single");
+});
 
 it("updates a series duration without moving its original first date", async () => {
   const get = jest.fn().mockImplementation(({ eventId }) =>
@@ -55,7 +74,9 @@ it("updates a series duration without moving its original first date", async () 
 it("sends changed reminders to Google and leaves them out of unrelated edits", async () => {
   const get = jest.fn().mockResolvedValue({ data: { id: "meeting" } });
   const patch = jest.fn().mockResolvedValue({ data: { id: "meeting" } });
-  const calendar = { events: { get, patch } } as unknown as calendar_v3.Calendar;
+  const calendar = {
+    events: { get, patch },
+  } as unknown as calendar_v3.Calendar;
 
   await updateGoogleEvent(
     "account",

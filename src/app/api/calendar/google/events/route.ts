@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { Prisma } from "@prisma/client";
 import { GaxiosError } from "gaxios";
 import { calendar_v3 } from "googleapis";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import {
   deleteCalendarEvent,
+  deleteCalendarEventRows,
   getEvent,
   validateEvent,
 } from "@/lib/calendar-db";
@@ -17,6 +19,7 @@ import {
 import getGoogleEvent, {
   createGoogleEvent,
   deleteGoogleEvent,
+  getGoogleReconciliationMode,
   updateGoogleEvent,
 } from "@/lib/google-calendar";
 import { logger } from "@/lib/logger";
@@ -32,14 +35,15 @@ async function writeEventToDatabase(
   event: GoogleEvent,
   instances?: GoogleEvent[],
   color?: string | null,
-  colorSlot?: string | null
+  colorSlot?: string | null,
+  db: Pick<Prisma.TransactionClient, "calendarEvent"> = prisma
 ) {
   const isRecurring = !!event.recurrence;
   const isAllDay = event.start ? !event.start.dateTime : false;
 
   if (!isRecurring) {
     // Create the master event only if not recurring
-    const masterEvent = await prisma.calendarEvent.create({
+    const masterEvent = await db.calendarEvent.create({
       data: {
         feedId,
         externalEventId: event.id,
@@ -86,7 +90,7 @@ async function writeEventToDatabase(
         ? !instance.start.dateTime
         : false;
 
-      const createdInstance = await prisma.calendarEvent.create({
+      const createdInstance = await db.calendarEvent.create({
         data: {
           feedId,
           externalEventId: instance.id,
@@ -298,9 +302,6 @@ export async function PUT(request: NextRequest) {
       throw new Error("Failed to get event ID from Google Calendar");
     }
 
-    // Delete existing event and any related instances from our database
-    await deleteCalendarEvent(validatedEvent.id, mode);
-
     // Get the updated event and its instances
     const { event: updatedEvent, instances } = await getGoogleEvent(
       validatedEvent.feed.accountId,
@@ -309,13 +310,34 @@ export async function PUT(request: NextRequest) {
       googleEvent.id
     );
 
-    // Create new records in our database
-    const records = await writeEventToDatabase(
-      validatedEvent.feed.id,
-      updatedEvent,
-      instances,
-      "color" in updates ? updates.color : validatedEvent.color,
-      "colorSlot" in updates ? updates.colorSlot : validatedEvent.colorSlot
+    const reconciliationMode = getGoogleReconciliationMode({
+      requestedMode: mode,
+      localIsRecurring: validatedEvent.isRecurring,
+      providerRecurringEventId: googleEvent.recurringEventId,
+      providerHasRecurrence: Boolean(updatedEvent.recurrence?.length),
+    });
+    const providerSeriesKey =
+      googleEvent.recurringEventId ||
+      updatedEvent.id ||
+      validatedEvent.externalEventId;
+
+    // A recurring occurrence update returns the entire provider series. Replace
+    // that local series in one serialized transaction; deleting only the moved
+    // row before inserting every occurrence caused duplicates after each drag.
+    const records = await prisma.$transaction(
+      async (tx) => {
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`google-event:${validatedEvent.feed.id}:${providerSeriesKey}`}))`;
+        await deleteCalendarEventRows(tx, validatedEvent, reconciliationMode);
+        return writeEventToDatabase(
+          validatedEvent.feed.id,
+          updatedEvent,
+          instances,
+          "color" in updates ? updates.color : validatedEvent.color,
+          "colorSlot" in updates ? updates.colorSlot : validatedEvent.colorSlot,
+          tx
+        );
+      },
+      { timeout: 30000 }
     );
 
     return NextResponse.json(records);

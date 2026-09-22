@@ -11,6 +11,25 @@ import { TokenManager } from "./token-manager";
 
 type GoogleEvent = calendar_v3.Schema$Event;
 
+export function getGoogleReconciliationMode({
+  requestedMode,
+  localIsRecurring,
+  providerRecurringEventId,
+  providerHasRecurrence,
+}: {
+  requestedMode?: "single" | "series";
+  localIsRecurring: boolean;
+  providerRecurringEventId?: string | null;
+  providerHasRecurrence: boolean;
+}): "single" | "series" {
+  return requestedMode === "series" ||
+    localIsRecurring ||
+    Boolean(providerRecurringEventId) ||
+    providerHasRecurrence
+    ? "series"
+    : "single";
+}
+
 export async function getGoogleCalendarClient(
   accountId: string,
   userId: string

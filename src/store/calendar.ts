@@ -551,10 +551,14 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
   updateEvent: async (id, updates, mode) => {
     try {
       const event = get().events.find((e) => e.id === id);
-      if (!event) return;
+      if (!event) {
+        throw new Error("Calendar event is stale; refresh before moving it");
+      }
 
       const feed = get().feeds.find((f) => f.id === event.feedId);
-      if (!feed) return;
+      if (!feed) {
+        throw new Error("Calendar feed is no longer available");
+      }
 
       // console.log("Updating event:", { id, updates, mode });
       // For Google Calendar feeds, use the Google Calendar API
