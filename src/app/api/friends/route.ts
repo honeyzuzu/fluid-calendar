@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "No account uses that email yet. Ask your friend to sign up first.",
+          "No Sunnie account uses that email yet. Ask the person who hosts this planner to help them join.",
       },
       { status: 404 }
     );

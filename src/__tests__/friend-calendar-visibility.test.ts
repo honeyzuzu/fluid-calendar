@@ -59,7 +59,7 @@ describe("friend calendar visibility", () => {
     const manager = read("src/components/calendar/FeedManager.tsx");
     expect(route).toContain("isPresenceOnline");
     expect(page).toContain("connection.friend.online");
-    expect(page).toContain('"Online now"');
+    expect(page).toContain('"Online"');
     expect(manager).toContain("connection.friend.online");
     expect(manager).toContain('"Offline"');
   });
