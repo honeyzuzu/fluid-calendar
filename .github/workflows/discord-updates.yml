@@ -53,13 +53,14 @@ jobs:
               }
               // Keep release copy separate from technical commit text. Both fields are
               // required so an empty body never becomes a vague announcement.
-              const releaseCopy = message.match(/^Discord-Title:[ \t]*([^\r\n]+)\r?\nDiscord-Details:[ \t]*([^\r\n]+(?:\r?\n(?!\r?\n)[^\r\n]+)*)/m);
-              if (!releaseCopy) {
+              const releaseTitle = message.match(/^Discord-Title:[ \t]*([^\r\n]+)/m);
+              const releaseDetails = message.match(/^Discord-Details:[ \t]*([^\r\n]+)/m);
+              if (!releaseTitle || !releaseDetails) {
                 core.info("No Discord release copy on this commit; skipping announcement.");
                 return;
               }
-              title = releaseCopy[1].trim();
-              details = releaseCopy[2].trim();
+              title = releaseTitle[1].trim();
+              details = releaseDetails[1].trim();
             }
 
             if (!title || !details) {
