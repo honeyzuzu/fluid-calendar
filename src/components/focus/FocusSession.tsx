@@ -879,23 +879,14 @@ export function FocusSession({
               )}
 
             <div className="mt-3 rounded-2xl border border-accent bg-accent/55 px-3 py-2.5 text-center text-xs font-bold text-accent-foreground sm:mt-4">
-              {focusPlan.length > 1 ? (
-                <RhythmSteps
-                  setupMinutes={phase === "setup-ready" ? setupMinutes : 0}
-                  focusMinutes={focusPlan}
-                  breakMinutes={breakMinutes}
-                  currentRoundIndex={currentRoundIndex}
-                  compact
-                />
-              ) : (
-                <>
-                  {phase === "setup-ready" &&
-                    (setupMinutes === 0
-                      ? "No setup → "
-                      : `${setupMinutes} min setup → `)}
-                  {focusMinutes} min focus → {breakMinutes} min break
-                </>
-              )}
+              <RhythmSteps
+                setupMinutes={phase === "setup-ready" ? setupMinutes : 0}
+                focusMinutes={focusPlan}
+                breakMinutes={breakMinutes}
+                currentRoundIndex={currentRoundIndex}
+                showFinalBreak={focusPlan.length === 1}
+                compact
+              />
             </div>
 
             <button
@@ -1276,28 +1267,32 @@ function RhythmSteps({
   focusMinutes,
   breakMinutes,
   currentRoundIndex,
+  showFinalBreak = false,
   compact = false,
 }: {
   setupMinutes: number;
   focusMinutes: number[];
   breakMinutes: number;
   currentRoundIndex?: number;
+  showFinalBreak?: boolean;
   compact?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-1.5",
-        compact ? "justify-center" : "mt-3"
+        "flex items-center gap-1.5",
+        compact
+          ? "w-full flex-nowrap justify-start overflow-x-auto pb-1 [scrollbar-width:none] sm:justify-center [&::-webkit-scrollbar]:hidden"
+          : "mt-3 flex-wrap"
       )}
       aria-label="Focus rhythm"
     >
       {setupMinutes > 0 && (
         <>
-          <span className="rounded-lg bg-card/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
+          <span className="shrink-0 rounded-lg bg-card/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
             {setupMinutes} setup
           </span>
-          <span aria-hidden="true" className="text-muted-foreground">
+          <span aria-hidden="true" className="shrink-0 text-muted-foreground">
             →
           </span>
         </>
@@ -1306,7 +1301,7 @@ function RhythmSteps({
         <div key={`${index}-${minutes}`} className="contents">
           <span
             className={cn(
-              "rounded-lg px-2 py-1 text-[11px] font-semibold",
+              "shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold",
               currentRoundIndex === index
                 ? "bg-primary text-primary-foreground"
                 : "bg-card/80 text-secondary-foreground"
@@ -1316,19 +1311,35 @@ function RhythmSteps({
           </span>
           {index < focusMinutes.length - 1 && (
             <>
-              <span aria-hidden="true" className="text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="shrink-0 text-muted-foreground"
+              >
                 →
               </span>
-              <span className="rounded-lg bg-secondary/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
+              <span className="shrink-0 rounded-lg bg-secondary/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
                 {breakMinutes} break
               </span>
-              <span aria-hidden="true" className="text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="shrink-0 text-muted-foreground"
+              >
                 →
               </span>
             </>
           )}
         </div>
       ))}
+      {showFinalBreak && (
+        <>
+          <span aria-hidden="true" className="shrink-0 text-muted-foreground">
+            →
+          </span>
+          <span className="shrink-0 rounded-lg bg-secondary/80 px-2 py-1 text-[11px] font-semibold text-secondary-foreground">
+            {breakMinutes} optional break
+          </span>
+        </>
+      )}
     </div>
   );
 }
