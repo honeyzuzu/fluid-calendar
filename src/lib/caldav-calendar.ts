@@ -8,7 +8,10 @@ import { prisma } from "@/lib/prisma";
 
 import { CalendarEventWithFeed } from "@/types/calendar";
 
-import { convertVEventToCalendarEvent } from "./caldav-helpers";
+import {
+  convertVEventToCalendarEvent,
+  preserveCalDAVAlarms,
+} from "./caldav-helpers";
 import {
   CalDAVCalendarObject,
   CalendarEventInput,
@@ -553,6 +556,10 @@ export class CalDAVCalendarService {
             event.colorSlot as string,
           ])
       );
+      const existingTitleOverrides = await prisma.calendarEvent.findMany({
+        where: { feedId: feed.id, titleOverride: { not: null } },
+        select: { externalEventId: true, titleOverride: true },
+      });
       // Get existing events for this feed
       // const existingEvents = await this.getExistingEvents(feed.id);
 
@@ -580,6 +587,16 @@ export class CalDAVCalendarService {
             colorSlotOverrides,
             tx
           );
+          for (const prior of existingTitleOverrides) {
+            if (!prior.externalEventId || !prior.titleOverride) continue;
+            await tx.calendarEvent.updateMany({
+              where: {
+                feedId: feed.id,
+                externalEventId: prior.externalEventId,
+              },
+              data: { titleOverride: prior.titleOverride },
+            });
+          }
           await tx.calendarFeed.update({
             where: { id: feed.id, userId },
             data: {
@@ -641,11 +658,29 @@ export class CalDAVCalendarService {
         event.timeZone ?? (await this.resolveUserTimeZone(userId));
 
       // Generate the iCalendar data
-      const icalData = this.convertToICalendar({
+      let icalData = this.convertToICalendar({
         ...event,
         id: externalEventId,
         timeZone,
       });
+
+      if (event.reminderMinutes === undefined) {
+        const existingResponse = await fetch(eventUrl, {
+          headers: {
+            Authorization:
+              "Basic " +
+              Buffer.from(
+                `${this.account.caldavUsername || this.account.email}:${this.account.accessToken}`
+              ).toString("base64"),
+          },
+        });
+        if (!existingResponse.ok)
+          throw new Error("Couldn't read existing calendar notifications");
+        icalData = preserveCalDAVAlarms(
+          icalData,
+          await existingResponse.text()
+        );
+      }
 
       let response;
       try {
@@ -1069,6 +1104,17 @@ export class CalDAVCalendarService {
       vevent.updatePropertyWithValue("location", event.location);
     }
 
+    for (const minutes of event.reminderMinutes ?? []) {
+      const alarm = new ICAL.Component(["valarm", [], []]);
+      alarm.updatePropertyWithValue("action", "DISPLAY");
+      alarm.updatePropertyWithValue("description", event.title);
+      alarm.updatePropertyWithValue(
+        "trigger",
+        ICAL.Duration.fromSeconds(-minutes * 60)
+      );
+      vevent.addSubcomponent(alarm);
+    }
+
     // Add start and end times
     const dtstart = new ICAL.Property("dtstart");
     const dtend = new ICAL.Property("dtend");
@@ -1409,6 +1455,7 @@ export class CalDAVCalendarService {
           feedId,
           externalEventId: event.externalEventId,
           title: event.title || "Untitled Event",
+          isFree: event.isFree,
           description: event.description,
           start: event.start,
           end: event.end,
@@ -1422,6 +1469,7 @@ export class CalDAVCalendarService {
           isRecurring: event.isRecurring || false,
           recurrenceRule: event.recurrenceRule,
           allDay: event.allDay || false,
+          reminderMinutes: event.reminderMinutes ?? [],
           status: event.status,
           isMaster: true,
           masterEventId: null,
@@ -1481,6 +1529,7 @@ export class CalDAVCalendarService {
           feedId,
           externalEventId: event.externalEventId,
           title: event.title || "Untitled Event",
+          isFree: event.isFree,
           description: event.description,
           start: event.start,
           end: event.end,
@@ -1494,6 +1543,7 @@ export class CalDAVCalendarService {
           isRecurring: event.isRecurring || false, // Instance events are not recurring themselves
           recurrenceRule: event.recurrenceRule, // Instance events don't have recurrence rules
           allDay: event.allDay || false,
+          reminderMinutes: event.reminderMinutes ?? [],
           status: event.status,
           isMaster: false,
           masterEventId,

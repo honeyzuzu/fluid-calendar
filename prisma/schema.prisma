@@ -79,6 +79,7 @@ model User {
   image                  String?
   role                   String                @default("user") // Possible values: "user", "admin"
   lastActiveAt           DateTime?
+  starterProjectsInitializedAt DateTime?
   subscription           Subscription?
   accounts               Account[]
   sessions               Session[]
@@ -223,6 +224,8 @@ model CalendarEvent {
   feed            CalendarFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
   externalEventId String? // External Calendar Event ID (Google, Outlook, etc.)
   title           String
+  titleOverride   String? // Private display name in Sunnie; never sent to the calendar provider
+  isFree          Boolean      @default(false) // Provider marks this time as free/transparent
   description     String?
   start           DateTime
   end             DateTime
@@ -232,6 +235,8 @@ model CalendarEvent {
   isRecurring     Boolean      @default(false)
   recurrenceRule  String?
   allDay          Boolean      @default(false)
+  reminderMinutes Int[]        @default([]) // Popup/display reminders before start
+  useDefaultReminders Boolean  @default(false) // Google calendar defaults
   status          String?
   sequence        Int?
   created         DateTime?

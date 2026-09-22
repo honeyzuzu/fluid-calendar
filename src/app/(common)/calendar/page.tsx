@@ -107,6 +107,8 @@ export default async function HomePage() {
       feedId: event.feedId,
       externalEventId: event.externalEventId || undefined,
       title: event.title,
+      titleOverride: event.titleOverride,
+      isFree: event.isFree,
       description: event.description || undefined,
       start: event.start,
       end: event.end,

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useDraggable } from "@dnd-kit/core";
 import {
   CheckCircle2,
@@ -114,7 +116,7 @@ export function BoardTask({
         ref={setNodeRef}
         style={style}
         className={cn(
-          "animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-paper)] transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[var(--shadow-raised)] motion-reduce:animate-none motion-reduce:transform-none",
+          "animate-[sunnie-rise_450ms_cubic-bezier(0.2,0.75,0.25,1)] rounded-xl border border-border bg-card px-3 py-3 shadow-[var(--shadow-paper)] transition hover:border-primary/35 hover:shadow-[var(--shadow-raised)] motion-reduce:animate-none",
           task.status === TaskStatus.COMPLETED && "bg-muted/55",
           isDragging && "opacity-50"
         )}
@@ -155,7 +157,7 @@ export function BoardTask({
                 type="button"
                 onClick={() => onEdit(task)}
                 className={cn(
-                  "task-title block max-w-full truncate text-left text-sm font-semibold text-foreground hover:text-primary focus-visible:outline-none focus-visible:underline",
+                  "task-title block max-w-full break-words text-left text-sm font-semibold leading-5 text-foreground hover:text-primary focus-visible:outline-none focus-visible:underline",
                   task.status === TaskStatus.COMPLETED &&
                     "text-muted-foreground line-through"
                 )}
@@ -163,6 +165,13 @@ export function BoardTask({
               >
                 {task.title}
               </button>
+              {!task.plannedWeekStart &&
+                !task.dueDate &&
+                !task.scheduledStart && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Backlog · Add details when you’re ready
+                  </p>
+                )}
             </div>
             <button
               ref={setActivatorNodeRef}
@@ -197,29 +206,6 @@ export function BoardTask({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
-          {task.description && (
-            <p className="task-description line-clamp-2 text-xs text-muted-foreground">
-              {task.description}
-            </p>
-          )}
-
-          {task.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {task.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center rounded px-1.5 py-0.5 text-xs"
-                  style={{
-                    backgroundColor: `${tag.color}20` || "var(--muted)",
-                    color: tag.color || "var(--muted-foreground)",
-                  }}
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
-          )}
 
           <div className="flex flex-wrap items-center gap-1.5 pl-11 text-xs">
             {task.isAutoScheduled && (
@@ -306,6 +292,23 @@ export function BoardTask({
               </div>
             )}
           </div>
+          {task.status !== TaskStatus.COMPLETED && (
+            <div className="flex items-center gap-3 pl-11 text-xs font-medium">
+              <Link
+                href={`/focus?taskId=${encodeURIComponent(task.id)}`}
+                className="text-primary underline-offset-2 hover:underline focus-visible:underline"
+              >
+                Start Focus
+              </Link>
+              <button
+                type="button"
+                onClick={() => onEdit(task)}
+                className="text-muted-foreground underline-offset-2 hover:underline focus-visible:underline"
+              >
+                Add details
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { X as IoClose, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 
 import { useProjectStore } from "@/store/project";
 
@@ -33,6 +34,7 @@ export function DeleteProjectDialog({
       project.onClose?.();
     } catch (error) {
       console.error("Error deleting project:", error);
+      toast.error("Could not delete the project. Your tasks are unchanged.");
     } finally {
       setIsDeleting(false);
     }
@@ -46,23 +48,25 @@ export function DeleteProjectDialog({
           <Dialog.Title className="m-0 text-[17px] font-medium">
             Delete Project
           </Dialog.Title>
-          <Dialog.Description className="mb-5 mt-4 text-[15px] leading-normal">
-            <p className="mb-3">
-              Are you sure you want to delete <strong>{project.name}</strong>?
-            </p>
-            <p className="mb-3 flex items-start gap-2 font-bold text-destructive">
-              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>
-                This action cannot be undone. The project will be permanently
-                deleted.
-              </span>
-            </p>
-            {taskCount > 0 && (
-              <p className="text-destructive">
-                This will also delete {taskCount} task
-                {taskCount === 1 ? "" : "s"} associated with this project.
+          <Dialog.Description asChild>
+            <div className="mb-5 mt-4 text-[15px] leading-normal">
+              <p className="mb-3">
+                Are you sure you want to delete <strong>{project.name}</strong>?
               </p>
-            )}
+              <p className="mb-3 flex items-start gap-2 font-bold text-destructive">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  This action cannot be undone. The project will be permanently
+                  deleted.
+                </span>
+              </p>
+              {taskCount > 0 && (
+                <p>
+                  {taskCount} task{taskCount === 1 ? "" : "s"} will move to
+                  another project. No tasks will be deleted.
+                </p>
+              )}
+            </div>
           </Dialog.Description>
 
           <div className="mt-6 flex justify-end gap-4">

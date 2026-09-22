@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/store/settings";
 import { getAppUrl } from "./app-url";
 import { rebaseRecurringSeriesDates } from "./calendar-event-update";
 import { newDate, newDateFromYMD } from "./date-utils";
+import { googleReminderPayload } from "./event-reminders";
 import { createGoogleOAuthClient } from "./google";
 import { TokenManager } from "./token-manager";
 
@@ -60,6 +61,8 @@ export async function createGoogleEvent(
     isRecurring?: boolean;
     recurrenceRule?: string;
     timeZone?: string;
+    reminderMinutes?: number[];
+    useDefaultReminders?: boolean;
   }
 ) {
   const calendar = await getGoogleCalendarClient(accountId, userId);
@@ -94,6 +97,13 @@ export async function createGoogleEvent(
         timeZone,
       },
       recurrence,
+      reminders:
+        event.reminderMinutes !== undefined
+          ? googleReminderPayload(
+              Boolean(event.useDefaultReminders),
+              event.reminderMinutes
+            )
+          : undefined,
     },
   });
 
@@ -116,6 +126,8 @@ export async function updateGoogleEvent(
     recurrenceRule?: string;
     mode?: "single" | "series";
     timeZone?: string;
+    reminderMinutes?: number[];
+    useDefaultReminders?: boolean;
   },
   getClient: typeof getGoogleCalendarClient = getGoogleCalendarClient
 ) {
@@ -187,6 +199,13 @@ export async function updateGoogleEvent(
               }
             : undefined,
           recurrence,
+          reminders:
+            event.reminderMinutes !== undefined
+              ? googleReminderPayload(
+                  Boolean(event.useDefaultReminders),
+                  event.reminderMinutes
+                )
+              : undefined,
         },
       });
       return response.data;
@@ -210,6 +229,13 @@ export async function updateGoogleEvent(
             summary: event.title,
             description: event.description,
             location: event.location,
+            reminders:
+              event.reminderMinutes !== undefined
+                ? googleReminderPayload(
+                    Boolean(event.useDefaultReminders),
+                    event.reminderMinutes
+                  )
+                : undefined,
             start: event.start
               ? {
                   dateTime: event.allDay
@@ -244,6 +270,13 @@ export async function updateGoogleEvent(
         summary: event.title,
         description: event.description,
         location: event.location,
+        reminders:
+          event.reminderMinutes !== undefined
+            ? googleReminderPayload(
+                Boolean(event.useDefaultReminders),
+                event.reminderMinutes
+              )
+            : undefined,
         start: event.start
           ? {
               dateTime: event.allDay ? undefined : event.start.toISOString(),

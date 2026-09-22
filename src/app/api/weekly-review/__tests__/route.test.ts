@@ -97,15 +97,32 @@ it("bounds history to local completion dates and removes mirrored task blocks", 
     ])
     .mockResolvedValueOnce([]);
   (prisma.calendarEvent.findMany as jest.Mock).mockResolvedValue([
-    { id: "mirror", feedId: "mine", externalEventId: "external-task" },
-    { id: "meeting", feedId: "mine", externalEventId: "meeting" },
+    {
+      id: "mirror",
+      feedId: "mine",
+      externalEventId: "external-task",
+      title: "Task block",
+    },
+    {
+      id: "meeting",
+      feedId: "mine",
+      externalEventId: "meeting",
+      title: "Untitled Event",
+      titleOverride: "Work call",
+    },
   ]);
   const response = await GET(
     new NextRequest("http://localhost/api/weekly-review?week=2026-09-06")
   );
   const body = await response!.json();
   expect(body.events).toEqual([
-    { id: "meeting", feedId: "mine", externalEventId: "meeting" },
+    {
+      id: "meeting",
+      feedId: "mine",
+      externalEventId: "meeting",
+      title: "Work call",
+      titleOverride: "Work call",
+    },
   ]);
   expect(prisma.task.findMany).toHaveBeenNthCalledWith(
     1,

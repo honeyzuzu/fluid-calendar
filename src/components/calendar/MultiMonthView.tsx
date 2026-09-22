@@ -17,6 +17,7 @@ import {
   applyFeedColorsToCalendarItems,
   getCalendarDisplayColor,
 } from "@/lib/calendar-colors";
+import { getCalendarEventTitle } from "@/lib/calendar-event-title";
 import {
   getSelectionRange,
   getTapSelectionRange,
@@ -130,7 +131,8 @@ export function MultiMonthView({
         })
         .map((item) => ({
           id: item.id,
-          title: item.title,
+          title:
+            item.feedId === "tasks" ? item.title : getCalendarEventTitle(item),
           start: newDate(item.start),
           end: newDate(item.end),
           location: item.location,

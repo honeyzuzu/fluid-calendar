@@ -1,3 +1,4 @@
+import { getCalendarEventTitle } from "@/lib/calendar-event-title";
 import {
   BASE_COLOR_THEME,
   ColorThemeId,
@@ -61,6 +62,7 @@ export function getCalendarDisplayColor(
 export function applyFeedColorsToCalendarItems<
   T extends {
     id: string;
+    title?: string;
     backgroundColor: string;
     borderColor: string;
     extendedProps?: ExtendedEventProps;
@@ -70,7 +72,13 @@ export function applyFeedColorsToCalendarItems<
   feeds: CalendarFeed[],
   themeId: ColorThemeId,
   currentEvents: Array<
-    Pick<CalendarEvent, "id" | "feedId" | "color" | "colorSlot">
+    Pick<CalendarEvent, "id" | "feedId" | "color" | "colorSlot"> &
+      Partial<
+        Pick<
+          CalendarEvent,
+          "title" | "titleOverride" | "externalEventId" | "isFree"
+        >
+      >
   >
 ): T[] {
   const currentEventsById = new Map(
@@ -91,6 +99,18 @@ export function applyFeedColorsToCalendarItems<
       feeds,
       themeId
     );
-    return { ...item, backgroundColor: color, borderColor: color };
+    return {
+      ...item,
+      title: currentEvent?.title
+        ? getCalendarEventTitle({
+            title: currentEvent.title,
+            titleOverride: currentEvent.titleOverride,
+            externalEventId: currentEvent.externalEventId,
+            isFree: currentEvent.isFree,
+          })
+        : item.title,
+      backgroundColor: color,
+      borderColor: color,
+    };
   });
 }

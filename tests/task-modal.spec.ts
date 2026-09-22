@@ -21,7 +21,7 @@ test("new task capture stays short until more details are requested", async ({
 
   await page.getByRole("button", { name: "More details" }).click();
   await expect(page.getByLabel("Notes")).toBeVisible();
-  await expect(page.getByLabel("Project")).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Project" })).toBeVisible();
 });
 
 test("create-another keeps the capture dialog ready for the next task", async ({

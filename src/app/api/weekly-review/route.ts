@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { authenticateRequest } from "@/lib/auth/api-auth";
+import { getCalendarEventTitle } from "@/lib/calendar-event-title";
 import { currentWeek, parseWeek, weekBounds } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { planningTimeZone, rollUnfinishedTasks } from "@/lib/weekly-planning";
@@ -76,6 +77,8 @@ export async function GET(request: NextRequest) {
           externalEventId: true,
           feedId: true,
           title: true,
+          titleOverride: true,
+          isFree: true,
           start: true,
           end: true,
           allDay: true,
@@ -112,9 +115,11 @@ export async function GET(request: NextRequest) {
     calendars,
     completed: completed.slice(0, 100),
     nextCursor: completed.length > 100 ? completed[99].id : null,
-    events: events.filter(
-      (event) => !taskBlocks.has(`${event.feedId}:${event.externalEventId}`)
-    ),
+    events: events
+      .filter(
+        (event) => !taskBlocks.has(`${event.feedId}:${event.externalEventId}`)
+      )
+      .map((event) => ({ ...event, title: getCalendarEventTitle(event) })),
     unfinished,
   });
 }

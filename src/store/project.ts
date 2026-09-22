@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { useTaskStore } from "@/store/task";
+
 import {
   NewProject,
   Project,
@@ -132,6 +134,8 @@ export const useProjectStore = create<ProjectState>()(
             activeProject:
               state.activeProject?.id === id ? null : state.activeProject,
           }));
+
+          void useTaskStore.getState().fetchTasks();
 
           return result;
         } catch (error) {

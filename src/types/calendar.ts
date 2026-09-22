@@ -36,6 +36,8 @@ export interface CalendarEvent {
   externalEventId?: string;
   outlookEventId?: string;
   title: string;
+  titleOverride?: string | null;
+  isFree?: boolean;
   description?: string;
   start: Date;
   end: Date;
@@ -43,6 +45,8 @@ export interface CalendarEvent {
   isRecurring: boolean;
   recurrenceRule?: string;
   allDay: boolean;
+  reminderMinutes?: number[];
+  useDefaultReminders?: boolean;
   color?: string | null;
   colorSlot?: string | null;
   // Additional fields for iCal support

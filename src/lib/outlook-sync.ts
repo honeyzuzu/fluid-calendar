@@ -109,6 +109,7 @@ export function createBaseEventData(
     feedId,
     externalEventId: event.id,
     title: event.subject || "Untitled Event",
+    isFree: event.showAs?.toLowerCase() === "free",
     description: event.body?.content || null,
     start,
     end,
@@ -381,6 +382,12 @@ export async function syncOutlookCalendar(
         },
       })
     : [];
+  const preservedTitleOverrides = forceFullSync
+    ? await prisma.calendarEvent.findMany({
+        where: { feedId: feed.id, titleOverride: { not: null } },
+        select: { externalEventId: true, titleOverride: true },
+      })
+    : [];
 
   // Fetch all events
   const {
@@ -513,6 +520,19 @@ export async function syncOutlookCalendar(
               color: event.color,
               colorSlot: event.colorSlot,
             },
+          })
+        )
+    );
+  }
+
+  if (preservedTitleOverrides.length > 0) {
+    await prisma.$transaction(
+      preservedTitleOverrides
+        .filter((event) => event.externalEventId)
+        .map((event) =>
+          prisma.calendarEvent.updateMany({
+            where: { feedId: feed.id, externalEventId: event.externalEventId },
+            data: { titleOverride: event.titleOverride },
           })
         )
     );

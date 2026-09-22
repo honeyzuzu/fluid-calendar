@@ -97,7 +97,16 @@ export function TaskModal({
   onCreateTag,
   initialProjectId,
 }: TaskModalProps) {
-  const { projects } = useProjectStore();
+  const { projects, createProject } = useProjectStore();
+  const defaultProjectName =
+    projects.find(
+      (project) =>
+        project.status === "active" && project.name.toLowerCase() === "general"
+    )?.name ??
+    [...projects]
+      .filter((project) => project.status === "active")
+      .sort((a, b) => a.name.localeCompare(b.name))[0]?.name ??
+    "General";
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
@@ -130,6 +139,9 @@ export function TaskModal({
   const [showDetails, setShowDetails] = useState(Boolean(task));
   const [createAnother, setCreateAnother] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [creatingProject, setCreatingProject] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const { user: userSettings } = useSettingsStore();
 
@@ -156,6 +168,8 @@ export function TaskModal({
     setPriority(null);
     setShowDetails(false);
     setSubmitError(null);
+    setNewProjectName("");
+    setProjectError(null);
   }, [initialProjectId]);
 
   // Reset form when modal opens/closes
@@ -275,6 +289,24 @@ export function TaskModal({
       setNewTagColor("#E5E7EB");
     } catch (error) {
       console.error("Error creating tag:", error);
+    }
+  };
+
+  const handleQuickCreateProject = async () => {
+    const name = newProjectName.trim();
+    if (!name || creatingProject) return;
+    setCreatingProject(true);
+    setProjectError(null);
+    try {
+      const created = await createProject({ name });
+      setProjectId(created.id);
+      setNewProjectName("");
+    } catch (error) {
+      setProjectError(
+        error instanceof Error ? error.message : "Couldn't create the project."
+      );
+    } finally {
+      setCreatingProject(false);
     }
   };
 
@@ -550,10 +582,12 @@ export function TaskModal({
                     }
                   >
                     <SelectTrigger id="project">
-                      <SelectValue placeholder="No project" />
+                      <SelectValue placeholder={defaultProjectName} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No project</SelectItem>
+                      <SelectItem value="none">
+                        {defaultProjectName} (default)
+                      </SelectItem>
                       {projects
                         .filter((project) => project.status === "active")
                         .map((project) => (
@@ -563,6 +597,35 @@ export function TaskModal({
                         ))}
                     </SelectContent>
                   </Select>
+                  <div className="mt-2 flex gap-2">
+                    <Input
+                      aria-label="New project name"
+                      placeholder="New project name"
+                      value={newProjectName}
+                      onChange={(event) =>
+                        setNewProjectName(event.target.value)
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          void handleQuickCreateProject();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!newProjectName.trim() || creatingProject}
+                      onClick={() => void handleQuickCreateProject()}
+                    >
+                      Create
+                    </Button>
+                  </div>
+                  {projectError && (
+                    <p role="alert" className="mt-1 text-xs text-destructive">
+                      {projectError}
+                    </p>
+                  )}
                 </div>
 
                 <div>

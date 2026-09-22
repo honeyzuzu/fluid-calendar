@@ -10,6 +10,10 @@ import {
   validateEvent,
 } from "@/lib/calendar-db";
 import { createAllDayDate, newDate } from "@/lib/date-utils";
+import {
+  googleReminderState,
+  validateReminderMinutes,
+} from "@/lib/event-reminders";
 import getGoogleEvent, {
   createGoogleEvent,
   deleteGoogleEvent,
@@ -53,6 +57,7 @@ async function writeEventToDatabase(
         isRecurring: isRecurring,
         recurrenceRule: event.recurrence?.[0],
         allDay: isAllDay,
+        ...googleReminderState(event.reminders),
         status: event.status,
         sequence: event.sequence,
         created: event.created ? newDate(event.created) : undefined,
@@ -100,6 +105,7 @@ async function writeEventToDatabase(
           recurrenceRule: event.recurrence?.[0],
           recurringEventId: instance.recurringEventId,
           allDay: instanceIsAllDay,
+          ...googleReminderState(instance.reminders ?? event.reminders),
           status: instance.status,
           sequence: instance.sequence,
           created: instance.created ? newDate(instance.created) : undefined,
@@ -137,6 +143,19 @@ export async function POST(request: NextRequest) {
     const userId = auth.userId;
 
     const { feedId, ...eventData } = await request.json();
+    const reminderMinutes = validateReminderMinutes(
+      eventData.reminderMinutes ?? []
+    );
+    if (
+      !reminderMinutes ||
+      (eventData.useDefaultReminders !== undefined &&
+        typeof eventData.useDefaultReminders !== "boolean")
+    ) {
+      return NextResponse.json(
+        { error: "Choose valid notifications" },
+        { status: 400 }
+      );
+    }
 
     // Check if the feed belongs to the current user
     const feed = await prisma.calendarFeed.findUnique({
@@ -170,6 +189,8 @@ export async function POST(request: NextRequest) {
         allDay: eventData.allDay,
         isRecurring: eventData.isRecurring,
         recurrenceRule: eventData.recurrenceRule,
+        reminderMinutes,
+        useDefaultReminders: eventData.useDefaultReminders ?? true,
       }
     );
 
@@ -227,6 +248,20 @@ export async function PUT(request: NextRequest) {
     const userId = auth.userId;
 
     const { eventId, mode, ...updates } = await request.json();
+    const reminderMinutes =
+      updates.reminderMinutes === undefined
+        ? undefined
+        : validateReminderMinutes(updates.reminderMinutes);
+    if (
+      reminderMinutes === null ||
+      (updates.useDefaultReminders !== undefined &&
+        typeof updates.useDefaultReminders !== "boolean")
+    ) {
+      return NextResponse.json(
+        { error: "Choose valid notifications" },
+        { status: 400 }
+      );
+    }
     if (!eventId) {
       return NextResponse.json({ error: "Event ID required" }, { status: 400 });
     }
@@ -252,6 +287,7 @@ export async function PUT(request: NextRequest) {
       validatedEvent.externalEventId,
       {
         ...updates,
+        reminderMinutes,
         mode,
         start: updates.start ? newDate(updates.start) : undefined,
         end: updates.end ? newDate(updates.end) : undefined,

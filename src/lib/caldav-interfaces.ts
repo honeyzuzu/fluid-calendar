@@ -94,6 +94,7 @@ export interface CalendarEventInput {
   end: Date;
   location?: string;
   allDay?: boolean;
+  reminderMinutes?: number[];
   isRecurring?: boolean;
   recurrenceRule?: string;
   /**

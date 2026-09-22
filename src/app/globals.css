@@ -2080,3 +2080,30 @@ html[data-theme-decorative-accent="scalloped"]
   font-weight: 500 !important;
   opacity: 1 !important;
 }
+
+/* Calendar blocks keep a predictable silhouette at every duration and width.
+   A tiny sun-speck in the corner carries the stationery feel without notches. */
+.sunnie-calendar-frame .fc-event.calendar-event,
+.sunnie-calendar-frame .fc-event.calendar-task {
+  clip-path: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent) !important;
+  border-radius: 8px !important;
+  background-image:
+    radial-gradient(
+      circle at calc(100% - 9px) 9px,
+      #ffffff80 0 2px,
+      transparent 2.5px
+    ),
+    linear-gradient(145deg, #ffffff3b, transparent 58%) !important;
+  background-size: 100% 100% !important;
+  box-shadow:
+    inset 0 1px 0 #ffffff55,
+    0 1px 2px #3f432e1a !important;
+}
+
+.sunnie-calendar-frame .fc-event.calendar-event::after,
+.sunnie-calendar-frame .fc-event.calendar-task::after {
+  display: none !important;
+}

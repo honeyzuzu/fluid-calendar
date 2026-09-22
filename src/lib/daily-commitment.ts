@@ -20,6 +20,8 @@ export type CommitmentTask = {
 
 export type CommitmentEvent = {
   title?: string;
+  titleOverride?: string | null;
+  isFree?: boolean;
   start: string;
   end: string;
   allDay: boolean;

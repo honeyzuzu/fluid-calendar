@@ -4,6 +4,7 @@ import { authenticateRequest } from "@/lib/auth/api-auth";
 import { getThemeColorSlot } from "@/lib/color-themes";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { defaultProjectId } from "@/lib/starter-projects";
 
 import { Project } from "@/types/project";
 import { Tag, Task } from "@/types/task";
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Start a transaction to ensure data consistency
+    const generalProjectId = await defaultProjectId(userId);
     const result = await prisma.$transaction(async (tx) => {
       // Import tags first (if any)
       const tagMap = new Map<string, string>(); // Map old tag IDs to new tag IDs
@@ -143,8 +145,8 @@ export async function POST(request: NextRequest) {
 
           // Map the project ID
           const projectId = task.projectId
-            ? projectMap.get(task.projectId) || null
-            : null;
+            ? projectMap.get(task.projectId) || generalProjectId
+            : generalProjectId;
 
           // Create the task with proper type handling
           const taskData = {

@@ -77,6 +77,11 @@ export function getCalendarEventChangeKind(
   original: Partial<CalendarEvent>,
   update: Omit<CalendarEvent, "id">
 ) {
+  const reminderChanged =
+    Boolean(original.useDefaultReminders) !==
+      Boolean(update.useDefaultReminders) ||
+    [...(original.reminderMinutes ?? [])].sort((a, b) => a - b).join(",") !==
+      [...(update.reminderMinutes ?? [])].sort((a, b) => a - b).join(",");
   const contentChanged =
     original.title !== update.title ||
     !sameOptionalText(original.description, update.description) ||
@@ -86,6 +91,7 @@ export function getCalendarEventChangeKind(
     !sameDate(original.end || update.end, update.end) ||
     Boolean(original.allDay) !== Boolean(update.allDay) ||
     Boolean(original.isRecurring) !== Boolean(update.isRecurring) ||
+    reminderChanged ||
     editableRecurrenceSignature(original.recurrenceRule) !==
       editableRecurrenceSignature(update.recurrenceRule);
   const colorChanged =
@@ -93,7 +99,7 @@ export function getCalendarEventChangeKind(
       (update.color || null)?.toLowerCase() ||
     (original.colorSlot || null) !== (update.colorSlot || null);
 
-  return { contentChanged, colorChanged };
+  return { contentChanged, colorChanged, reminderChanged };
 }
 
 /** Apply a local color override using the same single/series scope as the API. */

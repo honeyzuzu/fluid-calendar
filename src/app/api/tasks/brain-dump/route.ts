@@ -4,6 +4,7 @@ import { authenticateRequest } from "@/lib/auth/api-auth";
 import { MAX_BRAIN_DUMP_TITLE_LENGTH, parseBrainDump } from "@/lib/brain-dump";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { defaultProjectId } from "@/lib/starter-projects";
 
 import { TaskStatus } from "@/types/task";
 
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const projectId = await defaultProjectId(auth.userId);
     const tasks = await prisma.$transaction(
       titles.map((title) =>
         prisma.task.create({
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
             title,
             status: TaskStatus.TODO,
             userId: auth.userId,
+            projectId,
             isAutoScheduled: true,
           },
           include: { tags: true, project: true },

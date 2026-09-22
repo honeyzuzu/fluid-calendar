@@ -94,8 +94,33 @@ export async function PATCH(
     const body = (await request.json()) as {
       color?: unknown;
       colorSlot?: unknown;
+      titleOverride?: unknown;
       mode?: unknown;
     };
+    // A private label changes only Sunnie's database row. In particular, a
+    // free/busy calendar may reject provider edits even though it can be read.
+    if ("titleOverride" in body) {
+      if (
+        body.titleOverride !== null &&
+        (typeof body.titleOverride !== "string" ||
+          body.titleOverride.trim().length > 160)
+      ) {
+        return NextResponse.json(
+          { error: "Use a label of 160 characters or fewer" },
+          { status: 400 }
+        );
+      }
+      const updated = await prisma.calendarEvent.update({
+        where: { id },
+        data: {
+          titleOverride:
+            typeof body.titleOverride === "string"
+              ? body.titleOverride.trim() || null
+              : null,
+        },
+      });
+      return NextResponse.json(updated);
+    }
     if (
       !("color" in body) ||
       (body.color !== null &&

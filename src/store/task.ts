@@ -146,7 +146,7 @@ export const useTaskStore = create<TaskState>()(
           if (!response.ok) throw new Error("Failed to create task");
           const newTask = await response.json();
           set((state) => ({ tasks: [...state.tasks, newTask] }));
-          queueTaskReschedule(get);
+          if (task.isAutoScheduled !== false) queueTaskReschedule(get);
           return newTask;
         } catch (error) {
           set({ error: error as Error });

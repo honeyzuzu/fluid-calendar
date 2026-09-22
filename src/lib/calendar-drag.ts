@@ -1,3 +1,5 @@
+import { isUntitledImportedEvent } from "@/lib/calendar-event-title";
+
 import { CalendarEvent, CalendarFeed } from "@/types/calendar";
 import { UpdateTask } from "@/types/task";
 
@@ -51,7 +53,9 @@ export function getEventEditability(
   }
 
   const feed = feeds.find((f) => f.id === item.feedId);
-  const editable = Boolean(feed && WRITABLE_FEED_TYPES.has(feed.type));
+  const editable = Boolean(
+    feed && WRITABLE_FEED_TYPES.has(feed.type) && !isUntitledImportedEvent(item)
+  );
   return { startEditable: editable, durationEditable: editable };
 }
 
@@ -74,8 +78,7 @@ export function computeDropUpdate(
   // previous duration in that case
   const oldDurationMs =
     oldStart && oldEnd ? oldEnd.getTime() - oldStart.getTime() : 0;
-  const newEnd =
-    change.newEnd ?? new Date(newStart.getTime() + oldDurationMs);
+  const newEnd = change.newEnd ?? new Date(newStart.getTime() + oldDurationMs);
 
   const props = item.extendedProps as TaskDragProps | undefined;
   if (props?.isTask) {

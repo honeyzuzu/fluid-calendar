@@ -14,6 +14,13 @@ import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { getReadableTextColor } from "@/lib/color-contrast";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
@@ -34,6 +41,17 @@ import { ProjectModal } from "./ProjectModal";
 const NO_PROJECT: Partial<Project> = {
   id: "no-project",
   name: "No Project",
+};
+const starterOrder = ["General", "Work", "School", "Hobbies"];
+const orderProjects = (a: Project, b: Project) => {
+  const aRank = starterOrder.indexOf(a.name);
+  const bRank = starterOrder.indexOf(b.name);
+  if (aRank !== -1 || bRank !== -1) {
+    if (aRank === -1) return 1;
+    if (bRank === -1) return -1;
+    return aRank - bRank;
+  }
+  return a.name.localeCompare(b.name);
 };
 
 // Interface for task list mappings
@@ -64,9 +82,6 @@ export function ProjectSidebar() {
   const [syncingProjects, setSyncingProjects] = useState<Set<string>>(
     new Set()
   );
-
-  const { droppableProps: removeProjectProps, isOver: isOverRemove } =
-    useDroppableProject(null);
 
   useEffect(() => {
     fetchProjects();
@@ -149,9 +164,9 @@ export function ProjectSidebar() {
     [syncingProjects]
   );
 
-  const activeProjects = projects.filter(
-    (project) => project.status === ProjectStatus.ACTIVE
-  );
+  const activeProjects = projects
+    .filter((project) => project.status === ProjectStatus.ACTIVE)
+    .sort(orderProjects);
   const archivedProjects = projects.filter(
     (project) => project.status === ProjectStatus.ARCHIVED
   );
@@ -222,19 +237,21 @@ export function ProjectSidebar() {
               >
                 All Tasks
               </Button>
-              <Button
-                variant={
-                  activeProject?.id === NO_PROJECT.id ? "secondary" : "ghost"
-                }
-                className="w-full justify-start gap-2"
-                onClick={() => setActiveProject(NO_PROJECT as Project)}
-              >
-                <HiFolderOpen className="h-4 w-4 text-muted-foreground" />
-                <span className="flex-1">No Project</span>
-                <span className="text-xs text-muted-foreground">
-                  {unassignedTasksCount}
-                </span>
-              </Button>
+              {unassignedTasksCount > 0 && (
+                <Button
+                  variant={
+                    activeProject?.id === NO_PROJECT.id ? "secondary" : "ghost"
+                  }
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveProject(NO_PROJECT as Project)}
+                >
+                  <HiFolderOpen className="h-4 w-4 text-muted-foreground" />
+                  <span className="flex-1">Needs a project</span>
+                  <span className="text-xs text-muted-foreground">
+                    {unassignedTasksCount}
+                  </span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -291,21 +308,6 @@ export function ProjectSidebar() {
                     No projects yet
                   </div>
                 )}
-
-                {/* Remove from project drop zone */}
-                <div
-                  {...removeProjectProps}
-                  className={cn(
-                    "mt-4 rounded-md border-2 border-dashed p-4 text-center",
-                    isOverRemove
-                      ? "border-destructive bg-destructive/10"
-                      : "border-muted hover:border-muted-foreground/50"
-                  )}
-                >
-                  <p className="text-sm text-muted-foreground">
-                    Drop here to remove from project
-                  </p>
-                </div>
               </div>
             )}
           </div>
@@ -330,10 +332,12 @@ export function MobileProjectPicker() {
   const { projects, activeProject, setActiveProject } = useProjectStore();
   const { tasks } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | undefined>();
   const [isExpanded, setIsExpanded] = useState(true);
-  const activeProjects = projects.filter(
-    (project) => project.status === ProjectStatus.ACTIVE
-  );
+  const activeProjects = projects
+    .filter((project) => project.status === ProjectStatus.ACTIVE)
+    .sort(orderProjects);
   const unassignedTasksCount = tasks.filter(
     (task) => !task.projectId && task.status !== TaskStatus.COMPLETED
   ).length;
@@ -355,13 +359,25 @@ export function MobileProjectPicker() {
           Projects
         </button>
         {isExpanded && (
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground"
-          >
-            <HiPlus className="h-3.5 w-3.5" /> New project
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsManageOpen(true)}
+              className="rounded-lg px-1.5 py-1.5 text-[11px] font-semibold text-primary"
+            >
+              Manage
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedProject(undefined);
+                setIsModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground"
+            >
+              <HiPlus className="h-3.5 w-3.5" /> New project
+            </button>
+          </div>
         )}
       </div>
       {isExpanded && (
@@ -378,18 +394,20 @@ export function MobileProjectPicker() {
           >
             All tasks
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveProject(NO_PROJECT as Project)}
-            className={cn(
-              "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
-              activeProject?.id === NO_PROJECT.id
-                ? "border-primary bg-muted text-foreground ring-1 ring-primary"
-                : "border-border bg-card/70 text-foreground"
-            )}
-          >
-            No project · {unassignedTasksCount}
-          </button>
+          {unassignedTasksCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setActiveProject(NO_PROJECT as Project)}
+              className={cn(
+                "shrink-0 snap-start rounded-xl border px-3 py-2 text-xs font-semibold",
+                activeProject?.id === NO_PROJECT.id
+                  ? "border-primary bg-muted text-foreground ring-1 ring-primary"
+                  : "border-border bg-card/70 text-foreground"
+              )}
+            >
+              Needs a project · {unassignedTasksCount}
+            </button>
+          )}
           {activeProjects.map((project) => {
             const tileColor = resolveThemeLinkedColor(
               "projects",
@@ -423,9 +441,44 @@ export function MobileProjectPicker() {
         </div>
       )}
 
+      <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
+        <DialogContent className="max-h-[80dvh] max-w-[calc(100vw-1.5rem)] overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Manage projects</DialogTitle>
+            <DialogDescription>
+              Choose a project to rename, recolor, or delete it. Its tasks stay
+              in Sunnie.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {activeProjects.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                onClick={() => {
+                  setIsManageOpen(false);
+                  setSelectedProject(project);
+                  setIsModalOpen(true);
+                }}
+                className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-left text-sm font-medium"
+              >
+                <span className="truncate">{project.name}</span>
+                <span className="flex items-center gap-1 text-xs text-primary">
+                  <HiPencil className="h-3.5 w-3.5" /> Edit
+                </span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ProjectModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProject(undefined);
+        }}
+        project={selectedProject}
         onCreated={() => setIsExpanded(true)}
       />
     </div>

@@ -39,6 +39,7 @@ import {
 } from "@/lib/calendar-event-update";
 import { resolveThemeLinkedColor } from "@/lib/color-themes";
 import { formatToLocalISOString, newDate } from "@/lib/date-utils";
+import { REMINDER_CHOICES } from "@/lib/event-reminders";
 import { cn } from "@/lib/utils";
 
 import { useCalendarStore } from "@/store/calendar";
@@ -190,6 +191,12 @@ export function EventModal({
   );
   const [isAllDay, setIsAllDay] = useState(event?.allDay || false);
   const [isRecurring, setIsRecurring] = useState(event?.isRecurring || false);
+  const [reminderMinutes, setReminderMinutes] = useState<number[]>(
+    event?.reminderMinutes ?? []
+  );
+  const [useDefaultReminders, setUseDefaultReminders] = useState(
+    Boolean(event?.useDefaultReminders)
+  );
   const [color, setColor] = useState(event?.color || "");
   const [colorSlot, setColorSlot] = useState(event?.colorSlot || null);
   const [recurrenceFreq, setRecurrenceFreq] = useState("");
@@ -197,6 +204,9 @@ export function EventModal({
   const [recurrenceByDay, setRecurrenceByDay] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const enabledFeeds = feeds.filter((feed) => feed.enabled);
+  const selectedFeedType = feeds.find(
+    (feed) => feed.id === selectedFeedId
+  )?.type;
   const needsCalendarConnection = !event?.id && enabledFeeds.length === 0;
   const [formError, setFormError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(
@@ -237,6 +247,8 @@ export function EventModal({
       setSelectedFeedId(event?.feedId || calendar.defaultCalendarId || "");
       setIsAllDay(event?.allDay || false);
       setIsRecurring(event?.isRecurring || false);
+      setReminderMinutes(event?.reminderMinutes ?? []);
+      setUseDefaultReminders(Boolean(event?.useDefaultReminders));
       setColor(event?.color || "");
       setColorSlot(event?.colorSlot || null);
       const { freq, interval, byDay } = parseRecurrenceRule(
@@ -264,6 +276,12 @@ export function EventModal({
     feeds,
     calendar.defaultCalendarId,
   ]);
+
+  useEffect(() => {
+    if (!event?.id) {
+      setUseDefaultReminders(selectedFeedType === "GOOGLE");
+    }
+  }, [event?.id, selectedFeedType]);
 
   // Show recurrence dialog when editing a recurring event
   useEffect(() => {
@@ -320,6 +338,8 @@ export function EventModal({
         end: nextEndDate,
         feedId: selectedFeedId,
         allDay: isAllDay,
+        reminderMinutes,
+        useDefaultReminders,
         isRecurring,
         recurrenceRule: isRecurring
           ? preserveUnchangedRecurrenceRule(
@@ -412,7 +432,17 @@ export function EventModal({
             return;
           }
         } else {
-          await updateEvent(event.id, eventData, editMode);
+          await updateEvent(
+            event.id,
+            changes.reminderChanged
+              ? eventData
+              : {
+                  ...eventData,
+                  reminderMinutes: undefined,
+                  useDefaultReminders: undefined,
+                },
+            editMode
+          );
         }
       } else {
         // For new events
@@ -719,6 +749,60 @@ export function EventModal({
                 </Label>
               </div>
 
+              {(selectedFeedType === "GOOGLE" ||
+                selectedFeedType === "CALDAV") && (
+                <fieldset className="rounded-xl border border-border bg-card px-3 py-3">
+                  <legend className="px-1 text-sm font-semibold">
+                    Notifications
+                  </legend>
+                  {selectedFeedType === "GOOGLE" && (
+                    <label className="mb-2 flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={useDefaultReminders}
+                        onCheckedChange={(checked) =>
+                          setUseDefaultReminders(checked === true)
+                        }
+                      />
+                      Use calendar defaults
+                    </label>
+                  )}
+                  {!useDefaultReminders && (
+                    <div className="flex flex-wrap gap-2">
+                      {REMINDER_CHOICES.map((minutes) => (
+                        <label
+                          key={minutes}
+                          className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-xs"
+                        >
+                          <Checkbox
+                            checked={reminderMinutes.includes(minutes)}
+                            onCheckedChange={(checked) =>
+                              setReminderMinutes((current) =>
+                                checked === true
+                                  ? [...current, minutes].sort((a, b) => a - b)
+                                  : current.filter((value) => value !== minutes)
+                              )
+                            }
+                          />
+                          {minutes < 60
+                            ? `${minutes} minutes before`
+                            : minutes === 60
+                              ? "1 hour before"
+                              : "1 day before"}
+                        </label>
+                      ))}
+                      {reminderMinutes.length === 0 && (
+                        <span className="self-center text-xs text-muted-foreground">
+                          No notifications
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    These popup reminders sync to the selected calendar.
+                  </p>
+                </fieldset>
+              )}
+
               <button
                 type="button"
                 onClick={() => setShowDetails((current) => !current)}
@@ -928,6 +1012,8 @@ export function EventModal({
     setEndTime(nextEndParts.time);
     setIsAllDay(false);
     setIsRecurring(false);
+    setReminderMinutes([]);
+    setUseDefaultReminders(false);
     setColor("");
     setColorSlot(null);
     setRecurrenceFreq("");

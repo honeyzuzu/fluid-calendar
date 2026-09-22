@@ -1,0 +1,3 @@
+ALTER TABLE "CalendarEvent"
+  ADD COLUMN "reminderMinutes" INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  ADD COLUMN "useDefaultReminders" BOOLEAN NOT NULL DEFAULT false;

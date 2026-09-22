@@ -6,6 +6,7 @@ import { EnergyLevel, TaskStatus, TimePreference } from "@/types/task";
 interface TaskListViewSettings {
   // Sort settings
   sortBy:
+    | "createdAt"
     | "dueDate"
     | "startDate"
     | "title"
@@ -46,7 +47,7 @@ export const useTaskListViewSettings = create<TaskListViewSettings>()(
   persist(
     (set) => ({
       // Initial sort settings
-      sortBy: "dueDate",
+      sortBy: "createdAt",
       sortDirection: "desc",
 
       // Initial filter settings

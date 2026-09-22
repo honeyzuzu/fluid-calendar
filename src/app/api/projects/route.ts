@@ -4,6 +4,7 @@ import { authenticateRequest } from "@/lib/auth/api-auth";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { projectCreateSchema } from "@/lib/project-input";
+import { ensureStarterProjects } from "@/lib/starter-projects";
 
 import { ProjectStatus } from "@/types/project";
 
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = auth.userId;
+    await ensureStarterProjects(userId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.getAll("status") as ProjectStatus[];

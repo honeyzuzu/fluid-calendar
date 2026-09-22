@@ -84,3 +84,33 @@ it("keeps a single-occurrence color override scoped to that row", async () => {
   });
   expect(prisma.calendarEvent.updateMany).not.toHaveBeenCalled();
 });
+
+it("saves a private event name on one owned row without a provider edit", async () => {
+  (prisma.calendarEvent.update as jest.Mock).mockResolvedValue({
+    ...recurringInstance,
+    titleOverride: "Work planning",
+  });
+  const response = await PATCH(
+    request({ titleOverride: "  Work planning  " }),
+    { params: Promise.resolve({ id: "instance-1" }) }
+  );
+
+  expect(response!.status).toBe(200);
+  expect(prisma.calendarEvent.update).toHaveBeenCalledWith({
+    where: { id: "instance-1" },
+    data: { titleOverride: "Work planning" },
+  });
+  expect(prisma.calendarEvent.updateMany).not.toHaveBeenCalled();
+});
+
+it("rejects a private name for an event outside the signed-in account", async () => {
+  (prisma.calendarEvent.findUnique as jest.Mock).mockResolvedValue({
+    ...recurringInstance,
+    feed: { userId: "someone-else" },
+  });
+  const response = await PATCH(request({ titleOverride: "Private" }), {
+    params: Promise.resolve({ id: "instance-1" }),
+  });
+  expect(response!.status).toBe(404);
+  expect(prisma.calendarEvent.update).not.toHaveBeenCalled();
+});

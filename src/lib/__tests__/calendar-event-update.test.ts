@@ -61,7 +61,7 @@ describe("calendar event update classification", () => {
         ...event,
         color: "#C94F3D",
       })
-    ).toEqual({ contentChanged: false, colorChanged: true });
+    ).toEqual({ contentChanged: false, colorChanged: true, reminderChanged: false });
   });
 
   it("requires provider synchronization when event content changes", () => {
@@ -70,7 +70,14 @@ describe("calendar event update classification", () => {
         ...event,
         title: "Apple picking with friends",
       })
-    ).toEqual({ contentChanged: true, colorChanged: false });
+    ).toEqual({ contentChanged: true, colorChanged: false, reminderChanged: false });
+  });
+
+  it("synchronizes a notification change with the provider", () => {
+    expect(getCalendarEventChangeKind(event, {
+      ...event,
+      reminderMinutes: [15, 60],
+    })).toEqual({ contentChanged: true, colorChanged: false, reminderChanged: true });
   });
 
   it("recognizes equivalent provider and modal recurrence rules", () => {
@@ -88,7 +95,7 @@ describe("calendar event update classification", () => {
           color: "#C94F3D",
         }
       )
-    ).toEqual({ contentChanged: false, colorChanged: true });
+    ).toEqual({ contentChanged: false, colorChanged: true, reminderChanged: false });
   });
 
   it("still detects a real recurrence change", () => {
@@ -105,7 +112,7 @@ describe("calendar event update classification", () => {
           recurrenceRule: "FREQ=WEEKLY;BYDAY=TU",
         }
       )
-    ).toEqual({ contentChanged: true, colorChanged: false });
+    ).toEqual({ contentChanged: true, colorChanged: false, reminderChanged: false });
   });
 
   it("applies a single color locally without touching sibling occurrences", () => {

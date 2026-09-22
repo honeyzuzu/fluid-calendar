@@ -46,6 +46,7 @@ import { WeeklyReview } from "@/components/planning/WeeklyReview";
 import { getThemeMotifIcon } from "@/components/theme/ThemeMotifIcon";
 import { SunnieSkeleton } from "@/components/ui/sunnie";
 
+import { getCalendarEventTitle } from "@/lib/calendar-event-title";
 import { getColorTheme, resolveThemeLinkedColor } from "@/lib/color-themes";
 import {
   type DailyCapacitySettings,
@@ -94,6 +95,8 @@ type TaskRecord = {
 type EventRecord = {
   id: string;
   title: string;
+  titleOverride?: string | null;
+  isFree?: boolean;
   start: string;
   end: string;
   allDay: boolean;
@@ -1659,7 +1662,7 @@ export default function PlanPage() {
                   {[
                     ...dayEvents.map((event) => ({
                       id: `event-${event.id}`,
-                      title: event.title,
+                      title: getCalendarEventTitle(event),
                       start: event.start,
                       end: event.end,
                       type: event.feed?.name ?? "Calendar",
@@ -1926,7 +1929,7 @@ export default function PlanPage() {
             )
             .map((event) => ({
               id: event.id,
-              title: event.title,
+              title: getCalendarEventTitle(event),
               start: event.start,
               end: event.end,
               calendarName: event.feed?.name ?? "Calendar",

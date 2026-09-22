@@ -18,6 +18,7 @@ import {
 
 import { SunnieSkeleton } from "@/components/ui/sunnie";
 
+import { getCalendarEventTitle } from "@/lib/calendar-event-title";
 import {
   type CommitmentEnergyMode,
   type CommitmentEvent,
@@ -923,7 +924,9 @@ export default function TodayPage() {
                     {currentEvent
                       ? `Current block until ${formatClock(upcomingEvent.end, timeZone)}`
                       : `Next calendar block at ${formatClock(upcomingEvent.start, timeZone)}`}
-                    {upcomingEvent.title ? ` · ${upcomingEvent.title}` : ""}
+                    {upcomingEvent.title
+                      ? ` · ${getCalendarEventTitle({ ...upcomingEvent, title: upcomingEvent.title })}`
+                      : ""}
                   </span>
                 </p>
               ) : (

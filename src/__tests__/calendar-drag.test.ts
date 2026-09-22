@@ -1,5 +1,6 @@
-import { computeDropUpdate, DragChange } from "@/lib/calendar-drag";
+import { DragChange, computeDropUpdate } from "@/lib/calendar-drag";
 import { getEventEditability } from "@/lib/calendar-drag";
+
 import { CalendarEvent, CalendarFeed } from "@/types/calendar";
 
 const googleFeed: CalendarFeed = {
@@ -194,6 +195,15 @@ describe("getEventEditability", () => {
       startEditable: false,
       durationEditable: false,
     });
+  });
+
+  it("keeps imported events with no shared title out of provider drag edits", () => {
+    expect(
+      getEventEditability(
+        makeEvent({ title: "Untitled Event", externalEventId: "remote-1" }),
+        feeds
+      )
+    ).toEqual({ startEditable: false, durationEditable: false });
   });
 
   it("locks events whose feed is unknown", () => {

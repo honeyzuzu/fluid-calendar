@@ -8,6 +8,7 @@ import { getAppUrl } from "@/lib/app-url";
 import { authenticateRequest } from "@/lib/auth/api-auth";
 import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { createAllDayDate, newDate, newDateFromYMD } from "@/lib/date-utils";
+import { googleReminderState } from "@/lib/event-reminders";
 import { createGoogleOAuthClient } from "@/lib/google";
 import { getGoogleCalendarClient } from "@/lib/google-calendar";
 import { verifyOAuthState } from "@/lib/oauth-state";
@@ -310,6 +311,7 @@ export async function POST(request: NextRequest) {
               feedId: feed.id,
               externalEventId: eventId,
               title: masterEventData.summary || "Untitled Event",
+              isFree: masterEventData.transparency === "transparent",
               description: masterEventData.description || "",
               start: isAllDay
                 ? createAllDayDate(masterEventData.start?.date || "")
@@ -338,6 +340,7 @@ export async function POST(request: NextRequest) {
               ),
               recurringEventId: masterEventData.recurringEventId,
               allDay: isAllDay,
+              ...googleReminderState(masterEventData.reminders),
               status: masterEventData.status,
               sequence: masterEventData.sequence,
               created: masterEventData.created
@@ -391,6 +394,7 @@ export async function POST(request: NextRequest) {
               feedId: feed.id,
               externalEventId: event.id,
               title: event.summary || "Untitled Event",
+              isFree: event.transparency === "transparent",
               description: event.description || "",
               start: isAllDay
                 ? createAllDayDate(event.start?.date || "")
@@ -414,6 +418,7 @@ export async function POST(request: NextRequest) {
                       : undefined
                   ),
               allDay: isAllDay,
+              ...googleReminderState(event.reminders),
               status: event.status,
               sequence: event.sequence,
               created: event.created ? newDate(event.created) : undefined,
@@ -570,6 +575,18 @@ export async function PUT(request: NextRequest) {
           event.colorSlot as string,
         ])
     );
+    const existingTitleOverrides = await prisma.calendarEvent.findMany({
+      where: { feedId, titleOverride: { not: null } },
+      select: { externalEventId: true, titleOverride: true },
+    });
+    const titleOverrides = new Map(
+      existingTitleOverrides
+        .filter((event) => event.externalEventId && event.titleOverride)
+        .map((event) => [
+          event.externalEventId as string,
+          event.titleOverride as string,
+        ])
+    );
 
     // Replace the feed in one transaction so readers never see the gap
     // between deleting the old events and creating their replacements.
@@ -596,6 +613,10 @@ export async function PUT(request: NextRequest) {
               feedId: feed.id,
               externalEventId: event.id,
               title: event.summary || "Untitled Event",
+              isFree: event.transparency === "transparent",
+              titleOverride: event.id
+                ? titleOverrides.get(event.id)
+                : undefined,
               description: event.description || "",
               start: isAllDay
                 ? createAllDayDate(event.start.date || "")
@@ -617,6 +638,7 @@ export async function PUT(request: NextRequest) {
                   : undefined
               ),
               allDay: isAllDay,
+              ...googleReminderState(event.reminders),
               status: event.status,
               sequence: event.sequence,
               created: event.created ? newDate(event.created) : undefined,

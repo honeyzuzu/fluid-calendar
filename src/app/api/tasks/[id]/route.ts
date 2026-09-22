@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { parseWeek } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
 import { overlapsSleepHours } from "@/lib/sleep-hours";
+import { defaultProjectId } from "@/lib/starter-projects";
 import {
   deleteTaskBlockEvent,
   schedulePushTaskBlock,
@@ -104,7 +105,8 @@ export async function PUT(
     const tagIds = Array.isArray(json.tagIds)
       ? [...new Set(json.tagIds)]
       : json.tagIds;
-    const projectId = json.projectId;
+    const projectId =
+      json.projectId === null ? await defaultProjectId(userId) : json.projectId;
     const updates = pickMutableTaskFields(json);
     const relationError = await validateTaskRelations(userId, {
       projectId,

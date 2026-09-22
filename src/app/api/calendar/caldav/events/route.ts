@@ -5,6 +5,7 @@ import { CalDAVCalendarService } from "@/lib/caldav-calendar";
 import { getEvent, validateEvent } from "@/lib/calendar-db";
 import { rebaseRecurringSeriesDates } from "@/lib/calendar-event-update";
 import { newDate } from "@/lib/date-utils";
+import { validateReminderMinutes } from "@/lib/event-reminders";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -21,6 +22,14 @@ export async function POST(request: NextRequest) {
     const userId = auth.userId;
 
     const { feedId, ...eventData } = await request.json();
+    const reminderMinutes = validateReminderMinutes(
+      eventData.reminderMinutes ?? []
+    );
+    if (!reminderMinutes)
+      return NextResponse.json(
+        { error: "Choose valid notifications" },
+        { status: 400 }
+      );
 
     logger.info(
       "Creating new CalDAV event",
@@ -94,6 +103,7 @@ export async function POST(request: NextRequest) {
         allDay: eventData.allDay,
         isRecurring: eventData.isRecurring,
         recurrenceRule: eventData.recurrenceRule,
+        reminderMinutes,
       },
       userId
     );
@@ -149,6 +159,15 @@ export async function PUT(request: NextRequest) {
     const userId = auth.userId;
 
     const { eventId, mode, ...updates } = await request.json();
+    const reminderMinutes =
+      updates.reminderMinutes === undefined
+        ? undefined
+        : validateReminderMinutes(updates.reminderMinutes);
+    if (reminderMinutes === null)
+      return NextResponse.json(
+        { error: "Choose valid notifications" },
+        { status: 400 }
+      );
 
     logger.info(
       "Updating CalDAV event",
@@ -267,6 +286,7 @@ export async function PUT(request: NextRequest) {
           updates.recurrenceRule ??
           master?.recurrenceRule ??
           validatedEvent.recurrenceRule,
+        reminderMinutes,
       },
       "series", //todo: implement editing a single instance correctly.
       userId

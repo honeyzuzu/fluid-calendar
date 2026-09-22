@@ -80,6 +80,7 @@ export default function TasksPage() {
   // Fetch tasks and tags on mount
   useEffect(() => {
     let active = true;
+    setActiveProject(null);
     void Promise.all([fetchTasks(), fetchTags(), fetchProjects()]).finally(
       () => {
         if (active) setInitialLoading(false);
@@ -88,7 +89,7 @@ export default function TasksPage() {
     return () => {
       active = false;
     };
-  }, [fetchTasks, fetchTags, fetchProjects]);
+  }, [fetchTasks, fetchTags, fetchProjects, setActiveProject]);
 
   useEffect(() => {
     const requestedView = new URLSearchParams(window.location.search).get(
@@ -110,6 +111,9 @@ export default function TasksPage() {
 
   const handleCreateTask = async (task: NewTask) => {
     await createTask(task);
+    toast.success("Task saved", {
+      description: "You can find it in All tasks.",
+    });
   };
 
   const captureTask = async (event: FormEvent<HTMLFormElement>) => {
@@ -128,7 +132,11 @@ export default function TasksPage() {
         throw new Error("Sunnie couldn't save that task. Try again.");
       const created = (await response.json()) as Task;
       useTaskStore.setState((state) => ({ tasks: [created, ...state.tasks] }));
+      void fetchProjects();
       setQuickTitle("");
+      toast.success("Saved to Backlog", {
+        description: "Add details whenever you’re ready.",
+      });
     } catch (caught) {
       setQuickError(
         caught instanceof Error ? caught.message : "Couldn't save that task."
@@ -155,6 +163,7 @@ export default function TasksPage() {
       }
       try {
         await updateTask(selectedTask.id, task);
+        toast.success("Task changes saved");
       } catch (error) {
         if (switchedProject) setActiveProject(activeProject);
         throw error;
@@ -202,19 +211,6 @@ export default function TasksPage() {
     } catch (error) {
       console.error("Error creating tag:", error);
       throw error;
-    }
-  };
-
-  const handleInlineEdit = async (task: Task) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, tags, createdAt, updatedAt, project, ...updates } = task;
-    try {
-      await updateTask(id, updates);
-    } catch (error) {
-      console.error("Error updating task:", error);
-      toast.error("Failed to update task", {
-        description: "Please try again later.",
-      });
     }
   };
 
@@ -383,12 +379,20 @@ export default function TasksPage() {
           {workspace === "tasks" && !error && schedulingError && (
             <Alert className="mt-4 border-warning/40 bg-warning/10 text-foreground">
               <AlertDescription>
-                {schedulingError.message}{" "}
+                Your task changes were saved, but Sunnie couldn&apos;t place
+                tasks on the calendar. {schedulingError.message}{" "}
                 <Link
                   href="/settings#auto-schedule"
                   className="font-semibold text-primary underline underline-offset-4"
                 >
                   Review settings
+                </Link>
+                {" · "}
+                <Link
+                  href="/settings#accounts"
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  Connect a calendar
                 </Link>
               </AlertDescription>
             </Alert>
@@ -412,7 +416,6 @@ export default function TasksPage() {
                 }}
                 onDelete={handleDeleteTask}
                 onStatusChange={handleStatusChange}
-                onInlineEdit={handleInlineEdit}
               />
             ) : (
               <TaskCaptureWorkspace

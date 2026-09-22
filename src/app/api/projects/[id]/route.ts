@@ -130,16 +130,34 @@ export async function DELETE(
       return new NextResponse("Project not found", { status: 404 });
     }
 
-    // Use transaction to ensure atomic deletion
-    await prisma.$transaction(async (tx) => {
-      // Delete all tasks associated with the project
-      await tx.task.deleteMany({
+    // Keep tasks when their organizational project is removed.
+    const destination = await prisma.$transaction(async (tx) => {
+      let replacement = await tx.project.findFirst({
         where: {
-          projectId: id,
-          // Ensure we only delete tasks belonging to the current user
           userId,
+          id: { not: id },
+          status: "active",
+          name: { equals: "General", mode: "insensitive" },
         },
+        select: { id: true, name: true },
       });
+      replacement ??= await tx.project.findFirst({
+        where: { userId, id: { not: id }, status: "active" },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, name: true },
+      });
+      if (!replacement && project._count.tasks > 0) {
+        replacement = await tx.project.create({
+          data: { userId, name: "Unsorted", status: "active" },
+          select: { id: true, name: true },
+        });
+      }
+      if (replacement) {
+        await tx.task.updateMany({
+          where: { projectId: id, userId },
+          data: { projectId: replacement.id },
+        });
+      }
 
       // Delete the project (this will cascade delete TaskListMappings due to onDelete: CASCADE)
       await tx.project.delete({
@@ -149,11 +167,13 @@ export async function DELETE(
           userId,
         },
       });
+      return replacement;
     });
 
     return NextResponse.json({
       success: true,
-      deletedTasks: project._count.tasks,
+      movedTasks: project._count.tasks,
+      destination: destination?.name ?? null,
     });
   } catch (error) {
     logger.error(

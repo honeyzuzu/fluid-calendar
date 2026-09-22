@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Check as HiCheck,
@@ -13,6 +13,7 @@ import {
   Repeat2 as IoRepeat,
   Clock3 as IoTimeOutline,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useTheme } from "@/components/providers/ThemeProvider";
 import {
@@ -22,10 +23,16 @@ import {
 } from "@/components/ui/popover";
 import { SunnieDeleteDialog } from "@/components/ui/sunnie-delete-dialog";
 
+import {
+  getCalendarEventTitle,
+  isUntitledImportedEvent,
+} from "@/lib/calendar-event-title";
 import { format, isFutureDate, newDate } from "@/lib/date-utils";
 import { getProjectDisplayColor } from "@/lib/project-colors";
 import { isTaskOverdue } from "@/lib/task-utils";
 import { cn } from "@/lib/utils";
+
+import { useCalendarStore } from "@/store/calendar";
 
 import { AttendeeStatus, CalendarEvent } from "@/types/calendar";
 import { Priority, Task, TaskStatus } from "@/types/task";
@@ -78,6 +85,19 @@ export function EventQuickView({
 }: EventQuickViewProps) {
   const { colorTheme } = useTheme();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [editingLabel, setEditingLabel] = useState(false);
+  const [labelDraft, setLabelDraft] = useState("");
+  const [savedLabel, setSavedLabel] = useState<string | null>(null);
+  const [labelError, setLabelError] = useState<string | null>(null);
+  const [savingLabel, setSavingLabel] = useState(false);
+  useEffect(() => {
+    if (isTask) return;
+    const event = item as CalendarEvent;
+    setSavedLabel(event.titleOverride || null);
+    setLabelDraft(event.titleOverride || "");
+    setEditingLabel(false);
+    setLabelError(null);
+  }, [item, isTask]);
   const getStatusColor = (status: string | undefined) => {
     switch (status?.toUpperCase()) {
       case "ACCEPTED":
@@ -98,6 +118,61 @@ export function EventQuickView({
   const eventItem = !isTask
     ? (item as CalendarEvent & { attendees?: Attendee[] })
     : null;
+  const missingSourceTitle = eventItem
+    ? isUntitledImportedEvent(eventItem)
+    : false;
+  const displayTitle = eventItem
+    ? getCalendarEventTitle({ ...eventItem, titleOverride: savedLabel })
+    : item.title;
+
+  const savePrivateLabel = async () => {
+    if (!eventItem || savingLabel) return;
+    const nextLabel = labelDraft.trim() || null;
+    const previousLabel = savedLabel;
+    const store = useCalendarStore.getState();
+    store.setEvents(
+      store.events.map((event) =>
+        event.id === eventItem.id
+          ? { ...event, titleOverride: nextLabel }
+          : event
+      )
+    );
+    setSavedLabel(nextLabel);
+    setEditingLabel(false);
+    setLabelError(null);
+    setSavingLabel(true);
+    try {
+      const response = await fetch(`/api/events/${eventItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titleOverride: nextLabel }),
+      });
+      if (!response.ok) throw new Error("Could not save the private label");
+    } catch {
+      useCalendarStore
+        .getState()
+        .setEvents(
+          useCalendarStore
+            .getState()
+            .events.map((event) =>
+              event.id === eventItem.id
+                ? { ...event, titleOverride: previousLabel }
+                : event
+            )
+        );
+      setSavedLabel(previousLabel);
+      setLabelDraft(previousLabel || "");
+      setLabelError(
+        "The label could not be saved. Sunnie restored the previous name."
+      );
+      toast.error(
+        "Private name could not be saved. The previous name was restored."
+      );
+      setEditingLabel(true);
+    } finally {
+      setSavingLabel(false);
+    }
+  };
 
   const isOverdue = taskItem && isTaskOverdue(taskItem);
 
@@ -136,7 +211,7 @@ export function EventQuickView({
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-2">
               <h3 className="event-title flex items-center gap-2 font-medium text-foreground">
-                {item.title}
+                {displayTitle}
                 {isTask ? (
                   <>
                     {taskItem?.isRecurring && (
@@ -187,25 +262,99 @@ export function EventQuickView({
                     <HiCheck className="h-4 w-4" />
                   </button>
                 )}
-                <button
-                  onClick={onEdit}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-primary"
-                  title="Edit"
-                >
-                  <HiPencil className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive"
-                  title="Delete"
-                >
-                  <HiTrash className="h-4 w-4" />
-                </button>
+                {(!missingSourceTitle || isTask) && (
+                  <button
+                    onClick={onEdit}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-primary"
+                    title={
+                      isTask ? "Edit task" : "Edit original calendar event"
+                    }
+                    aria-label={
+                      isTask ? "Edit task" : "Edit original calendar event"
+                    }
+                  >
+                    <HiPencil className="h-4 w-4" />
+                  </button>
+                )}
+                {(!missingSourceTitle || isTask) && (
+                  <button
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive"
+                    title={
+                      isTask ? "Delete task" : "Delete original calendar event"
+                    }
+                    aria-label={
+                      isTask ? "Delete task" : "Delete original calendar event"
+                    }
+                  >
+                    <HiTrash className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
             {!isTask && eventItem && (
               <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="rounded-lg bg-muted/50 p-2.5 text-xs">
+                  <p>
+                    {missingSourceTitle
+                      ? "This calendar did not share an event name. Add one just for yourself in Sunnie."
+                      : "Give this event a private name in Sunnie if you like."}{" "}
+                    The original calendar will not change.
+                  </p>
+                  {editingLabel ? (
+                    <form
+                      className="mt-2 flex flex-wrap gap-2"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        void savePrivateLabel();
+                      }}
+                    >
+                      <input
+                        aria-label="Private event name in Sunnie"
+                        className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-foreground"
+                        maxLength={160}
+                        placeholder={
+                          missingSourceTitle
+                            ? "e.g. Team meeting"
+                            : "Private name"
+                        }
+                        value={labelDraft}
+                        onChange={(event) => setLabelDraft(event.target.value)}
+                      />
+                      <button
+                        type="submit"
+                        disabled={savingLabel}
+                        className="rounded-md bg-primary px-2 py-1 text-primary-foreground disabled:opacity-50"
+                      >
+                        Save name
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingLabel(false);
+                          setLabelDraft(savedLabel || "");
+                        }}
+                        className="px-1 py-1"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditingLabel(true)}
+                      className="mt-2 font-medium text-primary underline-offset-2 hover:underline"
+                    >
+                      {savedLabel ? "Edit private name" : "Add private name"}
+                    </button>
+                  )}
+                  {labelError && (
+                    <p role="alert" className="mt-1 text-destructive">
+                      {labelError}
+                    </p>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <IoTimeOutline className="h-4 w-4 flex-shrink-0" />
                   <span>
@@ -398,7 +547,7 @@ export function EventQuickView({
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         itemType={isTask ? "task" : "event"}
-        itemName={item.title}
+        itemName={displayTitle}
         onConfirm={onDelete}
       />
     </>

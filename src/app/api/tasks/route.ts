@@ -8,6 +8,7 @@ import { newDate } from "@/lib/date-utils";
 import { logger } from "@/lib/logger";
 import { parseWeek } from "@/lib/planning-week";
 import { prisma } from "@/lib/prisma";
+import { defaultProjectId } from "@/lib/starter-projects";
 import { schedulePushTaskBlock } from "@/lib/task-block-push";
 import { isValidTaskColor, isValidTaskColorSlot } from "@/lib/task-colors";
 import {
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
     const tagIds = Array.isArray(json.tagIds)
       ? [...new Set(json.tagIds)]
       : json.tagIds;
-    const projectId = json.projectId;
+    let projectId = json.projectId;
     const taskData = pickMutableTaskFields(json);
     const recurrenceRule = taskData.recurrenceRule;
     const relationError = await validateTaskRelations(userId, {
@@ -138,6 +139,10 @@ export async function POST(request: NextRequest) {
     });
     if (relationError) {
       return NextResponse.json({ error: relationError }, { status: 400 });
+    }
+    // Quick capture stays one step while every new task gets a home.
+    if (projectId == null) {
+      projectId = await defaultProjectId(userId);
     }
     if (
       typeof taskData.title !== "string" ||

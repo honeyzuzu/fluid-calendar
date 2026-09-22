@@ -21,7 +21,7 @@ import { useTaskListViewSettings } from "@/store/taskListViewSettings";
 import { EnergyLevel, Task, TaskStatus, TimePreference } from "@/types/task";
 
 import { BoardTask } from "./BoardView/BoardTask";
-import { SortableHeader, StatusFilter, TaskRow } from "./components";
+import { StatusFilter } from "./components";
 import {
   compareTaskEnergyLevel,
   compareTaskPriority,
@@ -34,7 +34,6 @@ interface TaskListProps {
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
-  onInlineEdit: (task: Task) => void;
 }
 
 export function TaskList({
@@ -42,7 +41,6 @@ export function TaskList({
   onEdit,
   onDelete,
   onStatusChange,
-  onInlineEdit,
 }: TaskListProps) {
   const {
     sortBy,
@@ -53,22 +51,11 @@ export function TaskList({
     tagIds,
     search,
     hideUpcomingTasks,
-    setSortBy,
-    setSortDirection,
     setFilters,
     resetFilters,
   } = useTaskListViewSettings();
   const { activeProject } = useProjectStore();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  const handleSort = (column: typeof sortBy) => {
-    if (sortBy === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortDirection("desc");
-    }
-  };
 
   // First, filter by project
   const projectFilteredTasks = activeProject
@@ -105,6 +92,11 @@ export function TaskList({
     return [...filteredTasks].sort((a, b) => {
       const direction = sortDirection === "asc" ? 1 : -1;
       switch (sortBy) {
+        case "createdAt":
+          return (
+            direction *
+            (newDate(a.createdAt).getTime() - newDate(b.createdAt).getTime())
+          );
         case "title":
           return direction * a.title.localeCompare(b.title);
         case "dueDate":
@@ -186,6 +178,27 @@ export function TaskList({
 
   return (
     <div className="flex h-full flex-col">
+      <div className="mb-3 flex items-center gap-2">
+        <Input
+          value={search || ""}
+          onChange={(event) =>
+            setFilters({ search: event.target.value || undefined })
+          }
+          aria-label="Find a task"
+          placeholder="Find a task in your backlog or plan"
+          className="h-10 flex-1 bg-card"
+        />
+        {search && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setFilters({ search: undefined })}
+          >
+            Clear search
+          </Button>
+        )}
+      </div>
       <button
         type="button"
         onClick={() => setShowMobileFilters((current) => !current)}
@@ -251,14 +264,6 @@ export function TaskList({
         </Select>
 
         <div className="col-span-2 flex flex-1 gap-2 xl:col-span-1">
-          <Input
-            value={search || ""}
-            onChange={(e) =>
-              setFilters({ search: e.target.value || undefined })
-            }
-            placeholder="Search tasks..."
-            className="h-9"
-          />
           {hasActiveFilters && (
             <Button
               variant="outline"
@@ -289,7 +294,7 @@ export function TaskList({
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 content-start grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1800px]:hidden">
+      <div className="mx-auto grid min-h-0 w-full max-w-4xl flex-1 content-start grid-cols-1 gap-2 overflow-y-auto pr-1">
         {sortedTasks.map((task) => (
           <BoardTask
             key={task.id}
@@ -300,128 +305,12 @@ export function TaskList({
           />
         ))}
         {sortedTasks.length === 0 && (
-          <div className="rounded-xl border border-dashed bg-background py-8 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3 2xl:col-span-4">
-            No tasks found. Try adjusting your filters or create a new task.
+          <div className="rounded-xl border border-dashed bg-background px-5 py-8 text-center text-sm text-muted-foreground">
+            {tasks.length === 0
+              ? "Your tasks will appear here. Capture a thought above to start your backlog."
+              : "No tasks match this view. Clear filters or search for another task."}
           </div>
         )}
-      </div>
-
-      <div className="hidden flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-paper)] min-[1800px]:block">
-        <div
-          className="overflow-auto"
-          style={{ maxHeight: "calc(100vh - 250px)" }}
-        >
-          <table className="min-w-full divide-y divide-border">
-            <thead className="sticky top-0 bg-muted">
-              <tr>
-                <th
-                  scope="col"
-                  className="w-8 px-3 py-2 text-left text-xs font-medium text-muted-foreground"
-                >
-                  {/* Drag handle column */}
-                </th>
-                <SortableHeader
-                  column="status"
-                  label="Status"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-32"
-                />
-                <SortableHeader
-                  column="title"
-                  label="Title"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                />
-                <SortableHeader
-                  column="priority"
-                  label="Priority"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-32"
-                />
-                <SortableHeader
-                  column="energyLevel"
-                  label="Energy"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-32"
-                />
-                <SortableHeader
-                  column="preferredTime"
-                  label="Time"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-32"
-                />
-                <SortableHeader
-                  column="dueDate"
-                  label="Due Date"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-40"
-                />
-                <SortableHeader
-                  column="duration"
-                  label="Duration"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-20"
-                />
-                <SortableHeader
-                  column="project"
-                  label="Project"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-40"
-                />
-                <SortableHeader
-                  column="schedule"
-                  label="Schedule"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                />
-                <SortableHeader
-                  column="startDate"
-                  label="Start Date"
-                  currentSort={sortBy}
-                  direction={sortDirection}
-                  onSort={handleSort}
-                  className="w-40"
-                />
-                <th scope="col" className="relative w-10 px-3 py-2">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-background">
-              {sortedTasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onStatusChange={onStatusChange}
-                  onInlineEdit={onInlineEdit}
-                />
-              ))}
-            </tbody>
-          </table>
-          {sortedTasks.length === 0 && (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No tasks found. Try adjusting your filters or create a new task.
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

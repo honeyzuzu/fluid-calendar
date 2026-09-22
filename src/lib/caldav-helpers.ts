@@ -8,6 +8,22 @@ import { ExternalTask } from "./task-sync/providers/task-provider.interface";
 
 const LOG_SOURCE = "CalDAVHelpers";
 
+/** Keep provider alarms that Sunnie's reminder picker did not edit. */
+export function preserveCalDAVAlarms(
+  updatedIcal: string,
+  originalIcal: string
+) {
+  const updated = new ICAL.Component(ICAL.parse(updatedIcal));
+  const original = new ICAL.Component(ICAL.parse(originalIcal));
+  const updatedEvent = updated.getFirstSubcomponent("vevent");
+  const originalEvent = original.getFirstSubcomponent("vevent");
+  if (!updatedEvent || !originalEvent) return updatedIcal;
+  for (const alarm of originalEvent.getAllSubcomponents("valarm")) {
+    updatedEvent.addSubcomponent(new ICAL.Component(alarm.toJSON()));
+  }
+  return updated.toString();
+}
+
 /**
  * Read an iCalendar date/date-time property off a component as a JS Date.
  * Returns undefined when the property is absent or cannot be converted. Handles
@@ -395,6 +411,26 @@ export function convertVEventToCalendarEvent(
     const summary = vevent.getFirstPropertyValue("summary");
     const description = vevent.getFirstPropertyValue("description");
     const location = vevent.getFirstPropertyValue("location");
+    const reminderMinutes = vevent
+      .getAllSubcomponents("valarm")
+      .filter(
+        (alarm) =>
+          String(alarm.getFirstPropertyValue("action") || "").toUpperCase() ===
+          "DISPLAY"
+      )
+      .map((alarm) => alarm.getFirstPropertyValue("trigger"))
+      .map((trigger) =>
+        typeof trigger === "object" &&
+        trigger !== null &&
+        "toSeconds" in trigger &&
+        typeof trigger.toSeconds === "function"
+          ? -trigger.toSeconds() / 60
+          : NaN
+      )
+      .filter(
+        (minutes) =>
+          Number.isInteger(minutes) && minutes >= 0 && minutes <= 40320
+      );
 
     // Get start and end times
     const dtstart = vevent.getFirstProperty("dtstart");
@@ -519,6 +555,9 @@ export function convertVEventToCalendarEvent(
       feedId: "", // This would need to be set when saving to the database
       externalEventId: uid,
       title: summary ? String(summary) : "Untitled Event",
+      isFree:
+        String(vevent.getFirstPropertyValue("transp") || "").toUpperCase() ===
+        "TRANSPARENT",
       description: description ? String(description) : null,
       start: startDate,
       end: endDate,
@@ -526,6 +565,7 @@ export function convertVEventToCalendarEvent(
       isRecurring: isMaster, // Only master events are recurring
       recurrenceRule: recurrenceRuleString,
       allDay: isAllDay,
+      reminderMinutes,
       status: null,
       sequence: null,
       created: null,
