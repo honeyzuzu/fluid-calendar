@@ -929,8 +929,18 @@ export function EventModal({
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit" data-testid="save-event-button">
-                  {event?.id ? "Update" : "Create"}
+                <Button
+                  type="submit"
+                  data-testid="save-event-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? event?.id
+                      ? "Updating…"
+                      : "Creating…"
+                    : event?.id
+                      ? "Update"
+                      : "Create"}
                 </Button>
               </div>
             </div>

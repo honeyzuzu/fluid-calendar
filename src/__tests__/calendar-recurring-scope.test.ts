@@ -25,6 +25,8 @@ it("offers an explicit scope before changing or deleting recurring events", () =
   expect(quickView).toContain("eventItem?.isRecurring");
   expect(quickView).toContain('action="delete"');
   expect(googleRoute).toContain("reconciliationPending: true");
+  expect(googleRoute).toContain('if (mode === "single")');
+  expect(googleRoute).toContain("return NextResponse.json(savedOccurrence)");
   expect(calendarStore).toContain("triggerTaskRescheduleAfterCalendarChange");
   expect(calendarStore).not.toContain("await triggerScheduleAllTasks();");
   expect(calendarStore).toContain("result.reconciliationPending");

@@ -304,6 +304,77 @@ export async function PUT(request: NextRequest) {
       throw new Error("Failed to get event ID from Google Calendar");
     }
 
+    // A single-occurrence edit already returns the authoritative provider row.
+    // Save just that row instead of fetching and rebuilding every occurrence in
+    // the series; daily series can contain hundreds of rows and made a simple
+    // duration change look frozen while the reconciliation transaction timed out.
+    if (mode === "single") {
+      const providerStart =
+        googleEvent.start?.dateTime || googleEvent.start?.date;
+      const providerEnd = googleEvent.end?.dateTime || googleEvent.end?.date;
+      const nextStart = providerStart
+        ? googleEvent.start?.date
+          ? createAllDayDate(providerStart)
+          : newDate(providerStart)
+        : updates.start
+          ? newDate(updates.start)
+          : validatedEvent.start;
+      const nextEnd = providerEnd
+        ? googleEvent.end?.date
+          ? createAllDayDate(providerEnd)
+          : newDate(providerEnd)
+        : updates.end
+          ? newDate(updates.end)
+          : validatedEvent.end;
+      const savedOccurrence = await prisma.calendarEvent.update({
+        where: { id: validatedEvent.id },
+        data: {
+          externalEventId: googleEvent.id,
+          title: googleEvent.summary ?? validatedEvent.title,
+          description:
+            googleEvent.description ?? validatedEvent.description ?? "",
+          start: nextStart,
+          end: nextEnd,
+          location: googleEvent.location ?? validatedEvent.location,
+          isFree:
+            googleEvent.transparency === undefined
+              ? validatedEvent.isFree
+              : googleEvent.transparency === "transparent",
+          isRecurring: true,
+          recurringEventId:
+            googleEvent.recurringEventId ?? validatedEvent.recurringEventId,
+          allDay:
+            googleEvent.start?.date !== undefined ||
+            (googleEvent.start === undefined &&
+              (updates.allDay ?? validatedEvent.allDay)),
+          ...(googleEvent.reminders
+            ? googleReminderState(googleEvent.reminders)
+            : {}),
+          status: googleEvent.status ?? validatedEvent.status,
+          sequence: googleEvent.sequence ?? validatedEvent.sequence,
+          lastModified: googleEvent.updated
+            ? newDate(googleEvent.updated)
+            : undefined,
+          organizer: googleEvent.organizer
+            ? {
+                name: googleEvent.organizer.displayName,
+                email: googleEvent.organizer.email,
+              }
+            : undefined,
+          attendees: googleEvent.attendees?.map((attendee) => ({
+            name: attendee.displayName,
+            email: attendee.email,
+            status: attendee.responseStatus,
+          })),
+          color: "color" in updates ? updates.color || null : undefined,
+          colorSlot:
+            "colorSlot" in updates ? updates.colorSlot || null : undefined,
+        },
+      });
+
+      return NextResponse.json(savedOccurrence);
+    }
+
     try {
       // Get the updated event and its instances
       const { event: updatedEvent, instances } = await getGoogleEvent(
