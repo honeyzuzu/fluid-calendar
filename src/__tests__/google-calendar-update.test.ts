@@ -2,8 +2,31 @@ import { calendar_v3 } from "googleapis";
 
 import {
   getGoogleReconciliationMode,
+  isActiveGoogleEvent,
   updateGoogleEvent,
 } from "@/lib/google-calendar";
+
+it("ignores cancelled or incomplete recurrence instances", () => {
+  expect(
+    isActiveGoogleEvent({
+      id: "live",
+      status: "confirmed",
+      start: { dateTime: "2026-09-22T13:00:00Z" },
+      end: { dateTime: "2026-09-22T14:00:00Z" },
+    })
+  ).toBe(true);
+  expect(
+    isActiveGoogleEvent({
+      id: "deleted",
+      status: "cancelled",
+      start: { dateTime: "2026-09-22T13:00:00Z" },
+      end: { dateTime: "2026-09-22T14:00:00Z" },
+    })
+  ).toBe(false);
+  expect(isActiveGoogleEvent({ id: "tombstone", status: "cancelled" })).toBe(
+    false
+  );
+});
 
 it("replaces a recurring series locally after moving one occurrence", () => {
   expect(

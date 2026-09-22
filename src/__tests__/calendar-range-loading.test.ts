@@ -17,6 +17,12 @@ describe("calendar range loading contract", () => {
     expect(store).toContain("loadEventsForRange");
     expect(store).toContain("start: range.start.toISOString()");
     expect(store).not.toContain('fetch("/api/events")');
+    expect(store).toContain("const requestRevision = calendarMutationRevision");
+    expect(store).toContain(
+      "if (!isCurrentCalendarRangeResponse(requestRevision)) return"
+    );
+    expect(route).toContain('notIn: ["cancelled", "CANCELLED"]');
+    expect(route).toContain("{ status: null }");
   });
 
   it("asks for the actual FullCalendar range in every view", () => {

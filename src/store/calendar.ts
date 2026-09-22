@@ -22,6 +22,18 @@ import {
 import { TaskStatus } from "@/types/task";
 
 const calendarRangeRequests = new Map<string, Promise<void>>();
+let calendarMutationRevision = 0;
+
+export function isCurrentCalendarRangeResponse(
+  requestRevision: number,
+  currentRevision = calendarMutationRevision
+) {
+  return requestRevision === currentRevision;
+}
+
+function noteCalendarMutation() {
+  calendarMutationRevision += 1;
+}
 
 // Separate store for view preferences that will be persisted in localStorage
 interface ViewStore extends CalendarViewState {
@@ -489,6 +501,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to add event to Google Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
@@ -510,6 +523,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to add event to Outlook Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
@@ -531,6 +545,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to add event to CalDAV Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
 
@@ -573,6 +588,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to update event in Google Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
         // Trigger auto-scheduling after event is created
@@ -593,6 +609,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to update event in Outlook Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
         // Trigger auto-scheduling after event is created
@@ -613,6 +630,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to update event in CalDAV Calendar");
         }
 
+        noteCalendarMutation();
         // Reload from database to get the latest state
         await get().loadFromDatabase();
         // Trigger auto-scheduling after event is created
@@ -646,7 +664,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
-        if (!response.ok) {
+        if (!response.ok && response.status !== 404) {
           throw new Error("Failed to delete event from Google Calendar");
         }
       } else if (feed.type === "OUTLOOK") {
@@ -657,7 +675,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
-        if (!response.ok) {
+        if (!response.ok && response.status !== 404) {
           throw new Error("Failed to delete event from Outlook Calendar");
         }
       } else if (feed.type === "CALDAV") {
@@ -668,7 +686,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           body: JSON.stringify({ eventId: providerEventId, mode }),
         });
 
-        if (!response.ok) {
+        if (!response.ok && response.status !== 404) {
           throw new Error("Failed to delete event from CalDAV Calendar");
         }
       } else {
@@ -681,6 +699,10 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error("Failed to delete event from database");
         }
       }
+
+      // Invalidate any range response that started before this mutation. An
+      // older response must not put a successfully deleted row back on screen.
+      noteCalendarMutation();
 
       // The provider deletion is authoritative. Remove it locally right away so
       // the modal does not wait on a full reload and scheduling pass.
@@ -845,6 +867,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
     }
 
     const request = (async () => {
+      const requestRevision = calendarMutationRevision;
       try {
         set({ isLoading: true, error: undefined });
         const params = new URLSearchParams({
@@ -858,6 +881,7 @@ export const useCalendarStore = create<CalendarStore>()((set, get) => ({
           throw new Error(`Failed to load visible events (${response.status})`);
         }
         const visibleEvents = (await response.json()) as CalendarEvent[];
+        if (!isCurrentCalendarRangeResponse(requestRevision)) return;
         const includedFeeds = new Set(feedIds);
 
         set((state) => {

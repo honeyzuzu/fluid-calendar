@@ -11,6 +11,14 @@ import { TokenManager } from "./token-manager";
 
 type GoogleEvent = calendar_v3.Schema$Event;
 
+export function isActiveGoogleEvent(event: GoogleEvent) {
+  return (
+    event.status !== "cancelled" &&
+    Boolean(event.start?.dateTime || event.start?.date) &&
+    Boolean(event.end?.dateTime || event.end?.date)
+  );
+}
+
 export function getGoogleReconciliationMode({
   requestedMode,
   localIsRecurring,
@@ -407,7 +415,9 @@ export default async function getGoogleEvent(
       });
       if (instancesResponse && instancesResponse.data) {
         console.log("Found instances:", instancesResponse.data.items?.length);
-        instances = instancesResponse.data.items || [];
+        instances = (instancesResponse.data.items || []).filter(
+          isActiveGoogleEvent
+        );
       }
     }
 

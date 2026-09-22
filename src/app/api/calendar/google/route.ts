@@ -10,7 +10,10 @@ import { getStableThemeColorSlot } from "@/lib/color-themes";
 import { createAllDayDate, newDate, newDateFromYMD } from "@/lib/date-utils";
 import { googleReminderState } from "@/lib/event-reminders";
 import { createGoogleOAuthClient } from "@/lib/google";
-import { getGoogleCalendarClient } from "@/lib/google-calendar";
+import {
+  getGoogleCalendarClient,
+  isActiveGoogleEvent,
+} from "@/lib/google-calendar";
 import { verifyOAuthState } from "@/lib/oauth-state";
 import { prisma } from "@/lib/prisma";
 import { TokenManager } from "@/lib/token-manager";
@@ -509,13 +512,19 @@ export async function PUT(request: NextRequest) {
     console.log("Fetching events from Google Calendar:", feed.url);
 
     // Fetch all events with pagination
-    const events = await fetchAllEvents(googleCalendarClient, {
-      calendarId: feed.url,
-      timeMin: newDateFromYMD(newDate().getFullYear(), 0, 1).toISOString(),
-      timeMax: newDateFromYMD(newDate().getFullYear() + 1, 0, 1).toISOString(),
-      singleEvents: true,
-      orderBy: "startTime",
-    });
+    const events = (
+      await fetchAllEvents(googleCalendarClient, {
+        calendarId: feed.url,
+        timeMin: newDateFromYMD(newDate().getFullYear(), 0, 1).toISOString(),
+        timeMax: newDateFromYMD(
+          newDate().getFullYear() + 1,
+          0,
+          1
+        ).toISOString(),
+        singleEvents: true,
+        orderBy: "startTime",
+      })
+    ).filter(isActiveGoogleEvent);
 
     console.log(`Found ${events.length} events in Google Calendar`);
 

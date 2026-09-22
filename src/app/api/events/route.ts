@@ -40,6 +40,18 @@ export async function GET(request: NextRequest) {
         feed: {
           userId,
         },
+        AND: [
+          {
+            OR: [
+              { status: null },
+              {
+                status: {
+                  notIn: ["cancelled", "CANCELLED"],
+                },
+              },
+            ],
+          },
+        ],
       },
       include: {
         feed: {

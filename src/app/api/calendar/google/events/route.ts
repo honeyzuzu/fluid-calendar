@@ -20,6 +20,7 @@ import getGoogleEvent, {
   createGoogleEvent,
   deleteGoogleEvent,
   getGoogleReconciliationMode,
+  isActiveGoogleEvent,
   updateGoogleEvent,
 } from "@/lib/google-calendar";
 import { logger } from "@/lib/logger";
@@ -86,6 +87,7 @@ async function writeEventToDatabase(
   const createdInstances = [];
   if (instances) {
     for (const instance of instances) {
+      if (!isActiveGoogleEvent(instance)) continue;
       const instanceIsAllDay = instance.start
         ? !instance.start.dateTime
         : false;
