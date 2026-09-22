@@ -13,8 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Leaf,
-  Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { WeekPicker } from "@/components/planning/WeekPicker";
 import { WeekRangeSelect } from "@/components/planning/WeekRangeSelect";
@@ -72,12 +72,14 @@ const button =
   "rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium disabled:opacity-50";
 const field =
   "mt-2 w-full min-w-0 rounded-xl border border-border bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-ring";
-const steps = ["Look back", "Reflect", "Unfinished tasks", "Next week"];
 async function json<T>(response: Response): Promise<T> {
-  if (!response.ok)
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
     throw new Error(
-      "Sunnie couldn’t save or load this change. Please try again."
+      body?.error ||
+        "Sunnie couldn’t save or load this change. Please try again."
     );
+  }
   if (response.status === 204) return undefined as T;
   return response.json();
 }
@@ -97,7 +99,6 @@ export function WeeklyReview({
     preview?.week ?? shiftWeek(weekKey(localDateKey(new Date())), -1)
   );
   const [data, setData] = useState<WeeklyReviewData | null>(preview ?? null);
-  const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Review | null>(preview?.review ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -165,7 +166,16 @@ export function WeeklyReview({
     const showTourStep = (event: Event) => {
       const nextStep = (event as CustomEvent<{ step?: number }>).detail?.step;
       if (typeof nextStep === "number" && nextStep >= 0 && nextStep < 4) {
-        setStep(nextStep);
+        document
+          .getElementById(
+            [
+              "review-look-back",
+              "review-reflect",
+              "review-unfinished",
+              "review-next-week",
+            ][nextStep]
+          )
+          ?.scrollIntoView({ block: "center", behavior: "smooth" });
       }
     };
     window.addEventListener(WEEKLY_REVIEW_TOUR_STEP_EVENT, showTourStep);
@@ -174,9 +184,7 @@ export function WeeklyReview({
   }, []);
 
   function edit(updates: Partial<Review>) {
-    setDraft((current) =>
-      current ? { ...current, ...updates, completedAt: null } : current
-    );
+    setDraft((current) => (current ? { ...current, ...updates } : current));
     setDirty(true);
     setJustFinished(false);
     setMessage("");
@@ -200,10 +208,14 @@ export function WeeklyReview({
           ? "Your weekly review is saved. A little space for a fresh start."
           : "Reflection saved privately to your account."
       );
+      toast.success(completed ? "Review finished" : "Draft saved");
       setJustFinished(completed);
       return true;
     } catch (caught) {
       setError((caught as Error).message);
+      toast.error("Could not save review", {
+        description: (caught as Error).message,
+      });
       return false;
     } finally {
       setBusy(false);
@@ -215,13 +227,23 @@ export function WeeklyReview({
     setData(null);
     setDraft(null);
     setWeek(next);
-    setStep(0);
     setMessage("");
     setJustFinished(false);
   }
   async function updateTask(task: ReviewTask, plannedWeekStart: string | null) {
     setBusy(true);
     setError("");
+    const previous = data;
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            unfinished: current.unfinished.filter(
+              (item) => item.id !== task.id
+            ),
+          }
+        : current
+    );
     try {
       if (!preview)
         await fetch(`/api/tasks/${task.id}`, {
@@ -234,21 +256,21 @@ export function WeeklyReview({
           }),
         }).then(json);
       onTasksChanged?.();
-      setData((current) =>
-        current
-          ? {
-              ...current,
-              unfinished: current.unfinished.filter((t) => t.id !== task.id),
-            }
-          : current
-      );
       setMessage(
         plannedWeekStart
           ? `“${task.title}” is planned for the week of ${plannedWeekStart}.`
           : `“${task.title}” is back in Backlog.`
       );
+      toast.success(
+        plannedWeekStart
+          ? "Task moved to the selected week"
+          : "Task moved to Backlog"
+      );
     } catch (caught) {
-      setError((caught as Error).message);
+      setData(previous);
+      const feedback = `${(caught as Error).message} The task is still here; try again.`;
+      setError(feedback);
+      toast.error("Task choice was not saved", { description: feedback });
     } finally {
       setBusy(false);
     }
@@ -266,10 +288,11 @@ export function WeeklyReview({
   const calendarsById = new Map(
     data?.calendars.map((calendar) => [calendar.id, calendar]) ?? []
   );
+  const isFinished = !!draft?.completedAt && !dirty;
   return (
     <section
       id="weekly-review"
-      className="relative mt-8 min-w-0 scroll-mt-6 overflow-hidden rounded-[2rem] border border-border bg-gradient-to-br from-card via-card/90 to-muted p-4 text-foreground shadow-[var(--shadow-raised)] sm:p-6"
+      className="relative min-w-0 scroll-mt-6 overflow-hidden rounded-[2rem] border border-border bg-gradient-to-br from-card via-card/90 to-muted p-4 text-foreground shadow-[var(--shadow-raised)] sm:p-6"
     >
       <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[var(--sunnie-warm-glow)] opacity-25 blur-2xl" />
       <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[var(--sunnie-cool-glow)] opacity-20 blur-2xl" />
@@ -313,7 +336,7 @@ export function WeeklyReview({
         Sunday–Saturday · {weekRangeLabel(week)} · Reflections stay private to
         your account.
       </p>
-      {draft?.completedAt && (
+      {isFinished && (
         <div
           role="status"
           className="relative mt-4 flex items-center gap-3 rounded-2xl border border-success/35 bg-success/10 px-4 py-3 text-sm text-secondary-foreground shadow-sm"
@@ -326,37 +349,11 @@ export function WeeklyReview({
               {justFinished ? "Week wrapped up!" : "Review finished"}
             </span>
             <span className="text-xs text-muted-foreground">
-              Your reflection is saved. Editing anything will reopen it.
+              Your reflection is saved. You can revisit or edit it anytime.
             </span>
           </span>
         </div>
       )}
-      <div className="relative my-5 grid grid-cols-2 gap-2 rounded-2xl bg-muted/80 p-1.5 lg:grid-cols-4">
-        {steps.map((label, index) => (
-          <button
-            key={label}
-            disabled={busy || loading}
-            onClick={() => setStep(index)}
-            aria-current={step === index ? "step" : undefined}
-            className={cn(
-              button,
-              "flex items-center gap-2 border-transparent bg-transparent text-left shadow-none transition-colors",
-              step === index &&
-                "border-card bg-card text-secondary-foreground shadow-sm"
-            )}
-          >
-            <span
-              className={cn(
-                "grid h-6 w-6 shrink-0 place-items-center rounded-full bg-card/80 text-xs",
-                step === index && "bg-accent text-accent-foreground"
-              )}
-            >
-              {index + 1}
-            </span>
-            {label}
-          </button>
-        ))}
-      </div>
       {error && (
         <p
           role="alert"
@@ -383,17 +380,32 @@ export function WeeklyReview({
         data &&
         draft && (
           <>
-            {step === 0 && (
-              <div className="grid min-w-0 gap-5 lg:grid-cols-2">
-                <div className="min-w-0 rounded-2xl bg-muted p-4">
+            <section
+              id="review-look-back"
+              className="scroll-mt-6 border-t border-border pt-5"
+            >
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-lg font-semibold">A look at your week</h3>
+                <p className="text-xs text-muted-foreground">
+                  {data.completed.length} completed · {data.unfinished.length}{" "}
+                  unfinished
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "grid min-w-0 gap-4",
+                  data.calendars.length && "lg:grid-cols-2"
+                )}
+              >
+                <div className="min-w-0 rounded-2xl bg-muted/60 p-4">
                   <h3 className="font-semibold">Completed tasks</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Grouped by when you finished them.
                   </p>
                   {!data.completed.length && (
-                    <p className="py-5 text-sm text-muted-foreground">
-                      No completed tasks recorded this week. Your week still
-                      mattered.
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      No completed tasks recorded. You can still reflect on this
+                      week.
                     </p>
                   )}
                   <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto">
@@ -415,6 +427,17 @@ export function WeeklyReview({
                           onClick={async () => {
                             setBusy(true);
                             setError("");
+                            const previous = data;
+                            setData((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    completed: current.completed.filter(
+                                      (item) => item.id !== task.id
+                                    ),
+                                  }
+                                : current
+                            );
                             try {
                               if (!preview)
                                 await fetch(`/api/tasks/${task.id}`, {
@@ -424,18 +447,18 @@ export function WeeklyReview({
                                   },
                                   body: JSON.stringify({ status: "todo" }),
                                 }).then(json);
-                              setData({
-                                ...data,
-                                completed: data.completed.filter(
-                                  (t) => t.id !== task.id
-                                ),
-                              });
                               onTasksChanged?.();
                               setMessage(
                                 "Task reopened. You can find it in Tasks."
                               );
+                              toast.success("Task reopened");
                             } catch (caught) {
-                              setError((caught as Error).message);
+                              setData(previous);
+                              const feedback = `${(caught as Error).message} The completed task was restored; try again.`;
+                              setError(feedback);
+                              toast.error("Task could not be reopened", {
+                                description: feedback,
+                              });
                             } finally {
                               setBusy(false);
                             }
@@ -472,109 +495,122 @@ export function WeeklyReview({
                     </button>
                   )}
                 </div>
-                <div className="min-w-0 rounded-2xl bg-accent/55 p-4">
-                  <h3 className="flex items-center gap-2 font-semibold">
-                    <CalendarDays className="h-4 w-4 text-primary" /> Calendar
-                    moments
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    A read-only glance at where your time was planned. Use it as
-                    a memory cue while you reflect—it is not an attendance log.
-                  </p>
-                  <details className="my-3">
-                    <summary className="cursor-pointer text-sm font-medium">
-                      Choose calendars ({draft.calendarIds.length})
-                    </summary>
-                    <div className="mt-2 space-y-2">
-                      {data.calendars.map((calendar) => (
-                        <label
-                          key={calendar.id}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          <input
-                            type="checkbox"
-                            className="accent-primary"
-                            disabled={busy}
-                            checked={draft.calendarIds.includes(calendar.id)}
-                            onChange={(e) =>
-                              edit({
-                                calendarIds: e.target.checked
-                                  ? [...draft.calendarIds, calendar.id]
-                                  : draft.calendarIds.filter(
-                                      (id) => id !== calendar.id
-                                    ),
-                              })
-                            }
-                          />
-                          <span className="break-words">{calendar.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </details>
-                  <ul className="max-h-96 space-y-2 overflow-y-auto">
-                    {visibleEvents.map((event) => {
-                      const calendar = calendarsById.get(event.feedId);
-                      return (
-                        <li
-                          key={event.id}
-                          className="flex items-start gap-3 rounded-xl border border-border bg-card/75 p-3 text-sm shadow-[var(--shadow-paper)]"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ring-white"
-                            style={{
-                              backgroundColor: resolveThemeLinkedColor(
-                                "events",
-                                calendar?.colorSlot,
-                                calendar?.color,
-                                colorTheme.id
-                              ),
-                            }}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="block break-words">
-                              {event.title}
-                            </span>
-                            <span className="mt-1 block text-xs text-muted-foreground">
-                              {displayDate(event.start)} ·{" "}
-                              {event.allDay
-                                ? "All day"
-                                : `${Math.round((new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000)} min scheduled`}
-                            </span>
-                            {calendar && (
-                              <span className="mt-1 block text-[11px] text-muted-foreground">
-                                {calendar.name}
-                              </span>
-                            )}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  {!visibleEvents.length && (
-                    <p className="py-4 text-sm text-muted-foreground">
-                      No past events from the selected calendars.
+                {data.calendars.length > 0 && (
+                  <div className="min-w-0 rounded-2xl bg-accent/30 p-4">
+                    <h3 className="flex items-center gap-2 font-semibold">
+                      <CalendarDays className="h-4 w-4 text-primary" /> Calendar
+                      moments
+                    </h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      A read-only glance at where your time was planned. Use it
+                      as a memory cue while you reflect—it is not an attendance
+                      log.
                     </p>
-                  )}
-                </div>
+                    <details className="my-3">
+                      <summary className="cursor-pointer text-sm font-medium">
+                        Choose calendars ({draft.calendarIds.length})
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        {data.calendars.map((calendar) => (
+                          <label
+                            key={calendar.id}
+                            className="flex items-center gap-2 text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              className="accent-primary"
+                              disabled={busy}
+                              checked={draft.calendarIds.includes(calendar.id)}
+                              onChange={(e) =>
+                                edit({
+                                  calendarIds: e.target.checked
+                                    ? [...draft.calendarIds, calendar.id]
+                                    : draft.calendarIds.filter(
+                                        (id) => id !== calendar.id
+                                      ),
+                                })
+                              }
+                            />
+                            <span className="break-words">{calendar.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </details>
+                    <ul className="max-h-96 space-y-2 overflow-y-auto">
+                      {visibleEvents.map((event) => {
+                        const calendar = calendarsById.get(event.feedId);
+                        return (
+                          <li
+                            key={event.id}
+                            className="flex items-start gap-3 rounded-xl border border-border bg-card/75 p-3 text-sm shadow-[var(--shadow-paper)]"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="mt-1 h-3 w-3 shrink-0 rounded-full ring-4 ring-white"
+                              style={{
+                                backgroundColor: resolveThemeLinkedColor(
+                                  "events",
+                                  calendar?.colorSlot,
+                                  calendar?.color,
+                                  colorTheme.id
+                                ),
+                              }}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block break-words">
+                                {event.title}
+                              </span>
+                              <span className="mt-1 block text-xs text-muted-foreground">
+                                {displayDate(event.start)} ·{" "}
+                                {event.allDay
+                                  ? "All day"
+                                  : `${Math.round((new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000)} min scheduled`}
+                              </span>
+                              {calendar && (
+                                <span className="mt-1 block text-[11px] text-muted-foreground">
+                                  {calendar.name}
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {!visibleEvents.length && (
+                      <p className="py-4 text-sm text-muted-foreground">
+                        No past events from the selected calendars.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-            {step === 1 && (
-              <div className="grid gap-5 lg:grid-cols-2">
+            </section>
+            <section
+              id="review-reflect"
+              className="scroll-mt-6 mt-6 border-t border-border pt-5"
+            >
+              <h3 className="mb-1 text-lg font-semibold">
+                What would you like to remember?
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                A few words are enough. Your notes stay private.
+              </p>
+              <div className="grid gap-4 lg:grid-cols-2">
                 {(
                   [
                     ["goodThings", "What felt good?"],
                     ["makeEasier", "What would make next week easier?"],
                   ] as const
                 ).map(([key, label]) => (
-                  <label key={key} className="text-sm font-medium">
-                    {label}{" "}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      Optional.
+                  <label key={key} className="block text-sm font-medium">
+                    <span className="block">{label}</span>
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      Optional reflection
                     </span>
                     <textarea
+                      aria-label={label}
                       maxLength={5000}
-                      rows={6}
+                      rows={4}
                       className={field}
                       value={draft[key]}
                       disabled={busy}
@@ -583,44 +619,48 @@ export function WeeklyReview({
                   </label>
                 ))}
               </div>
-            )}
-            {step === 2 && (
-              <div>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  These tasks were planned, dated, or scheduled in this week and
-                  are still open. Sunnie carries older weekly tasks forward
-                  automatically; choose what should happen next. Deadlines and
-                  locked times stay as they are.
-                </p>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {data.unfinished.map((task) => (
-                    <UnfinishedTask
-                      key={task.id}
-                      task={task}
-                      currentWeek={data.currentWeek}
-                      disabled={busy}
-                      onMove={(value) => void updateTask(task, value)}
-                      onDelete={() => setDeleting(task)}
-                    />
-                  ))}
-                </div>
-                {!data.unfinished.length && (
-                  <div className="rounded-2xl bg-muted px-4 py-6 text-center text-sm">
-                    <Sparkles className="mx-auto mb-2 h-5 w-5 text-primary" />
-                    Nothing from this week is waiting for a decision.
+            </section>
+            {data.unfinished.length > 0 && (
+              <section
+                id="review-unfinished"
+                className="scroll-mt-6 mt-6 border-t border-border pt-5"
+              >
+                <h3 className="text-lg font-semibold">Unfinished tasks</h3>
+                <div>
+                  <p className="mb-4 mt-1 text-sm text-muted-foreground">
+                    Choose what to carry forward. Deadlines and locked calendar
+                    times stay as they are.
+                  </p>
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {data.unfinished.map((task) => (
+                      <UnfinishedTask
+                        key={task.id}
+                        task={task}
+                        disabled={busy}
+                        onMove={(value) => void updateTask(task, value)}
+                        onDelete={() => setDeleting(task)}
+                      />
+                    ))}
                   </div>
-                )}
-              </div>
+                </div>
+              </section>
             )}
-            {step === 3 && (
+            <section
+              id="review-next-week"
+              className="scroll-mt-6 mt-6 border-t border-border pt-5"
+            >
               <div className="max-w-2xl">
-                <Leaf className="mb-3 h-7 w-7 text-primary" />
-                <label className="text-sm font-medium">
-                  A few priorities for next week{" "}
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Optional
+                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                  <Leaf className="h-5 w-5 text-primary" /> A gentle start for
+                  next week
+                </h3>
+                <label className="mt-4 block text-sm font-medium">
+                  <span className="block">A few priorities for next week</span>
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    Optional note
                   </span>
                   <textarea
+                    aria-label="A few priorities for next week"
                     rows={4}
                     maxLength={5000}
                     value={draft.nextPriorities}
@@ -636,52 +676,45 @@ export function WeeklyReview({
                 </p>
                 <Link
                   className="mt-4 inline-block text-sm font-medium underline"
-                  href="/tasks"
+                  href="/upcoming"
                   onClick={async (event) => {
                     if (!dirty) return;
                     event.preventDefault();
-                    if (await save(false)) router.push("/tasks");
+                    if (await save(false)) router.push("/upcoming");
                   }}
                 >
-                  Choose tasks for next week in Tasks
+                  Plan next week in Upcoming
                 </Link>
               </div>
-            )}
+            </section>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <p className="text-xs text-muted-foreground">
                 {dirty
                   ? "Unsaved changes"
                   : draft.completedAt
                     ? "Review completed and saved"
-                    : "Reflection is optional"}
+                    : "Your review is ready when you are"}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                 <button
                   type="button"
                   className={button}
-                  disabled={busy}
+                  disabled={busy || isFinished}
                   onClick={() => void save(false)}
                 >
-                  {busy ? "Saving…" : "Save reflection"}
+                  {busy ? "Saving…" : "Save draft"}
                 </button>
-                {step < 3 ? (
-                  <button
-                    className={cn(button, "bg-accent text-accent-foreground")}
-                    disabled={busy}
-                    onClick={() => setStep(step + 1)}
-                  >
-                    Continue
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={cn(button, "bg-muted text-secondary-foreground")}
-                    disabled={busy || !!draft.completedAt}
-                    onClick={() => void save(true)}
-                  >
-                    {draft.completedAt ? "Review finished ✓" : "Finish review"}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={cn(
+                    button,
+                    "bg-accent text-accent-foreground sm:min-w-36"
+                  )}
+                  disabled={busy || isFinished}
+                  onClick={() => void save(true)}
+                >
+                  {isFinished ? "Review finished ✓" : "Finish review"}
+                </button>
               </div>
             </div>
           </>
@@ -719,13 +752,11 @@ export function WeeklyReview({
 
 function UnfinishedTask({
   task,
-  currentWeek,
   disabled,
   onMove,
   onDelete,
 }: {
   task: ReviewTask;
-  currentWeek: string;
   disabled: boolean;
   onMove: (week: string | null) => void;
   onDelete: () => void;
@@ -750,30 +781,16 @@ function UnfinishedTask({
       <div className="mt-3">
         <WeekPicker value={choice} onChange={setChoice} disabled={disabled} />
       </div>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
-          className={button}
+          className={cn(button, "bg-accent text-accent-foreground")}
           disabled={disabled}
           onClick={() => onMove(choice || null)}
         >
-          Apply week
+          {choice ? "Move to selected week" : "Move to Backlog"}
         </button>
         <button
-          className={button}
-          disabled={disabled}
-          onClick={() => onMove(currentWeek)}
-        >
-          Keep this week
-        </button>
-        <button
-          className={button}
-          disabled={disabled}
-          onClick={() => onMove(null)}
-        >
-          Backlog
-        </button>
-        <button
-          className={`${button} text-destructive`}
+          className="px-3 py-2 text-sm text-destructive underline underline-offset-2 disabled:opacity-50"
           disabled={disabled}
           onClick={onDelete}
         >

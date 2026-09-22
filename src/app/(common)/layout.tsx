@@ -11,7 +11,6 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { DailyRhythmPrompt } from "@/components/planning/DailyRhythmPrompt";
 import { PresenceHeartbeat } from "@/components/providers/PresenceHeartbeat";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
-import { SessionProvider } from "@/components/providers/SessionProvider";
 import { SetupCheck } from "@/components/setup/SetupCheck";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ShortcutsModal } from "@/components/ui/shortcuts-modal";
@@ -116,37 +115,35 @@ export default function RootLayout({
 
   return (
     <div className="sunnie-app sunnie-theme-app-pattern relative flex min-h-screen flex-col overflow-x-clip">
-      <SessionProvider>
-        <PresenceHeartbeat />
-        <PrivacyProvider>
-          <DndProvider>
-            <SetupCheck />
-            <CommandPalette
-              open={commandPaletteOpen}
-              onOpenChange={setCommandPaletteOpen}
-            />
-            <ShortcutsModal
-              isOpen={shortcutsOpen}
-              onClose={() => setShortcutsOpen(false)}
-            />
-            <AppNav />
-            <DailyRhythmPrompt />
-            {ONBOARDING_TOUR_ENABLED && <OnboardingTour />}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[var(--sunnie-warm-glow)] opacity-10 blur-3xl"
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[var(--sunnie-cool-glow)] opacity-15 blur-3xl"
-            />
-            <main className="relative z-[1] flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
-              <NotificationProvider>{children}</NotificationProvider>
-            </main>
-            <Toaster />
-          </DndProvider>
-        </PrivacyProvider>
-      </SessionProvider>
+      <PresenceHeartbeat />
+      <PrivacyProvider>
+        <DndProvider>
+          <SetupCheck />
+          <CommandPalette
+            open={commandPaletteOpen}
+            onOpenChange={setCommandPaletteOpen}
+          />
+          <ShortcutsModal
+            isOpen={shortcutsOpen}
+            onClose={() => setShortcutsOpen(false)}
+          />
+          <AppNav />
+          <DailyRhythmPrompt />
+          {ONBOARDING_TOUR_ENABLED && <OnboardingTour />}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed -left-24 top-28 z-0 h-56 w-56 rounded-full bg-[var(--sunnie-warm-glow)] opacity-10 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed -right-24 top-44 z-0 h-72 w-72 rounded-full bg-[var(--sunnie-cool-glow)] opacity-15 blur-3xl"
+          />
+          <main className="relative z-[1] flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
+            <NotificationProvider>{children}</NotificationProvider>
+          </main>
+          <Toaster />
+        </DndProvider>
+      </PrivacyProvider>
     </div>
   );
 }

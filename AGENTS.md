@@ -2,6 +2,12 @@
 
 Last updated: 2026-09-22
 
+## Review page pass (September 22, 2026)
+
+`/review` now presents the week in one continuous reflection: a compact completion summary, past calendar moments only when calendars exist, optional private notes, decisions for unfinished tasks when any need attention, and a next-week note with a direct Upcoming link. The four-step switcher is gone. Reflection fields have clear accessible names. Save draft and Finish review remain separate; a finished review survives reload, and editing it can save a reopened draft or finish again. Changing weeks saves pending edits first. Task choices and completion undo update the review immediately and restore the item with a clear error if the request fails. The dormant onboarding tour still points to the matching sections.
+
+Signed-in local desktop and phone QA covered a week with completed and unfinished tasks, a new account with no connected calendar, draft persistence across weeks, finish/reopen after reload, Upcoming navigation, Mood Garden empty state, and forced task-update failures. The common layout now uses the root session provider instead of mounting a second provider; this prevents an authenticated account menu from briefly or persistently showing Sign In after login. This pass has no schema change. Live provider resync remains a separate Calendar integration check.
+
 ## Focus page pass (September 22, 2026)
 
 Focus loads the full unfiltered task list on direct entry, including when Tasks had a filter selected, and keeps that list after a task is completed or postponed. Its queue offers search and expandable ready, later, and completed-today sections. On phones, the queue appears before the empty ritual and becomes a labeled collapsed strip after task selection; it has its own scroll area so it cannot cover the session card. An active or paused timer blocks switching and queue completion until the round is ended. The timer, break, companion, chime, and sun-drop behavior remain in place. An early-ended round now reports the time actually protected, including after a reload or skipped break, instead of claiming the planned duration. Initial task loading uses a skeleton and a retryable failure state, avoiding a false empty page. No schema change is needed.
@@ -333,8 +339,8 @@ server validation may still wait for confirmation.
 
 ### Weekly review and completion history
 
-- Plan includes a four-step weekly review: completed tasks and past events, optional reflections, unfinished-task choices, and next-week priorities. Tasks links to history and has a collapsed Completed today section with Undo.
-- `WeeklyReview` stores private per-user, per-Sunday reflections, priorities, selected calendars, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save reflection saves a draft; Finish review marks it complete and immediately shows a persistent completion confirmation. Editing a completed review reopens it. Changing weeks saves pending edits first.
+- Review presents completed tasks and past events, optional reflections, unfinished-task choices, and next-week priorities on one page. Tasks links to history and has a collapsed Completed today section with Undo.
+- `WeeklyReview` stores private per-user, per-Sunday reflections, priorities, selected calendars, and completion state in PostgreSQL. Reflections are editable notes, never sent to AI or shared through Friends. Save draft saves an unfinished reflection; Finish review marks it complete and immediately shows a persistent completion confirmation. Editing a completed review can reopen it as a draft or finish it again. Changing weeks saves pending edits first.
 - The weekly-review selector opens with This week first, followed by past weeks from newest to oldest. Upcoming weeks remain available in a separate group after the historical list, keeping review history as the primary path.
 - History queries actual `completedAt` in the account timezone in pages of 100. Everyday task requests load active tasks and today's completions. Legacy completions without a timestamp cannot be assigned to a historical week.
 - Past events use stored, ended occurrences from the user's calendars, excluding cancellations and known mirrored task blocks. They are read-only memory cues rather than attendance records; users choose which calendars provide that context. Durations are scheduled time, not attendance; all-day events are separate. Lists reflect currently synced data rather than immutable snapshots.
